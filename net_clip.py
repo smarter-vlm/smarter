@@ -1,8 +1,3 @@
-#!/usr/bin/env python3
-# Copyright (c) 2023 Mitsubishi Electric Research Laboratories (MERL)
-#
-# SPDX-License-Identifier: MIT
-#
 
 import warnings
 

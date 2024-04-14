@@ -148,3 +148,5 @@ data/
 dataset/
 
 hf_token
+.comet_token
+.comet_workspace
