@@ -1,6 +1,4 @@
-# Copyright (c) 2023 Mitsubishi Electric Research Laboratories (MERL)
-#
-# SPDX-License-Identifier: MIT
+# DR TODO: update these to allow for the vision models I want 
 charset-normalizer==3.1.0
 click==8.1.3
 contourpy==1.0.7

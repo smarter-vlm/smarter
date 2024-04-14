@@ -525,6 +525,11 @@ def load_pretrained_models(args, model_name, model=None):
         feature_extractor = AutoFeatureExtractor.from_pretrained("facebook/vit-mae-base")
         model = ViTMAEModel.from_pretrained("facebook/vit-mae-base")
         preprocess = feature_extractor
+    elif args.model_name == "dinov2":
+        dinov2_vits14 = torch.hub.load('facebookresearch/dinov2', 'dinov2_vits14')
+        # TODO:
+    elif args.model_name == "dinov2+siglip":
+        pass #TODO
 
     else:
         print("model name is %s: not loading pre-trained model." % (args.model_name))
