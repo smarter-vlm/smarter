@@ -178,12 +178,13 @@ class SMART_VL_CLIP_Net(nn.Module):
 
         im_feat = self.encode_image(im_feat.float(), puzzle_ids)
         q_feat = self.encode_text(q_feat.float())
-        qv_feat = self.qv_fusion(torch.cat([im_feat, q_feat], dim=1))
+        # qv_feat = self.qv_fusion(torch.cat([im_feat, q_feat], dim=1))
 
         # They concat here
-        # prod
-        clip_feat_prod_mlped = im_feat * q_feat
-        print("shapes", im_feat.shape, q_feat.shape, clip_feat_prod_mlped.shape)
+        # prod; should be the same shape bc they are both bert
+        clip_feat_prod = im_feat * q_feat
+        # print("shapes", im_feat.shape, q_feat.shape, clip_feat_prod_mlped.shape)
+        qv_feat = self.qv_fusion(clip_feat_prod)
        
 
         if self.monolithic:
