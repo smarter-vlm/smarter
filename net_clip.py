@@ -182,15 +182,15 @@ class SMART_VL_CLIP_Net(nn.Module):
 
         # They concat here
         # prod
-        clip_feat_prod_mlped = self.qv_fusion(im_feat * q_feat)
-        print("shapes", im_feat.shape, q_feat.shape)
+        clip_feat_prod_mlped = im_feat * q_feat
+        print("shapes", im_feat.shape, q_feat.shape, clip_feat_prod_mlped.shape)
        
 
         if self.monolithic:
             qv_feat = qv_feat.unsqueeze(1)
             qvo_feat = self.qvo_fusion(qv_feat).squeeze()
         else:
-            # qvo_feat = self.decode_individual_puzzles(qv_feat, puzzle_ids)
-            qvo_feat = self.decode_individual_puzzles(clip_feat_prod_mlped, puzzle_ids)
+            qvo_feat = self.decode_individual_puzzles(qv_feat, puzzle_ids)
+            # qvo_feat = self.decode_individual_puzzles(clip_feat_prod_mlped, puzzle_ids)
 
         return qvo_feat
