@@ -31,7 +31,8 @@ torch==1.13.1
 torchvision==0.14.1
 tqdm==4.65.0
 # transformers==4.26.0
-transformers==4.31.0
+# transformers==4.31.0 # can't find dinov2
+transformers==4.33.3
 typing_extensions==4.5.0
 urllib3==1.26.15
 vit-pytorch==1.2.0
