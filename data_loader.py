@@ -44,7 +44,7 @@ class SMART_Data(Dataset):
                     Normalize(torch.Tensor([0.5]), torch.Tensor([0.5])),
                 ]
             )
-        elif args.model_name in ["flava", "mae"]:  # this will do feature extractin later.
+        elif args.model_name in ["flava", "mae", "dinov2"]:  # this will do feature extractin later.
             self.transform = Compose(
                 [
                     Resize(300),
