@@ -412,7 +412,4 @@ if __name__ == "__main__":
     print(args)
     print("num_puzzles=%d" % (len(args.puzzle_ids)))
 
-    dinov2_vits14 = torch.hub.load('facebookresearch/dinov2', 'dinov2_vits14')
-    print(dinov2_vits14)
-
     train(args, dataloader, im_backbone)

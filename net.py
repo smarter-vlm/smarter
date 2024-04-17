@@ -267,6 +267,14 @@ class SMART_Net(nn.Module):
             self.im_cnn = lambda x: self.process_MAE(x)  # inputs = feature_extractor(images=image, return_tensors="pt")
             self.im_backbone = im_backbone
             self.im_feat_size = 768
+
+        #dinov2 should be similar to mae
+        elif args.model_name in ["dinov2"]:
+            self.preprocess = args.preprocess
+            self.im_cnn = lambda x: self.process_MAE(x)
+            self.im_backbone = im_backbone
+            self.im_feat_size = 768
+
         elif args.model_name in ["cross_transformer"]:  # when using a vision transformer model.
             from vit_pytorch.crossformer import CrossFormer
 
@@ -322,6 +330,7 @@ class SMART_Net(nn.Module):
         inputs = self.preprocess(images=x, return_tensors="pt").to("cuda")
         outputs = self.im_backbone(**inputs)
         return outputs.last_hidden_state.mean(1)
+    
 
     def create_puzzle_head(self, args):
         if args.use_single_image_head:
@@ -522,8 +531,12 @@ def load_pretrained_models(args, model_name, model=None):
         model = ViTMAEModel.from_pretrained("facebook/vit-mae-base")
         preprocess = feature_extractor
     elif args.model_name == "dinov2":
-        dinov2_vits14 = torch.hub.load('facebookresearch/dinov2', 'dinov2_vits14')
-        # TODO:
+        # dinov2_vits14 = torch.hub.load('facebookresearch/dinov2', 'dinov2_vits14')
+        from transformers import AutoImageProcessor, Dinov2Model
+        image_processor = AutoImageProcessor.from_pretrained("facebook/dinov2-base")
+        model = Dinov2Model.from_pretrained("facebook/dinov2-base")
+        preprocess = image_processor
+       
     elif args.model_name == "dinov2+clip":
         pass #TODO
 
