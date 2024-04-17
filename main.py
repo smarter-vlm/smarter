@@ -60,8 +60,8 @@ def train(args, dataloader, im_backbone):
         model = net_clip.SMART_VL_CLIP_Net(args, VL_backbone=im_backbone)
     else:
         model = net.SMART_Net(args, im_backbone=im_backbone)
-
-    model = model.cuda()
+    device = torch.device("cuda")
+    model.to(device)
     log_model(experiment, model, model_name="TheModel")
 
     parameters = model.parameters()
@@ -101,7 +101,8 @@ def train(args, dataloader, im_backbone):
         model.train()
         tot_loss = 0.0
         for i, (im, q, _, a, av, pids) in tqdm(enumerate(train_loader)):
-            im = im.cuda()
+            # im = im.cuda()
+            im = im.to(device)
             q = q.cuda()
             a = a.cuda()
             av = av.cuda()
@@ -304,7 +305,7 @@ def get_data_loader(args, split, batch_size=100, shuffle=True, num_workers=6, pi
 
 
 if __name__ == "__main__":
-    device = "cuda"
+    device = torch.device("cuda")
 
     parser = argparse.ArgumentParser(description="SMART dataset")
     parser.add_argument(
@@ -411,8 +412,5 @@ if __name__ == "__main__":
 
     print(args)
     print("num_puzzles=%d" % (len(args.puzzle_ids)))
-
-    dinov2_vits14 = torch.hub.load('facebookresearch/dinov2', 'dinov2_vits14')
-    print(dinov2_vits14)
 
     train(args, dataloader, im_backbone)
