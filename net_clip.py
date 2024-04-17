@@ -59,6 +59,13 @@ class SMART_VL_CLIP_Net(nn.Module):
             nn.Linear(self.out_dim, self.out_dim),
             nn.ReLU(),
         )
+        self.new_qv_fusion = nn.Sequential(
+            nn.Linear(self.out_dim, self.out_dim),
+            nn.GELU(),
+            nn.Linear(self.out_dim, self.out_dim),
+            nn.GELU(),
+        )
+
         if self.monolithic:
             self.qvo_fusion = nn.Sequential(nn.Linear(self.out_dim, self.max_val))
         else:
@@ -184,7 +191,7 @@ class SMART_VL_CLIP_Net(nn.Module):
         # prod; should be the same shape bc they are both bert
         clip_feat_prod = im_feat * q_feat
         # print("shapes", im_feat.shape, q_feat.shape, clip_feat_prod_mlped.shape)
-        qv_feat = self.qv_fusion(clip_feat_prod)
+        qv_feat = self.new_qv_fusion(clip_feat_prod)
        
 
         if self.monolithic:
