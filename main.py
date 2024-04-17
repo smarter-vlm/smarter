@@ -101,8 +101,7 @@ def train(args, dataloader, im_backbone):
         model.train()
         tot_loss = 0.0
         for i, (im, q, _, a, av, pids) in tqdm(enumerate(train_loader)):
-            # im = im.cuda()
-            im = im.to("cuda")
+            im = im.cuda()
             q = q.cuda()
             a = a.cuda()
             av = av.cuda()
