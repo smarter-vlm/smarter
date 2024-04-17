@@ -145,7 +145,7 @@ dmypy.json
 # Caches and Datasets
 cache/
 data/
-dataset/
+#dataset/
 
 hf_token
 .comet_token
