@@ -67,6 +67,7 @@ class SMART_VL_CLIP_Net(nn.Module):
             nn.LayerNorm(self.out_dim),
             nn.Linear(self.out_dim, self.out_dim),
             nn.GELU(),
+            nn.LayerNorm(self.out_dim),
         )
 
         if self.monolithic:
@@ -204,7 +205,7 @@ class SMART_VL_CLIP_Net(nn.Module):
         clip_feat_prod = proj_im_feat * q_feat
         clip_feat_prod = clip_feat_prod + im_feat
 
-        # Add GElu and Layernorm instead
+        # Add GElu and Layernorm instead; might be doing better
         qv_feat = self.new_qv_fusion(clip_feat_prod)
 
        # -----------end ClipUnet block
