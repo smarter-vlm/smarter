@@ -35,6 +35,7 @@ experiment = Experiment(
     api_key=API_KEY,
     project_name="vlm-reasoners",
     workspace=workspace,
+    auto_metric_logging=True
 )
 
 def reset_state(args):
