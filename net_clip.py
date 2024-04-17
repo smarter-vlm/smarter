@@ -180,6 +180,10 @@ class SMART_VL_CLIP_Net(nn.Module):
         q_feat = self.encode_text(q_feat.float())
         qv_feat = self.qv_fusion(torch.cat([im_feat, q_feat], dim=1))
 
+        # They concat here
+        # prod
+        clip_feat_prod = im_feat * q_feat
+
         if self.monolithic:
             qv_feat = qv_feat.unsqueeze(1)
             qvo_feat = self.qvo_fusion(qv_feat).squeeze()
