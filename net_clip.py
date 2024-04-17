@@ -208,7 +208,9 @@ class SMART_VL_CLIP_Net(nn.Module):
         # Add GElu and Layernorm instead; might be doing better
         qv_feat = self.new_qv_fusion(clip_feat_prod)
 
-       # -----------end ClipUnet block
+        #TODO: take these out as feat
+
+       # -----------end ClipUnet block 
 
         if self.monolithic:
             qv_feat = qv_feat.unsqueeze(1)
