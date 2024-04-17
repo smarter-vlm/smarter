@@ -33,7 +33,7 @@ workspace = Path(".comet_workspace").read_text().strip()
 
 experiment = Experiment(
     api_key=API_KEY,
-    project_name="vlm_reasoners",
+    project_name="vlm-reasoners",
     workspace=workspace,
 )
 
