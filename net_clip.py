@@ -194,7 +194,7 @@ class SMART_VL_CLIP_Net(nn.Module):
         # the paper gets last three frozen layers in ResNET but start here; nd I already have 2 MLP in Seq but the shapes work different here
         
         # project visual (TODO: the device issue need be fixed)
-        self.pl = nn.Linear(self.out_dim, self.out_dim, bias=False)
+        self.pl = nn.Linear(self.out_dim, self.out_dim, bias=False).to("cuda")
         proj_im_feat = self.pl(im_feat)
         # add 
         im_feat = proj_im_feat + im_feat
