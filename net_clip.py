@@ -182,9 +182,9 @@ class SMART_VL_CLIP_Net(nn.Module):
 
         # They concat here
         # prod
-        clip_feat_prod = im_feat * q_feat
+        clip_feat_prod_mlped = self.qv_fusion(im_feat * q_feat)
         print("shapes", im_feat.shape, q_feat.shape)
-        print("what is the VL backbone", self.VL_backbone)
+       
 
         if self.monolithic:
             qv_feat = qv_feat.unsqueeze(1)
