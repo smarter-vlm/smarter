@@ -54,14 +54,17 @@ def train(args, dataloader, im_backbone):
     criterion = losses.Criterion(args)
     if args.model_name == "flava":
         model = net.SMART_VL_Net(args, VL_backbone=im_backbone)
+
     elif args.model_name == "clip":
         import net_clip
 
         model = net_clip.SMART_VL_CLIP_Net(args, VL_backbone=im_backbone)
     else:
         model = net.SMART_Net(args, im_backbone=im_backbone)
+
     device = torch.device("cuda")
     model.to(device)
+
     log_model(experiment, model, model_name="TheModel")
 
     parameters = model.parameters()
@@ -135,6 +138,7 @@ def train(args, dataloader, im_backbone):
 
     def val_loop(val_loader, model):
         model.eval()
+        log_model(experiment, model, model_name="TheModel")
         acc_mean = 0
         cnt = 0
         err_mean = 0
