@@ -193,8 +193,9 @@ class SMART_VL_CLIP_Net(nn.Module):
         # Assemble a "Seen the unseen" block: project-vision-add-vision-prod-text (PVAVNPT)
         # the paper gets last three frozen layers in ResNET but start here; nd I already have 2 MLP in Seq but the shapes work different here
         
-        # project visual
-        proj_im_feat = nn.Linear(self.out_dim, self.out_dim, bias=False)(im_feat)
+        # project visual (TODO: the device issue need be fixed)
+        self.pl = nn.Linear(self.out_dim, self.out_dim, bias=False)
+        proj_im_feat = self.pl(im_feat)
         # add 
         im_feat = proj_im_feat + im_feat
         # norm them first before prod
