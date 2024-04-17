@@ -524,7 +524,7 @@ def load_pretrained_models(args, model_name, model=None):
     elif args.model_name == "dinov2":
         dinov2_vits14 = torch.hub.load('facebookresearch/dinov2', 'dinov2_vits14')
         # TODO:
-    elif args.model_name == "dinov2+siglip":
+    elif args.model_name == "dinov2+clip":
         pass #TODO
 
     else:
