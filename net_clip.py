@@ -59,9 +59,12 @@ class SMART_VL_CLIP_Net(nn.Module):
             nn.Linear(self.out_dim, self.out_dim),
             nn.ReLU(),
         )
+        self.pl = nn.Linear(self.out_dim, self.out_dim, bias=False)
+
         self.new_qv_fusion = nn.Sequential(
             nn.Linear(self.out_dim, self.out_dim),
             nn.GELU(),
+            nn.LayerNorm(self.out_dim),
             nn.Linear(self.out_dim, self.out_dim),
             nn.GELU(),
         )
@@ -190,20 +193,21 @@ class SMART_VL_CLIP_Net(nn.Module):
         # They concat here
         # prod; should be the same shape bc they are both bert
 
-        # Assemble a "ClipUnet" block: project-vision-prod-text-add-vision
+        # Assemble a "ClipUnet" block from "Seeing the Unsenen": project-vision-prod-text-add-vision
 
         # the paper gets last three frozen layers in ResNET but start here; nd I already have 2 MLP in Seq but the shapes work different here
         
         # project visual (TODO: the device issue need be fixed)
-        self.pl = nn.Linear(self.out_dim, self.out_dim, bias=False).to("cuda")
+       
         proj_im_feat = self.pl(im_feat)
 
         clip_feat_prod = proj_im_feat * q_feat
         clip_feat_prod = clip_feat_prod + im_feat
 
-        # print("shapes", im_feat.shape, q_feat.shape, clip_feat_prod_mlped.shape)
+        # Add GElu and Layernorm instead
         qv_feat = self.new_qv_fusion(clip_feat_prod)
-       
+
+       # -----------end ClipUnet block
 
         if self.monolithic:
             qv_feat = qv_feat.unsqueeze(1)
