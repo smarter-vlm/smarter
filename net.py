@@ -333,7 +333,7 @@ class SMART_Net(nn.Module):
     
     def process_dinov2(self, x):
         # takes tensors not pils
-        print("what is x", x)
+        # print("what is x", x)
         device = torch.device("cuda")
         inputs = self.preprocess(images=x, return_tensors="pt").to(device)
         with torch.no_grad():
