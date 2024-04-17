@@ -189,6 +189,10 @@ class SMART_VL_CLIP_Net(nn.Module):
 
         # They concat here
         # prod; should be the same shape bc they are both bert
+        # norm them first
+        im_feat /= im_feat.norm(dim=-1, keepdim=True)
+        q_feat /= q_feat.norm(dim=-1, keepdim=True)
+
         clip_feat_prod = im_feat * q_feat
         # print("shapes", im_feat.shape, q_feat.shape, clip_feat_prod_mlped.shape)
         qv_feat = self.new_qv_fusion(clip_feat_prod)
