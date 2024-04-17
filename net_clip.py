@@ -190,6 +190,7 @@ class SMART_VL_CLIP_Net(nn.Module):
             qv_feat = qv_feat.unsqueeze(1)
             qvo_feat = self.qvo_fusion(qv_feat).squeeze()
         else:
-            qvo_feat = self.decode_individual_puzzles(qv_feat, puzzle_ids)
+            # qvo_feat = self.decode_individual_puzzles(qv_feat, puzzle_ids)
+            qvo_feat = self.decode_individual_puzzles(clip_feat_prod_mlped, puzzle_ids)
 
         return qvo_feat
