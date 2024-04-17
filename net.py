@@ -335,7 +335,8 @@ class SMART_Net(nn.Module):
         # takes tensors not pils
         # print("what is x", x)
         device = torch.device("cuda")
-        inputs = self.preprocess(images=x, return_tensors="pt").to(device)
+        # this would double rescale I think
+        inputs = self.preprocess(images=x, do_rescale=False, return_tensors="pt").to(device)
         with torch.no_grad():
             outputs = self.im_backbone(**inputs)
         return outputs.last_hidden_state.mean(1)
