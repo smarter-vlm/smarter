@@ -65,6 +65,7 @@ def train(args, dataloader, im_backbone):
 
     device = torch.device("cuda")
     model.to(device)
+    print("\n Model architecture: \n", model)
 
     log_model(experiment, model, model_name="TheModel")
 
@@ -91,13 +92,15 @@ def train(args, dataloader, im_backbone):
 
     def save_model(args, net, acc, epoch, location):
         
-        with experiment.context_manager("state_dict"):
+        with experiment.context_manager("saved_state_dict"):
             state = {
             "net": net.state_dict(),
             "acc": acc,
             "epoch": epoch,
             }
-            experiment.log_metrics(state)
+            experiment.log_metrics({
+                            "acc": acc,
+                            })
 
             if not os.path.isdir(location):
                 os.mkdir(location)
