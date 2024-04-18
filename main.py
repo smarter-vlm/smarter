@@ -150,6 +150,7 @@ def train(args, dataloader, im_backbone):
     def val_loop(val_loader, model):
         model.eval()
         acc_mean = 0
+        val_tot_loss = 0.0
         cnt = 0
         err_mean = 0
         opt_mean = 0
@@ -164,8 +165,9 @@ def train(args, dataloader, im_backbone):
 
                 out = model(im, q, puzzle_ids=pids)
                 val_loss = criterion(out, av, pids)
+                val_tot_loss += val_loss.item()
 
-                experiment.log_metrics({"batch_loss":val_loss.item()}, step=i)
+                experiment.log_metrics({"val_batch_loss":val_loss.item()}, step=i)
 
                 if not args.monolithic:
                     av = av.cpu()
@@ -233,13 +235,14 @@ def train(args, dataloader, im_backbone):
                 acc_mean += acc
                 err_mean += error
                 cnt += len(av)
-
-        return acc_mean / float(cnt), err_mean / float(cnt), opt_mean / float(cnt), puzzle_acc
+                val_tot_loss += val_loss.item()
+        val_tot_loss /= float(i)
+        return acc_mean / float(cnt), err_mean / float(cnt), opt_mean / float(cnt), puzzle_acc, val_tot_loss
 
     def test_loop(test_loader, model):
         
         with experiment.context_manager("test"):
-            acc, err, opt, puzzle_acc = val_loop(test_loader, model)
+            acc, err, opt, puzzle_acc, val_ep_loss = val_loop(test_loader, model)
             class_perf = utils.print_puzz_acc(args, puzzle_acc, log=True)
             print(
                     "***** Final Test Performance: S_acc = %0.2f O_acc = %0.2f Prediction Variance = %0.2f "
@@ -285,8 +288,8 @@ def train(args, dataloader, im_backbone):
             model.eval()
 
             with experiment.context_manager("val"):
-                acc, err, oacc, puz_acc = val_loop(val_loader, model)
-                experiment.log_metrics({"acc": acc, "var": err, "oacc": oacc}, epoch=epoch)
+                acc, err, oacc, puz_acc, val_tot_loss = val_loop(val_loader, model)
+                experiment.log_metrics({"acc": acc, "var": err, "oacc": oacc, "epoch_loss": val_tot_loss}, epoch=epoch)
 
             class_avg_perf = utils.print_puzz_acc(args, puz_acc, log=args.log)
 
@@ -316,7 +319,7 @@ def train(args, dataloader, im_backbone):
                 
 
         # if epoch % args.log_freq == 0:
-        acc, err, oacc, puz_acc = val_loop(test_loader, model)
+        acc, err, oacc, puz_acc, val_tot_loss = val_loop(test_loader, model)
         print(
             "puzzles %s: val: s_acc/o_acc/var = %f/%f/%f (%d)"
             % (args.puzzles, acc * 100, oacc * 100, err, best_epoch)
