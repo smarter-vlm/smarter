@@ -2,6 +2,9 @@
 import os
 from pathlib import Path
 
+import comet_ml 
+import pytorch_lightning as pl
+
 import numpy as np
 from comet_ml import Experiment
 from comet_ml.integration.pytorch import log_model
@@ -26,6 +29,8 @@ import globvars as gv
 import losses
 import net
 import utils
+
+AVAIL_GPUS = min(1, torch.cuda.device_count())
 
 
 API_KEY = Path(".comet_token").read_text().strip()
@@ -137,6 +142,8 @@ def train(args, dataloader, im_backbone):
                 optimizer.step()  # meta update.
             tot_loss += loss.item()
 
+            experiment.log_metric({"train_batch_loss":loss.item()}, step=i)
+
         tot_loss /= float(i)
         return tot_loss
 
@@ -152,7 +159,12 @@ def train(args, dataloader, im_backbone):
                 im = im.cuda()
                 q = q.cuda()
                 o = np.array(o)
+
                 out = model(im, q, puzzle_ids=pids)
+                val_loss = criterion(out, av, pids)
+
+                print("out shape in val_loader", out.shape)
+                experiment.log_metric({"val_batch_loss":val_loss.item()}, step=i)
 
                 if not args.monolithic:
                     upids = torch.unique(pids)
