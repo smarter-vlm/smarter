@@ -266,7 +266,7 @@ def train(args, dataloader, im_backbone):
             model.eval()
             with experiment.context_manager("validation"):
                 acc, err, oacc, puz_acc = val_loop(val_loader, model)
-                experiment.log_metrics({"acc": acc, "err": err, "oacc": oacc, "puzz_acc": puz_acc}, epoch=epoch)
+                experiment.log_metrics({"acc": acc, "err": err, "oacc": oacc}, epoch=epoch)
             
             if acc >= best_acc:
                 best_epoch = epoch
@@ -285,7 +285,9 @@ def train(args, dataloader, im_backbone):
                     "%d) Time taken=%f Epoch=%d Train_loss = %f S_acc = %f O_acc=%f Variance = %f Best S_acc (epoch) = %f (%d)\n"
                     % (gv.seed, tt, epoch, loss, acc * 100, oacc * 100, err, best_acc * 100, best_epoch)
                 )
-                utils.print_puzz_acc(args, puz_acc, log=args.log)
+                with experiment.context_manager("train"):
+                    experiment.log_metrics({"loss": loss, "acc": acc, "err": err, "oacc": oacc}, epoch=epoch)
+                    utils.print_puzz_acc(args, puz_acc, log=args.log)
 
         if epoch % args.log_freq == 0:
             acc, err, oacc, puz_acc = val_loop(test_loader, model)
