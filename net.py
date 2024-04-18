@@ -481,7 +481,7 @@ class SMART_Net(nn.Module):
     def forward(self, im, q=None, puzzle_ids=None):
         # im_feat = self.encode_image(im, puzzle_ids)
         q_feat = self.encode_text(q)
-        im_feat = self.encode_image(im_feat.float(), puzzle_ids)
+        im_feat = self.encode_image(im.float(), puzzle_ids).float()
        
         qv_feat = self.qv_fusion(torch.cat([im_feat, q_feat], dim=1))
         if self.monolithic:
