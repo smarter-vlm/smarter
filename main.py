@@ -91,16 +91,11 @@ def train(args, dataloader, im_backbone):
         return pred_max
 
     def save_model(args, net, acc, epoch, location):
-        
-        with experiment.context_manager("saved_state_dict"):
             state = {
             "net": net.state_dict(),
             "acc": acc,
             "epoch": epoch,
             }
-            experiment.log_metrics({
-                            "acc": acc,
-                            })
 
             if not os.path.isdir(location):
                 os.mkdir(location)
@@ -269,7 +264,10 @@ def train(args, dataloader, im_backbone):
 
         if epoch % 1 == 0:
             model.eval()
-            acc, err, oacc, puz_acc = val_loop(val_loader, model)
+            with experiment.context_manager("validation"):
+                acc, err, oacc, puz_acc = val_loop(val_loader, model)
+                experiment.log_metrics({"acc": acc, "err": err, "oacc": oacc, "puzz_acc": puz_acc}, epoch=epoch)
+            
             if acc >= best_acc:
                 best_epoch = epoch
                 best_acc = acc
