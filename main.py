@@ -281,11 +281,19 @@ def train(args, dataloader, im_backbone):
 
         tt = time.time() - tt
 
-        if epoch % 1 == 0:
+        if epoch >= 0: # always eval
             model.eval()
-            with experiment.context_manager("validation"):
+
+            with experiment.context_manager("val"):
                 acc, err, oacc, puz_acc = val_loop(val_loader, model)
                 experiment.log_metrics({"acc": acc, "var": err, "oacc": oacc}, epoch=epoch)
+
+            class_avg_perf = utils.print_puzz_acc(args, puz_acc, log=args.log)
+
+            with experiment.context_manager("val_acc"):
+                experiment.log_metrics({k:v[0] for k,v in class_avg_perf.items()}, epoch=epoch)
+            with experiment.context_manager("val_oacc"):
+                experiment.log_metrics({k:v[1] for k,v in class_avg_perf.items()}, epoch=epoch)
             
             if acc >= best_acc:
                 best_epoch = epoch
@@ -299,24 +307,20 @@ def train(args, dataloader, im_backbone):
                     print("no training improvement... stopping the training.")
                     class_avg_perf = utils.print_puzz_acc(args, puz_acc, log=args.log)
                     break
-            if epoch % args.log_freq == 0:
-                print(
-                    "%d) Time taken=%f Epoch=%d Train_loss = %f S_acc = %f O_acc=%f Variance = %f Best S_acc (epoch) = %f (%d)\n"
-                    % (gv.seed, tt, epoch, loss, acc * 100, oacc * 100, err, best_acc * 100, best_epoch)
-                )
-                class_avg_perf = utils.print_puzz_acc(args, puz_acc, log=args.log)
-                with experiment.context_manager("validation_class_acc"):
-                    experiment.log_metrics({k:v[0] for k,v in class_avg_perf.items()}, epoch=epoch)
-                with experiment.context_manager("validation_class_opt_acc"):
-                    experiment.log_metrics({k:v[1] for k,v in class_avg_perf.items()}, epoch=epoch)
-                   
-
-        if epoch % args.log_freq == 0:
-            acc, err, oacc, puz_acc = val_loop(test_loader, model)
+            # if epoch % args.log_freq == 0:
             print(
-                "puzzles %s: val: s_acc/o_acc/var = %f/%f/%f (%d)"
-                % (args.puzzles, acc * 100, oacc * 100, err, best_epoch)
+                "%d) Time taken=%f Epoch=%d Train_loss = %f S_acc = %f O_acc=%f Variance = %f Best S_acc (epoch) = %f (%d)\n"
+                % (gv.seed, tt, epoch, loss, acc * 100, oacc * 100, err, best_acc * 100, best_epoch)
             )
+            
+                
+
+        # if epoch % args.log_freq == 0:
+        acc, err, oacc, puz_acc = val_loop(test_loader, model)
+        print(
+            "puzzles %s: val: s_acc/o_acc/var = %f/%f/%f (%d)"
+            % (args.puzzles, acc * 100, oacc * 100, err, best_epoch)
+        )
 
     test_loop(test_loader, best_model)
 
