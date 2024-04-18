@@ -165,7 +165,7 @@ def train(args, dataloader, im_backbone):
                 out = model(im, q, puzzle_ids=pids)
                 val_loss = criterion(out, av, pids)
 
-                experiment.log_metrics({"val_batch_loss":val_loss.item()}, step=i)
+                experiment.log_metrics({"batch_loss":val_loss.item()}, step=i)
 
                 if not args.monolithic:
                     av = av.cpu()
