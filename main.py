@@ -158,9 +158,8 @@ def train(args, dataloader, im_backbone):
             for i, (im, q, o, a, av, pids) in enumerate(val_loader):
                 q = q.cuda()
                 im = im.to(device)
-           
-                a = a.cuda()
                 av = av.cuda()
+                
                 o = np.array(o)
 
                 out = model(im, q, puzzle_ids=pids)
@@ -170,6 +169,7 @@ def train(args, dataloader, im_backbone):
                 experiment.log_metrics({"val_batch_loss":val_loss.item()}, step=i)
 
                 if not args.monolithic:
+                    av = av.cpu()
                     upids = torch.unique(pids)
                     acc = 0
                     error = 0
@@ -212,10 +212,10 @@ def train(args, dataloader, im_backbone):
                     elif args.loss_type == "regression":
                         pred_max = torch.floor(out).long().cpu()
 
-                    acc = (pred_max == av).float().sum()
-                    opt = utils.get_option_sel_acc(pred_max, o, a, av, -1)
+                    acc = (pred_max == av.cpu()).float().sum()
+                    opt = utils.get_option_sel_acc(pred_max, o, a.cpu(), av.cpu(), -1)
                     opts_acc = opt.sum()
-                    error = normalize(torch.abs(pred_max - av).float(), pids).sum()
+                    error = normalize(torch.abs(pred_max - av.cpu()).float(), pids).sum()
 
                     # compute accuracy per puzzle.()
                     for t in [int(s) for s in pids]:
