@@ -159,13 +159,12 @@ def train(args, dataloader, im_backbone):
                 q = q.cuda()
                 im = im.to(device)
                 av = av.cuda()
-                
+
                 o = np.array(o)
 
                 out = model(im, q, puzzle_ids=pids)
                 val_loss = criterion(out, av, pids)
 
-                print("out shape in val_loader", im.shape)
                 experiment.log_metrics({"val_batch_loss":val_loss.item()}, step=i)
 
                 if not args.monolithic:
