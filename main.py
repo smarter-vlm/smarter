@@ -156,8 +156,11 @@ def train(args, dataloader, im_backbone):
         puzzle_acc = {}
         with torch.no_grad():
             for i, (im, q, o, a, av, pids) in enumerate(val_loader):
-                im = im.cuda()
                 q = q.cuda()
+                im = im.to(device)
+           
+                a = a.cuda()
+                av = av.cuda()
                 o = np.array(o)
 
                 out = model(im, q, puzzle_ids=pids)
