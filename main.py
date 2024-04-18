@@ -2,6 +2,9 @@
 import os
 from pathlib import Path
 
+import comet_ml 
+import pytorch_lightning as pl
+
 import numpy as np
 from comet_ml import Experiment
 from comet_ml.integration.pytorch import log_model
@@ -27,6 +30,8 @@ import losses
 import net
 import utils
 
+AVAIL_GPUS = min(1, torch.cuda.device_count())
+
 
 API_KEY = Path(".comet_token").read_text().strip()
 workspace = Path(".comet_workspace").read_text().strip()
@@ -35,6 +40,7 @@ experiment = Experiment(
     api_key=API_KEY,
     project_name="vlm-reasoners",
     workspace=workspace,
+    auto_metric_logging=True # default
 )
 
 def reset_state(args):
@@ -54,15 +60,19 @@ def train(args, dataloader, im_backbone):
     criterion = losses.Criterion(args)
     if args.model_name == "flava":
         model = net.SMART_VL_Net(args, VL_backbone=im_backbone)
+
     elif args.model_name == "clip":
         import net_clip
 
         model = net_clip.SMART_VL_CLIP_Net(args, VL_backbone=im_backbone)
     else:
         model = net.SMART_Net(args, im_backbone=im_backbone)
+
     device = torch.device("cuda")
     model.to(device)
-    log_model(experiment, model, model_name="TheModel")
+    print("\n Model architecture: \n", model)
+
+    log_model(experiment, model, model_name="Puzzle_Net")
 
     parameters = model.parameters()
     if not args.no_meta:
@@ -86,16 +96,18 @@ def train(args, dataloader, im_backbone):
         return pred_max
 
     def save_model(args, net, acc, epoch, location):
-        state = {
+            state = {
             "net": net.state_dict(),
             "acc": acc,
             "epoch": epoch,
-        }
-        if not os.path.isdir(location):
-            os.mkdir(location)
-        loc = os.path.join(location, "ckpt_%s_%s_%s.pth" % (args.model_name, args.word_embed, args.seed))
-        print("saving checkpoint at %s" % (loc))
-        torch.save(state, loc)
+            }
+
+            if not os.path.isdir(location):
+                os.mkdir(location)
+                
+            loc = os.path.join(location, "ckpt_%s_%s_%s.pth" % (args.model_name, args.word_embed, args.seed))
+            print("saving checkpoint at %s" % (loc))
+            torch.save(state, loc)
 
     def train_loop(epoch, train_loader, optimizer):
         model.train()
@@ -130,24 +142,35 @@ def train(args, dataloader, im_backbone):
                 optimizer.step()  # meta update.
             tot_loss += loss.item()
 
+            experiment.log_metrics({"train_batch_loss":loss.item()}, step=i)
+
         tot_loss /= float(i)
         return tot_loss
 
     def val_loop(val_loader, model):
         model.eval()
         acc_mean = 0
+        val_tot_loss = 0.0
         cnt = 0
         err_mean = 0
         opt_mean = 0
         puzzle_acc = {}
         with torch.no_grad():
             for i, (im, q, o, a, av, pids) in enumerate(val_loader):
-                im = im.cuda()
                 q = q.cuda()
+                im = im.to(device)
+                av = av.cuda()
+
                 o = np.array(o)
+
                 out = model(im, q, puzzle_ids=pids)
+                val_loss = criterion(out, av, pids)
+                val_tot_loss += val_loss.item()
+
+                experiment.log_metrics({"val_batch_loss":val_loss.item()}, step=i)
 
                 if not args.monolithic:
+                    av = av.cpu()
                     upids = torch.unique(pids)
                     acc = 0
                     error = 0
@@ -190,10 +213,10 @@ def train(args, dataloader, im_backbone):
                     elif args.loss_type == "regression":
                         pred_max = torch.floor(out).long().cpu()
 
-                    acc = (pred_max == av).float().sum()
-                    opt = utils.get_option_sel_acc(pred_max, o, a, av, -1)
+                    acc = (pred_max == av.cpu()).float().sum()
+                    opt = utils.get_option_sel_acc(pred_max, o, a.cpu(), av.cpu(), -1)
                     opts_acc = opt.sum()
-                    error = normalize(torch.abs(pred_max - av).float(), pids).sum()
+                    error = normalize(torch.abs(pred_max - av.cpu()).float(), pids).sum()
 
                     # compute accuracy per puzzle.()
                     for t in [int(s) for s in pids]:
@@ -212,16 +235,20 @@ def train(args, dataloader, im_backbone):
                 acc_mean += acc
                 err_mean += error
                 cnt += len(av)
-
-        return acc_mean / float(cnt), err_mean / float(cnt), opt_mean / float(cnt), puzzle_acc
+                val_tot_loss += val_loss.item()
+        val_tot_loss /= float(i)
+        return acc_mean / float(cnt), err_mean / float(cnt), opt_mean / float(cnt), puzzle_acc, val_tot_loss
 
     def test_loop(test_loader, model):
-        acc, err, opt, puzzle_acc = val_loop(test_loader, model)
-        utils.print_puzz_acc(args, puzzle_acc, log=True)
-        print(
-            "***** Final Test Performance: S_acc = %0.2f O_acc = %0.2f Prediction Variance = %0.2f "
-            % (acc * 100, opt * 100, err)
-        )
+        
+        with experiment.context_manager("test"):
+            acc, err, opt, puzzle_acc, val_ep_loss = val_loop(test_loader, model)
+            class_perf = utils.print_puzz_acc(args, puzzle_acc, log=True)
+            print(
+                    "***** Final Test Performance: S_acc = %0.2f O_acc = %0.2f Prediction Variance = %0.2f "
+                    % (acc * 100, opt * 100, err)
+                )
+
 
     if args.test:
         net.load_pretrained_models(args, args.model_name, model=model)
@@ -252,11 +279,25 @@ def train(args, dataloader, im_backbone):
         tt = time.time()
         model.train()
         loss = train_loop(epoch, train_loader, optimizer)
+
+        experiment.log_metrics({"epoch_train_loss": loss}, epoch=epoch)
+
         tt = time.time() - tt
 
-        if epoch % 1 == 0:
+        if epoch >= 0: # always eval
             model.eval()
-            acc, err, oacc, puz_acc = val_loop(val_loader, model)
+
+            with experiment.context_manager("val"):
+                acc, err, oacc, puz_acc, val_tot_loss = val_loop(val_loader, model)
+                experiment.log_metrics({"acc": acc, "var": err, "oacc": oacc, "epoch_loss": val_tot_loss}, epoch=epoch)
+
+            class_avg_perf = utils.print_puzz_acc(args, puz_acc, log=args.log)
+
+            with experiment.context_manager("val_acc"):
+                experiment.log_metrics({k:v[0] for k,v in class_avg_perf.items()}, epoch=epoch)
+            with experiment.context_manager("val_oacc"):
+                experiment.log_metrics({k:v[1] for k,v in class_avg_perf.items()}, epoch=epoch)
+            
             if acc >= best_acc:
                 best_epoch = epoch
                 best_acc = acc
@@ -267,21 +308,22 @@ def train(args, dataloader, im_backbone):
                 no_improvement += 1
                 if no_improvement > num_thresh_epochs:
                     print("no training improvement... stopping the training.")
-                    utils.print_puzz_acc(args, puz_acc, log=args.log)
+                    class_avg_perf = utils.print_puzz_acc(args, puz_acc, log=args.log)
                     break
-            if epoch % args.log_freq == 0:
-                print(
-                    "%d) Time taken=%f Epoch=%d Train_loss = %f S_acc = %f O_acc=%f Variance = %f Best S_acc (epoch) = %f (%d)\n"
-                    % (gv.seed, tt, epoch, loss, acc * 100, oacc * 100, err, best_acc * 100, best_epoch)
-                )
-                utils.print_puzz_acc(args, puz_acc, log=args.log)
-
-        if epoch % args.log_freq == 0:
-            acc, err, oacc, puz_acc = val_loop(test_loader, model)
+            # if epoch % args.log_freq == 0:
             print(
-                "puzzles %s: val: s_acc/o_acc/var = %f/%f/%f (%d)"
-                % (args.puzzles, acc * 100, oacc * 100, err, best_epoch)
+                "%d) Time taken=%f Epoch=%d Train_loss = %f S_acc = %f O_acc=%f Variance = %f Best S_acc (epoch) = %f (%d)\n"
+                % (gv.seed, tt, epoch, loss, acc * 100, oacc * 100, err, best_acc * 100, best_epoch)
             )
+            
+                
+
+        # if epoch % args.log_freq == 0:
+        acc, err, oacc, puz_acc, val_tot_loss = val_loop(test_loader, model)
+        print(
+            "puzzles %s: val: s_acc/o_acc/var = %f/%f/%f (%d)"
+            % (args.puzzles, acc * 100, oacc * 100, err, best_epoch)
+        )
 
     test_loop(test_loader, best_model)
 

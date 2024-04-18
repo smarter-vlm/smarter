@@ -6,12 +6,16 @@ import pdb
 import pickle as pkl
 import sys
 
+from comet_ml import Experiment
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from PIL import Image
 
 import globvars as gv
+
+from main import experiment
 
 
 def fix_acc(acc_list):
@@ -29,10 +33,11 @@ def get_icon_dataset_classes(icon_path):
 
 
 def print_puzz_acc(args, puzz_acc, log=True):
+    class_avg_perf = {}
     to_int = lambda x: np.array(list(x)).astype("int")
-    cls_mean = lambda x, idx, pids: np.array([x[int(ii)] for ii in idx]).sum() / len(
-        set(to_int(idx)).intersection(set(to_int(pids)))
-    )
+    cls_mean = lambda x, idx, pids: np.array([x[int(ii)] for ii in idx]).sum() / max(len(
+        set(to_int(idx)).intersection(set(to_int(pids)))), 1) # fix nan
+    
     acc_list = np.zeros(
         gv.num_puzzles + 1,
     )
@@ -43,13 +48,14 @@ def print_puzz_acc(args, puzz_acc, log=True):
     if not os.path.exists(os.path.join(args.save_root, "results/%d/" % (gv.seed))):
         os.makedirs(os.path.join(args.save_root, "results/%d/" % (gv.seed)))
 
-    if len(puzz_acc.keys()) > 10:
+    if len(puzz_acc.keys()) > 4:
         for k, key in enumerate(puzz_acc.keys()):
-            acc = 100.0 * puzz_acc[key][0] / puzz_acc[key][2]
-            oacc = 100.0 * puzz_acc[key][1] / puzz_acc[key][2]
+            acc = 100.0 * puzz_acc[key][0] / puzz_acc[key][2] if puzz_acc[key][2] else 0.0
+            oacc = 100.0 * puzz_acc[key][1] / puzz_acc[key][2] if puzz_acc[key][2] else 0.0
             acc_list[int(key)] = acc
             opt_acc_list[int(key)] = oacc
         if log:
+                    
             for t in range(1, gv.num_puzzles + 1):
                 print("%d opt_acc=%0.2f acc=%0.2f" % (t, opt_acc_list[t], acc_list[t]), end="\t")
                 if t % 5 == 0:
@@ -68,6 +74,8 @@ def print_puzz_acc(args, puzz_acc, log=True):
                 )
                 print("%0.1f/%0.1f & " % (class_avg_perf[kk][0], class_avg_perf[kk][1]), end=" ")
             print("\n\n")
+            
+                
 
         fig = plt.figure(figsize=(30, 4))
         ax = plt.gca()
@@ -105,6 +113,7 @@ def print_puzz_acc(args, puzz_acc, log=True):
         plt.bar(np.arange(gv.num_puzzles + 1), opt_acc_list)
         plt.savefig(os.path.join(args.save_root, "results/%d/opt_acc_perf_scores.png" % (gv.seed)))
         plt.close()
+    return class_avg_perf if class_avg_perf else {}
 
 
 def get_option_sel_acc(pred_ans, opts, answer, answer_values, pid):
@@ -318,7 +327,7 @@ def set_gpu_devices(gpu_id):
     gpu = ""
     if gpu_id != -1:
         gpu = str(gpu_id)
-    os.environ["CUDA_VOSIBLE_DEVICES"] = gpu
+    os.environ["CUDA_VISIBLE_DEVICES"] = gpu
 
 
 def load_file(filename):
