@@ -341,7 +341,7 @@ class SMART_Net(nn.Module):
         inputs = self.preprocess(images=x, do_rescale=False, return_tensors="pt").to(device)
         with torch.no_grad():
             outputs = self.im_backbone(**inputs)
-        return outputs.last_hidden_state.mean(1)
+        return outputs.last_hidden_state.mean(1).float()
 
     def create_puzzle_head(self, args):
         if args.use_single_image_head:
