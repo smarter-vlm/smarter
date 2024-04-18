@@ -293,7 +293,7 @@ def train(args, dataloader, im_backbone):
                 
                 with experiment.context_manager("validation"):
                     class_avg_perf = utils.print_puzz_acc(args, puz_acc, log=args.log)
-                    experiment.log_metrics({k + 'acc':v for k,v in class_avg_perf}, epoch=epoch)
+                    # experiment.log_metrics({k + 'acc':v for k,v in class_avg_perf}, epoch=epoch)
                     print(class_avg_perf)
 
         if epoch % args.log_freq == 0:
