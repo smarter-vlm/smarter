@@ -6,12 +6,16 @@ import pdb
 import pickle as pkl
 import sys
 
+from comet_ml import Experiment
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from PIL import Image
 
 import globvars as gv
+
+from main import experiment
 
 
 def fix_acc(acc_list):
@@ -50,24 +54,27 @@ def print_puzz_acc(args, puzz_acc, log=True):
             acc_list[int(key)] = acc
             opt_acc_list[int(key)] = oacc
         if log:
-            for t in range(1, gv.num_puzzles + 1):
-                print("%d opt_acc=%0.2f acc=%0.2f" % (t, opt_acc_list[t], acc_list[t]), end="\t")
-                if t % 5 == 0:
-                    print("\n")
-            print("\n\n")
+            with experiment.context_manager("validation"):
+                    
+                for t in range(1, gv.num_puzzles + 1):
+                    print("%d opt_acc=%0.2f acc=%0.2f" % (t, opt_acc_list[t], acc_list[t]), end="\t")
+                    if t % 5 == 0:
+                        print("\n")
+                print("\n\n")
 
-            puzzles = read_dataset_info(gv.SMART_DATASET_INFO_FILE)
-            class_avg_perf = {}
-            classes = ["counting", "math", "logic", "path", "algebra", "measure", "spatial", "pattern"]
-            print(classes)
-            for kk in classes:
-                idx_list = puzzles[kk]
-                class_avg_perf[kk] = (
-                    cls_mean(acc_list, idx_list, list(puzz_acc.keys())),
-                    cls_mean(opt_acc_list, idx_list, list(puzz_acc.keys())),
-                )
-                print("%0.1f/%0.1f & " % (class_avg_perf[kk][0], class_avg_perf[kk][1]), end=" ")
-            print("\n\n")
+                puzzles = read_dataset_info(gv.SMART_DATASET_INFO_FILE)
+                class_avg_perf = {}
+                classes = ["counting", "math", "logic", "path", "algebra", "measure", "spatial", "pattern"]
+                print(classes)
+                for kk in classes:
+                    idx_list = puzzles[kk]
+                    class_avg_perf[kk] = (
+                        cls_mean(acc_list, idx_list, list(puzz_acc.keys())),
+                        cls_mean(opt_acc_list, idx_list, list(puzz_acc.keys())),
+                    )
+                    print("%0.1f/%0.1f & " % (class_avg_perf[kk][0], class_avg_perf[kk][1]), end=" ")
+                print("\n\n")
+                experiment.log_metrics(class_avg_perf)
 
         fig = plt.figure(figsize=(30, 4))
         ax = plt.gca()
@@ -318,7 +325,7 @@ def set_gpu_devices(gpu_id):
     gpu = ""
     if gpu_id != -1:
         gpu = str(gpu_id)
-    os.environ["CUDA_VOSIBLE_DEVICES"] = gpu
+    os.environ["CUDA_VISIBLE_DEVICES"] = gpu
 
 
 def load_file(filename):
