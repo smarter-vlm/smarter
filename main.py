@@ -224,12 +224,15 @@ def train(args, dataloader, im_backbone):
         return acc_mean / float(cnt), err_mean / float(cnt), opt_mean / float(cnt), puzzle_acc
 
     def test_loop(test_loader, model):
-        acc, err, opt, puzzle_acc = val_loop(test_loader, model)
-        utils.print_puzz_acc(args, puzzle_acc, log=True)
-        print(
-            "***** Final Test Performance: S_acc = %0.2f O_acc = %0.2f Prediction Variance = %0.2f "
-            % (acc * 100, opt * 100, err)
-        )
+        
+        with experiment.context_manager("test"):
+            acc, err, opt, puzzle_acc = val_loop(test_loader, model)
+            class_perf = utils.print_puzz_acc(args, puzzle_acc, log=True)
+            print(
+                    "***** Final Test Performance: S_acc = %0.2f O_acc = %0.2f Prediction Variance = %0.2f "
+                    % (acc * 100, opt * 100, err)
+                )
+            experiment.log_metrics(class_perf)
 
     if args.test:
         net.load_pretrained_models(args, args.model_name, model=model)
@@ -278,7 +281,7 @@ def train(args, dataloader, im_backbone):
                 no_improvement += 1
                 if no_improvement > num_thresh_epochs:
                     print("no training improvement... stopping the training.")
-                    utils.print_puzz_acc(args, puz_acc, log=args.log)
+                    class_avg_perf = utils.print_puzz_acc(args, puz_acc, log=args.log)
                     break
             if epoch % args.log_freq == 0:
                 print(
@@ -287,7 +290,8 @@ def train(args, dataloader, im_backbone):
                 )
                 with experiment.context_manager("train"):
                     experiment.log_metrics({"epoch_loss": loss, "acc": acc, "var": err, "oacc": oacc}, epoch=epoch)
-                    utils.print_puzz_acc(args, puz_acc, log=args.log)
+                    class_avg_perf = utils.print_puzz_acc(args, puz_acc, log=args.log)
+                    experiment.log_metrics(class_avg_perf, epoch=epoch)
 
         if epoch % args.log_freq == 0:
             acc, err, oacc, puz_acc = val_loop(test_loader, model)

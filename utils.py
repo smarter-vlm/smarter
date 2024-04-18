@@ -54,27 +54,27 @@ def print_puzz_acc(args, puzz_acc, log=True):
             acc_list[int(key)] = acc
             opt_acc_list[int(key)] = oacc
         if log:
-            with experiment.context_manager("validation"):
                     
-                for t in range(1, gv.num_puzzles + 1):
-                    print("%d opt_acc=%0.2f acc=%0.2f" % (t, opt_acc_list[t], acc_list[t]), end="\t")
-                    if t % 5 == 0:
-                        print("\n")
-                print("\n\n")
+            for t in range(1, gv.num_puzzles + 1):
+                print("%d opt_acc=%0.2f acc=%0.2f" % (t, opt_acc_list[t], acc_list[t]), end="\t")
+                if t % 5 == 0:
+                    print("\n")
+            print("\n\n")
 
-                puzzles = read_dataset_info(gv.SMART_DATASET_INFO_FILE)
-                class_avg_perf = {}
-                classes = ["counting", "math", "logic", "path", "algebra", "measure", "spatial", "pattern"]
-                print(classes)
-                for kk in classes:
-                    idx_list = puzzles[kk]
-                    class_avg_perf[kk] = (
-                        cls_mean(acc_list, idx_list, list(puzz_acc.keys())),
-                        cls_mean(opt_acc_list, idx_list, list(puzz_acc.keys())),
-                    )
-                    print("%0.1f/%0.1f & " % (class_avg_perf[kk][0], class_avg_perf[kk][1]), end=" ")
-                print("\n\n")
-                experiment.log_metrics(class_avg_perf)
+            puzzles = read_dataset_info(gv.SMART_DATASET_INFO_FILE)
+            class_avg_perf = {}
+            classes = ["counting", "math", "logic", "path", "algebra", "measure", "spatial", "pattern"]
+            print(classes)
+            for kk in classes:
+                idx_list = puzzles[kk]
+                class_avg_perf[kk] = (
+                    cls_mean(acc_list, idx_list, list(puzz_acc.keys())),
+                    cls_mean(opt_acc_list, idx_list, list(puzz_acc.keys())),
+                )
+                print("%0.1f/%0.1f & " % (class_avg_perf[kk][0], class_avg_perf[kk][1]), end=" ")
+            print("\n\n")
+            
+                
 
         fig = plt.figure(figsize=(30, 4))
         ax = plt.gca()
@@ -112,6 +112,7 @@ def print_puzz_acc(args, puzz_acc, log=True):
         plt.bar(np.arange(gv.num_puzzles + 1), opt_acc_list)
         plt.savefig(os.path.join(args.save_root, "results/%d/opt_acc_perf_scores.png" % (gv.seed)))
         plt.close()
+    return class_avg_perf if class_avg_perf else {}
 
 
 def get_option_sel_acc(pred_ans, opts, answer, answer_values, pid):
