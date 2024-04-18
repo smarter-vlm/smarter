@@ -67,7 +67,7 @@ def train(args, dataloader, im_backbone):
     model.to(device)
     print("\n Model architecture: \n", model)
 
-    log_model(experiment, model, model_name="TheModel")
+    log_model(experiment, model, model_name="Puzzle_Net")
 
     parameters = model.parameters()
     if not args.no_meta:
@@ -142,7 +142,6 @@ def train(args, dataloader, im_backbone):
 
     def val_loop(val_loader, model):
         model.eval()
-        log_model(experiment, model, model_name="TheModel")
         acc_mean = 0
         cnt = 0
         err_mean = 0
