@@ -231,7 +231,7 @@ def train(args, dataloader, im_backbone):
                     "***** Final Test Performance: S_acc = %0.2f O_acc = %0.2f Prediction Variance = %0.2f "
                     % (acc * 100, opt * 100, err)
                 )
-            # experiment.log_metrics({k:v for k,v in class_perf})
+            experiment.log_metrics({k:v[0] for k,v in class_perf.items()})
 
     if args.test:
         net.load_pretrained_models(args, args.model_name, model=model)
@@ -293,7 +293,7 @@ def train(args, dataloader, im_backbone):
                 
                 with experiment.context_manager("validation"):
                     class_avg_perf = utils.print_puzz_acc(args, puz_acc, log=args.log)
-                    # experiment.log_metrics({k + 'acc':v for k,v in class_avg_perf}, epoch=epoch)
+                    experiment.log_metrics({k:v[0] for k,v in class_avg_perf.items()}, epoch=epoch)
                     print(class_avg_perf)
 
         if epoch % args.log_freq == 0:
