@@ -50,8 +50,8 @@ def print_puzz_acc(args, puzz_acc, log=True):
 
     if len(puzz_acc.keys()) > 4:
         for k, key in enumerate(puzz_acc.keys()):
-            acc = 100.0 * puzz_acc[key][0] / puzz_acc[key][2]
-            oacc = 100.0 * puzz_acc[key][1] / puzz_acc[key][2]
+            acc = 100.0 * puzz_acc[key][0] / puzz_acc[key][2] if puzz_acc[key][2] else 0.0
+            oacc = 100.0 * puzz_acc[key][1] / puzz_acc[key][2] if puzz_acc[key][2] else 0.0
             acc_list[int(key)] = acc
             opt_acc_list[int(key)] = oacc
         if log:
