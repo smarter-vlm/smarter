@@ -142,7 +142,7 @@ def train(args, dataloader, im_backbone):
                 optimizer.step()  # meta update.
             tot_loss += loss.item()
 
-            experiment.log_metric({"train_batch_loss":loss.item()}, step=i)
+            experiment.log_metrics({"train_batch_loss":loss.item()}, step=i)
 
         tot_loss /= float(i)
         return tot_loss
@@ -164,7 +164,7 @@ def train(args, dataloader, im_backbone):
                 val_loss = criterion(out, av, pids)
 
                 print("out shape in val_loader", out.shape)
-                experiment.log_metric({"val_batch_loss":val_loss.item()}, step=i)
+                experiment.log_metrics({"val_batch_loss":val_loss.item()}, step=i)
 
                 if not args.monolithic:
                     upids = torch.unique(pids)
