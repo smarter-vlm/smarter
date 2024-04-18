@@ -35,9 +35,9 @@ def get_icon_dataset_classes(icon_path):
 def print_puzz_acc(args, puzz_acc, log=True):
     class_avg_perf = {}
     to_int = lambda x: np.array(list(x)).astype("int")
-    cls_mean = lambda x, idx, pids: np.array([x[int(ii)] for ii in idx]).sum() / len(
-        set(to_int(idx)).intersection(set(to_int(pids)))
-    )
+    cls_mean = lambda x, idx, pids: np.array([x[int(ii)] for ii in idx]).sum() / max(len(
+        set(to_int(idx)).intersection(set(to_int(pids)))), 1) # fix nan
+    
     acc_list = np.zeros(
         gv.num_puzzles + 1,
     )
