@@ -231,7 +231,7 @@ def train(args, dataloader, im_backbone):
                     "***** Final Test Performance: S_acc = %0.2f O_acc = %0.2f Prediction Variance = %0.2f "
                     % (acc * 100, opt * 100, err)
                 )
-            experiment.log_metrics(class_perf)
+            experiment.log_metrics({k + 'acc':v[0] for k,v in class_perf})
 
     if args.test:
         net.load_pretrained_models(args, args.model_name, model=model)
@@ -262,6 +262,9 @@ def train(args, dataloader, im_backbone):
         tt = time.time()
         model.train()
         loss = train_loop(epoch, train_loader, optimizer)
+
+        experiment.log_metrics({"epoch_train_loss": loss}, epoch=epoch)
+
         tt = time.time() - tt
 
         if epoch % 1 == 0:
@@ -287,10 +290,10 @@ def train(args, dataloader, im_backbone):
                     "%d) Time taken=%f Epoch=%d Train_loss = %f S_acc = %f O_acc=%f Variance = %f Best S_acc (epoch) = %f (%d)\n"
                     % (gv.seed, tt, epoch, loss, acc * 100, oacc * 100, err, best_acc * 100, best_epoch)
                 )
-                with experiment.context_manager("train"):
-                    experiment.log_metrics({"epoch_loss": loss, "acc": acc, "var": err, "oacc": oacc}, epoch=epoch)
+                
+                with experiment.context_manager("validation"):
                     class_avg_perf = utils.print_puzz_acc(args, puz_acc, log=args.log)
-                    experiment.log_metrics(class_avg_perf, epoch=epoch)
+                    experiment.log_metrics({k + 'acc':v[0] for k,v in class_avg_perf}, epoch=epoch)
 
         if epoch % args.log_freq == 0:
             acc, err, oacc, puz_acc = val_loop(test_loader, model)
