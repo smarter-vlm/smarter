@@ -335,7 +335,9 @@ class SMART_Net(nn.Module):
         # takes tensors not pils
         # print("what is x", x)
         device = torch.device("cuda")
-        # this would double rescale I think
+        # do not double rescale
+
+        print("\n what is x in process dinov2", x)
         inputs = self.preprocess(images=x, do_rescale=False, return_tensors="pt").to(device)
         with torch.no_grad():
             outputs = self.im_backbone(**inputs)
