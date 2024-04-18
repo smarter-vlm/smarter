@@ -35,7 +35,7 @@ experiment = Experiment(
     api_key=API_KEY,
     project_name="vlm-reasoners",
     workspace=workspace,
-    auto_metric_logging=True
+    auto_metric_logging=True # default
 )
 
 def reset_state(args):
@@ -90,16 +90,21 @@ def train(args, dataloader, im_backbone):
         return pred_max
 
     def save_model(args, net, acc, epoch, location):
-        state = {
+        
+        with experiment.context_manager("state_dict"):
+            state = {
             "net": net.state_dict(),
             "acc": acc,
             "epoch": epoch,
-        }
-        if not os.path.isdir(location):
-            os.mkdir(location)
-        loc = os.path.join(location, "ckpt_%s_%s_%s.pth" % (args.model_name, args.word_embed, args.seed))
-        print("saving checkpoint at %s" % (loc))
-        torch.save(state, loc)
+            }
+            experiment.log_metrics(state)
+
+            if not os.path.isdir(location):
+                os.mkdir(location)
+                
+            loc = os.path.join(location, "ckpt_%s_%s_%s.pth" % (args.model_name, args.word_embed, args.seed))
+            print("saving checkpoint at %s" % (loc))
+            torch.save(state, loc)
 
     def train_loop(epoch, train_loader, optimizer):
         model.train()
