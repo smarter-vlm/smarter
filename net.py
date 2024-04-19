@@ -201,7 +201,7 @@ class SMART_VL_Net(nn.Module):
         #        qv_feat_mm = outputs.multimodal_embeddings # Batch size X (Number of image patches + Text Sequence Length + 3) X Hidden size => 2 X 275 x 768
         # Multimodal embeddings can be used for multimodal tasks such as VQA
 
-        im_feat = self.encode_image(im_feat, puzzle_ids)
+        im_feat = self.encode_image(im_feat.float(), puzzle_ids)
         q_feat = self.encode_text(q_feat)
 
         qv_feat = self.qv_fusion(torch.cat([im_feat.mean(1), q_feat.mean(1)], dim=1))
