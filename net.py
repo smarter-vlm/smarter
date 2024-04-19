@@ -332,13 +332,9 @@ class SMART_Net(nn.Module):
         return outputs.last_hidden_state.mean(1)
     
     def process_dinov2(self, x):
-        # takes tensors not pils
-        # print("what is x", x)
-        
         device = torch.device("cuda")
-        # this may double rescale
-        inputs = self.preprocess(images=x, do_rescale=True, return_tensors="pt").to(device)
-        print("what are inputs before feeding to dino", inputs)
+        # do not double rescale
+        inputs = self.preprocess(images=x, do_rescale=False, return_tensors="pt").to(device)
 
         with torch.no_grad():
             outputs = self.im_backbone(**inputs)
@@ -409,7 +405,6 @@ class SMART_Net(nn.Module):
         return fwd_hook
 
     def encode_image(self, im, pids=None):
-        print("can I get the im here? line 412", im)
         if self.train_backbone:
             x = self.im_cnn(im).squeeze()
         else:
