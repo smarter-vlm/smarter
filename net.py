@@ -334,7 +334,8 @@ class SMART_Net(nn.Module):
     def process_dinov2(self, x):
         device = torch.device("cuda")
         # do not double rescale?
-        inputs = self.preprocess(images=x, do_rescale=False, return_tensors="pt").to(device)
+        
+        inputs = self.preprocess(images=x, do_rescale=False, return_tensors="pt").float().to(device)
 
         with torch.no_grad():
             outputs = self.im_backbone(**inputs)
