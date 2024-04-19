@@ -71,6 +71,11 @@ def train(args, dataloader, im_backbone):
     else:
         model = net.SMART_Net(args, im_backbone=im_backbone)
 
+    # Make sure Dino is frozen
+    for name, param in model.named_parameters():
+        if name.startswith("dinov2"):
+            param.requires_grad = False
+
     device = torch.device("cuda")
     model.to(device)
     print("\n Model architecture: \n", model)
@@ -127,6 +132,7 @@ def train(args, dataloader, im_backbone):
                 loss = criterion(out, av, pids)
                 optimizer.zero_grad()
                 loss.backward()
+                torch.nn.utils.clip_grad_norm_(model.parameters(), 0.5)
                 optimizer.step()
             else:
                 # meta learning updates.
@@ -261,17 +267,24 @@ def train(args, dataloader, im_backbone):
         return
 
     if args.optimizer == "adam":
-        optimizer = torch.optim.AdamW(parameters, lr=args.lr, betas=(0.9, 0.99))
-        if not args.no_meta:
-            anshead_optimizer = torch.optim.Adam(anshead_parameters, lr=args.lr, betas=(0.9, 0.99))
-    else:
-        optimizer = torch.optim.SGD(parameters, lr=args.lr)
-        if not args.no_meta:
-            anshead_optimizer = torch.optim.SGD(anshead_parameters, lr=args.lr)
+        optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr, betas=(0.9, 0.98), eps=1e-8, weight_decay=0.05)
+
+        
+    #     if not args.no_meta:
+    #         anshead_optimizer = torch.optim.Adam(anshead_parameters, lr=args.lr, betas=(0.9, 0.99))
+    # else:
+    #     optimizer = torch.optim.SGD(parameters, lr=args.lr)
+    #     if not args.no_meta:
+    #         anshead_optimizer = torch.optim.SGD(anshead_parameters, lr=args.lr)
 
     train_loader = dataloader["train"]
     val_loader = dataloader["valid"]
     test_loader = dataloader["test"]
+
+    num_steps = args.epochs * len(train_loader)
+
+    # TODO
+    # scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, eta_min=0, T_max=num_steps)
 
     # training loop
     best_model = None
