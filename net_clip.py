@@ -48,16 +48,16 @@ class SMART_VL_CLIP_Net(nn.Module):
 
         self.q_MLP = nn.Sequential(
             nn.Linear(self.feat_size, self.h_sz),
-            nn.ReLU(),
+            nn.GELU(),
             nn.Linear(self.h_sz, self.out_dim),
-            nn.ReLU(),
+            nn.GELU(),
         )
 
         self.qv_fusion = nn.Sequential(
             nn.Linear(self.out_dim * 2, self.out_dim),
-            nn.ReLU(),
+            nn.GELU(),
             nn.Linear(self.out_dim, self.out_dim),
-            nn.ReLU(),
+            nn.GELU(),
         )
         if self.monolithic:
             self.qvo_fusion = nn.Sequential(nn.Linear(self.out_dim, self.max_val))
@@ -67,7 +67,7 @@ class SMART_VL_CLIP_Net(nn.Module):
     def create_puzzle_head(self, args):
         if args.use_single_image_head:
             self.im_encoder = nn.Sequential(
-                nn.Linear(self.feat_size, self.out_dim), nn.ReLU(), nn.Linear(self.out_dim, self.out_dim)
+                nn.Linear(self.feat_size, self.out_dim), nn.GELU(), nn.Linear(self.out_dim, self.out_dim)
             )
         else:
             self.puzzle_ids = args.puzzle_ids
@@ -75,7 +75,7 @@ class SMART_VL_CLIP_Net(nn.Module):
             for i in range(1, gv.num_puzzles + 1):
                 im_encoder.append(
                     nn.Sequential(
-                        nn.Linear(self.feat_size, self.out_dim), nn.ReLU(), nn.Linear(self.out_dim, self.out_dim)
+                        nn.Linear(self.feat_size, self.out_dim), nn.GELU(), nn.Linear(self.out_dim, self.out_dim)
                     )
                 )
             self.im_encoder = nn.ModuleList(im_encoder)
@@ -95,9 +95,9 @@ class SMART_VL_CLIP_Net(nn.Module):
                 ans_decoder.append(
                     nn.Sequential(
                         nn.Linear(self.out_dim, self.out_dim),
-                        nn.ReLU(),
+                        nn.GELU(),
                         nn.Linear(self.out_dim, self.out_dim),
-                        nn.ReLU(),
+                        nn.GELU(),
                         nn.Linear(self.out_dim, num_classes),
                     )
                 )
