@@ -160,7 +160,6 @@ def train(args, dataloader, im_backbone):
             for i, (im, q, o, a, av, pids) in enumerate(val_loader):
                 q = q.cuda()
                 im = im.float()
-                
                 im = im.to(device)
                 av = av.cuda()
 
