@@ -114,6 +114,7 @@ def train(args, dataloader, im_backbone):
         tot_loss = 0.0
         for i, (im, q, _, a, av, pids) in tqdm(enumerate(train_loader)):
             # im = im.cuda()
+            im = im.float()
             im = im.to(device)
             q = q.cuda()
             a = a.cuda()
@@ -158,6 +159,8 @@ def train(args, dataloader, im_backbone):
         with torch.no_grad():
             for i, (im, q, o, a, av, pids) in enumerate(val_loader):
                 q = q.cuda()
+                im = im.float()
+                
                 im = im.to(device)
                 av = av.cuda()
 
@@ -437,7 +440,7 @@ if __name__ == "__main__":
 
     im_backbone, preprocess = net.load_pretrained_models(args, args.model_name, model=None)
     # TODO here - change name to load vision backbones
-    
+
     args.preprocess = preprocess
 
     train_loader = get_data_loader(
