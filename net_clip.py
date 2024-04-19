@@ -176,6 +176,8 @@ class SMART_VL_CLIP_Net(nn.Module):
                 im_feat = self.VL_backbone.encode_image(im)
                 q_feat = self.VL_backbone.encode_text(text)
 
+        # TODO: dr is this double encoding?
+        
         im_feat = self.encode_image(im_feat.float(), puzzle_ids)
         q_feat = self.encode_text(q_feat.float())
         qv_feat = self.qv_fusion(torch.cat([im_feat, q_feat], dim=1))

@@ -30,6 +30,9 @@ import losses
 import net
 import utils
 
+
+from torch.optim import AdamW
+
 AVAIL_GPUS = min(1, torch.cuda.device_count())
 
 
@@ -114,6 +117,7 @@ def train(args, dataloader, im_backbone):
         tot_loss = 0.0
         for i, (im, q, _, a, av, pids) in tqdm(enumerate(train_loader)):
             # im = im.cuda()
+            im = im.float()
             im = im.to(device)
             q = q.cuda()
             a = a.cuda()
@@ -158,6 +162,7 @@ def train(args, dataloader, im_backbone):
         with torch.no_grad():
             for i, (im, q, o, a, av, pids) in enumerate(val_loader):
                 q = q.cuda()
+                im = im.float()
                 im = im.to(device)
                 av = av.cuda()
 
@@ -256,7 +261,7 @@ def train(args, dataloader, im_backbone):
         return
 
     if args.optimizer == "adam":
-        optimizer = torch.optim.Adam(parameters, lr=args.lr, betas=(0.9, 0.99))
+        optimizer = torch.optim.AdamW(parameters, lr=args.lr, betas=(0.9, 0.99))
         if not args.no_meta:
             anshead_optimizer = torch.optim.Adam(anshead_parameters, lr=args.lr, betas=(0.9, 0.99))
     else:
@@ -272,7 +277,7 @@ def train(args, dataloader, im_backbone):
     best_model = None
     best_acc = 0
     no_improvement = 0
-    num_thresh_epochs = 8
+    num_thresh_epochs = 5
     # stop training if there is no improvement after this.
     print("starting training...")
     for epoch in range(args.num_epochs):
@@ -436,6 +441,8 @@ if __name__ == "__main__":
         args.vocab_path = os.path.join(args.save_root, "vocab_puzzle_" + args.puzzle_ids_str + ".pkl")
 
     im_backbone, preprocess = net.load_pretrained_models(args, args.model_name, model=None)
+    # TODO here - change name to load vision backbones
+
     args.preprocess = preprocess
 
     train_loader = get_data_loader(

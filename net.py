@@ -201,7 +201,7 @@ class SMART_VL_Net(nn.Module):
         #        qv_feat_mm = outputs.multimodal_embeddings # Batch size X (Number of image patches + Text Sequence Length + 3) X Hidden size => 2 X 275 x 768
         # Multimodal embeddings can be used for multimodal tasks such as VQA
 
-        im_feat = self.encode_image(im_feat, puzzle_ids)
+        im_feat = self.encode_image(im_feat.float(), puzzle_ids)
         q_feat = self.encode_text(q_feat)
 
         qv_feat = self.qv_fusion(torch.cat([im_feat.mean(1), q_feat.mean(1)], dim=1))
@@ -332,11 +332,11 @@ class SMART_Net(nn.Module):
         return outputs.last_hidden_state.mean(1)
     
     def process_dinov2(self, x):
-        # takes tensors not pils
-        # print("what is x", x)
         device = torch.device("cuda")
-        # this would double rescale I think
-        inputs = self.preprocess(images=x, do_rescale=False, return_tensors="pt").to(device)
+        # do not double rescale? TODO: I believe there is a HF bug here; may consider TIMM model
+        # but also double check the path to inputs 
+        inputs = self.preprocess(images=x, do_rescale=True, return_tensors="pt").to(device)
+
         with torch.no_grad():
             outputs = self.im_backbone(**inputs)
         return outputs.last_hidden_state.mean(1)
@@ -479,8 +479,10 @@ class SMART_Net(nn.Module):
         return out_feats
 
     def forward(self, im, q=None, puzzle_ids=None):
-        im_feat = self.encode_image(im, puzzle_ids)
+        # im_feat = self.encode_image(im, puzzle_ids)
         q_feat = self.encode_text(q)
+        im_feat = self.encode_image(im.float(), puzzle_ids).float()
+       
         qv_feat = self.qv_fusion(torch.cat([im_feat, q_feat], dim=1))
         if self.monolithic:
             qv_feat = qv_feat.unsqueeze(1)
