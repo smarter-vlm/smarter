@@ -261,7 +261,7 @@ def train(args, dataloader, im_backbone):
         return
 
     if args.optimizer == "adam":
-        optimizer = torch.optim.Adam(parameters, lr=args.lr, betas=(0.9, 0.99))
+        optimizer = torch.optim.AdamW(parameters, lr=args.lr, betas=(0.9, 0.99))
         if not args.no_meta:
             anshead_optimizer = torch.optim.Adam(anshead_parameters, lr=args.lr, betas=(0.9, 0.99))
     else:
