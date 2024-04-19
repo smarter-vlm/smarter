@@ -333,9 +333,9 @@ class SMART_Net(nn.Module):
     
     def process_dinov2(self, x):
         device = torch.device("cuda")
-        # do not double rescale?
+        # do not double rescale? TODO: I believe there is a HF bug here; may consider TIMM model
+        # but also double check the path to inputs 
         inputs = self.preprocess(images=x, do_rescale=True, return_tensors="pt").to(device)
-        print("I think the bug is in hf", inputs)
 
         with torch.no_grad():
             outputs = self.im_backbone(**inputs)
