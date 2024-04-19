@@ -50,23 +50,23 @@ class SMART_VL_Net(nn.Module):
 
         self.q_MLP = nn.Sequential(
             nn.Linear(self.feat_size, self.h_sz),
-            nn.ReLU(),
+            nn.GELU(),
             nn.Linear(self.h_sz, self.out_dim),
-            nn.ReLU(),
+            nn.GELU(),
         )
 
         self.qv_MLP = nn.Sequential(
             nn.Linear(self.feat_size, self.h_sz),
-            nn.ReLU(),
+            nn.GELU(),
             nn.Linear(self.h_sz, self.out_dim),
-            nn.ReLU(),
+            nn.GELU(),
         )
 
         self.qv_fusion = nn.Sequential(
             nn.Linear(self.out_dim * 2, self.out_dim),  # for flava its *2.
-            nn.ReLU(),
+            nn.GELU(),
             nn.Linear(self.out_dim, self.out_dim),
-            nn.ReLU(),
+            nn.GELU(),
         )
         if self.monolithic:
             self.qvo_fusion = nn.Sequential(nn.Linear(self.out_dim, self.max_val))
@@ -76,7 +76,7 @@ class SMART_VL_Net(nn.Module):
     def create_puzzle_head(self, args):
         if args.use_single_image_head:
             self.im_encoder = nn.Sequential(
-                nn.Linear(self.feat_size, self.out_dim), nn.ReLU(), nn.Linear(self.out_dim, self.out_dim)
+                nn.Linear(self.feat_size, self.out_dim), nn.GELU(), nn.Linear(self.out_dim, self.out_dim)
             )
         else:
             self.puzzle_ids = args.puzzle_ids
@@ -84,7 +84,7 @@ class SMART_VL_Net(nn.Module):
             for i in range(1, gv.num_puzzles + 1):
                 im_encoder.append(
                     nn.Sequential(
-                        nn.Linear(self.feat_size, self.out_dim), nn.ReLU(), nn.Linear(self.out_dim, self.out_dim)
+                        nn.Linear(self.feat_size, self.out_dim), nn.GELU(), nn.Linear(self.out_dim, self.out_dim)
                     )
                 )
             self.im_encoder = nn.ModuleList(im_encoder)
@@ -104,9 +104,9 @@ class SMART_VL_Net(nn.Module):
                 ans_decoder.append(
                     nn.Sequential(
                         nn.Linear(self.out_dim, self.out_dim),
-                        nn.ReLU(),
+                        nn.GELU(),
                         nn.Linear(self.out_dim, self.out_dim),
-                        nn.ReLU(),
+                        nn.GELU(),
                         nn.Linear(self.out_dim, num_classes),
                     )
                 )
@@ -297,7 +297,7 @@ class SMART_Net(nn.Module):
             self.q_encoder, _ = clip.load("ViT-B/32", device="cuda")
             self.clip_dim = 512
             self.q_MLP = nn.Sequential(
-                nn.Linear(self.clip_dim, self.h_sz), nn.ReLU(), nn.Linear(self.h_sz, self.out_dim)
+                nn.Linear(self.clip_dim, self.h_sz), nn.GELU(), nn.Linear(self.h_sz, self.out_dim)
             )
         else:
             if args.word_embed == "standard":
@@ -306,19 +306,19 @@ class SMART_Net(nn.Module):
             else:
                 word_dim = gv.word_dim
                 self.q_emb = nn.Identity()
-                self.q_lstm = nn.GRU(word_dim, self.h_sz, num_layers=1, batch_first=True, bidirectional=True)
+                self.q_lstm = nn.GRU(word_dim, self.h_sz, num_layers=1, batch_first=True, bidirectional=True, bias=False)
             self.q_MLP = nn.Linear(self.h_sz * 2, self.out_dim)
 
         self.o_encoder = nn.Sequential(
             nn.Embedding(len(self.vocab), self.out_dim, max_norm=1),
             nn.Linear(self.out_dim, self.out_dim),
-            nn.ReLU(),
+            nn.GELU(),
         )
         self.qv_fusion = nn.Sequential(
             nn.Linear(self.out_dim * 2, self.out_dim),
-            nn.ReLU(),
+            nn.GELU(),
             nn.Linear(self.out_dim, self.out_dim),
-            nn.ReLU(),
+            nn.GELU(),
         )
         if self.monolithic:
             self.qvo_fusion = nn.Sequential(nn.Linear(self.out_dim, self.max_val))
@@ -344,7 +344,7 @@ class SMART_Net(nn.Module):
     def create_puzzle_head(self, args):
         if args.use_single_image_head:
             self.im_encoder = nn.Sequential(
-                nn.Linear(self.im_feat_size, self.out_dim), nn.ReLU(), nn.Linear(self.out_dim, self.out_dim)
+                nn.Linear(self.im_feat_size, self.out_dim), nn.GELU(), nn.Linear(self.out_dim, self.out_dim)
             )
         else:
             self.puzzle_ids = args.puzzle_ids
@@ -352,7 +352,7 @@ class SMART_Net(nn.Module):
             for i in range(1, gv.num_puzzles + 1):
                 im_encoder.append(
                     nn.Sequential(
-                        nn.Linear(self.im_feat_size, self.out_dim), nn.ReLU(), nn.Linear(self.out_dim, self.out_dim)
+                        nn.Linear(self.im_feat_size, self.out_dim), nn.GELU(), nn.Linear(self.out_dim, self.out_dim)
                     )
                 )
             self.im_encoder = nn.ModuleList(im_encoder)
@@ -372,9 +372,9 @@ class SMART_Net(nn.Module):
                 ans_decoder.append(
                     nn.Sequential(
                         nn.Linear(self.out_dim, self.out_dim),
-                        nn.ReLU(),
+                        nn.GELU(),
                         nn.Linear(self.out_dim, self.out_dim),
-                        nn.ReLU(),
+                        nn.GELU(),
                         nn.Linear(self.out_dim, num_classes),
                     )
                 )
