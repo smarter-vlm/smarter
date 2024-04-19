@@ -283,8 +283,7 @@ def train(args, dataloader, im_backbone):
 
     num_steps = args.epochs * len(train_loader)
 
-    # TODO
-    # scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, eta_min=0, T_max=num_steps)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, eta_min=0, T_max=num_steps)
 
     # training loop
     best_model = None
@@ -297,6 +296,7 @@ def train(args, dataloader, im_backbone):
         tt = time.time()
         model.train()
         loss = train_loop(epoch, train_loader, optimizer)
+        scheduler.step(loss)
 
         experiment.log_metrics({"epoch_train_loss": loss}, epoch=epoch)
 
