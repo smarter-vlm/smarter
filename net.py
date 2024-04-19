@@ -334,9 +334,12 @@ class SMART_Net(nn.Module):
     def process_dinov2(self, x):
         # takes tensors not pils
         # print("what is x", x)
+        
         device = torch.device("cuda")
-        # do not double rescale
-        inputs = self.preprocess(images=x, do_rescale=False, return_tensors="pt").to(device)
+        # this may double rescale
+        inputs = self.preprocess(images=x, do_rescale=True, return_tensors="pt").to(device)
+        print("what are inputs before feeding to dino", inputs)
+        
         with torch.no_grad():
             outputs = self.im_backbone(**inputs)
         return outputs.last_hidden_state.mean(1)
