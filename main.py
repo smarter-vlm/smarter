@@ -281,7 +281,7 @@ def train(args, dataloader, im_backbone):
     val_loader = dataloader["valid"]
     test_loader = dataloader["test"]
 
-    num_steps = args.epochs * len(train_loader)
+    num_steps = args.num_epochs * len(train_loader)
 
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, eta_min=0, T_max=num_steps)
 
