@@ -30,6 +30,9 @@ import losses
 import net
 import utils
 
+
+from torch.optim import AdamW
+
 AVAIL_GPUS = min(1, torch.cuda.device_count())
 
 
