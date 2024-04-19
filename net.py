@@ -334,7 +334,7 @@ class SMART_Net(nn.Module):
     def process_dinov2(self, x):
         device = torch.device("cuda")
         # do not double rescale?
-        
+        print("there are some infs after hf preprocess", x)
         inputs = self.preprocess(images=x, do_rescale=False, return_tensors="pt").to(device)
         print("I think the bug is in hf", inputs)
 
