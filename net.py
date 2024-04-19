@@ -335,7 +335,8 @@ class SMART_Net(nn.Module):
         device = torch.device("cuda")
         # do not double rescale?
         
-        inputs = self.preprocess(images=x, do_rescale=False, return_tensors="pt").float().to(device)
+        inputs = self.preprocess(images=x, do_rescale=False, return_tensors="pt")
+        print("I think the bug is in hf", inputs)
 
         with torch.no_grad():
             outputs = self.im_backbone(**inputs)
