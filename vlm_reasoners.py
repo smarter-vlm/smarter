@@ -513,26 +513,45 @@ def load_pretrained_models(args, model_name, model=None):
         model, preprocess = clip.load("ViT-B/32", device="cuda")
 
     elif args.model_name == "mae":
-        from transformers import AutoreprureExtractor, ViTMAEModel
+        from transformers import AutoFeatureExtractor, ViTMAEModel
 
-        reprure_extractor = AutoreprureExtractor.from_pretrained(
+        repr_extractor = AutoFeatureExtractor.from_pretrained(
             "facebook/vit-mae-base"
         )
         model = ViTMAEModel.from_pretrained("facebook/vit-mae-base")
-        preprocess = reprure_extractor
+        preprocess = repr_extractor
 
     elif args.model_name == "dinov2":
-        from transformers import AutoImageProcessor, Dinov2Model
+        from transformers import AutoProcessor, Dinov2Model
 
-        image_processor = AutoImageProcessor.from_pretrained("facebook/dinov2-base")
+        image_processor = AutoProcessor.from_pretrained("facebook/dinov2-base")
         model = Dinov2Model.from_pretrained("facebook/dinov2-base")
         preprocess = image_processor
 
     elif args.model_name == "siglip":
-        pass  # TODO
+       from transformers import (
+            AutoProcessor,
+            SiglipVisionModel,
+            
+        )
+       image_processor = AutoProcessor.from_pretrained("google/siglip-base-patch16-224")
+       model = SiglipVisionModel.from_pretrained("google/siglip-base-patch16-224")
+       preprocess = image_processor
 
     elif args.model_name == "dinov2+siglip":
-        pass  # TODO
+       
+       from transformers import (
+            AutoProcessor,
+            SiglipVisionModel, Dinov2Model
+            
+        )
+       image_processor_siglip = AutoProcessor.from_pretrained("google/siglip-base-patch16-224")
+       model_siglip = SiglipVisionModel.from_pretrained("google/siglip-base-patch16-224")
+       image_processor_dino = AutoProcessor.from_pretrained("facebook/dinov2-base")
+       model_dino = Dinov2Model.from_pretrained("facebook/dinov2-base")
+       preprocess = (image_processor_siglip, image_processor_dino)
+
+        # TODO: DR new functiionality needed to be able to pass down preprocess as tuple
 
     else:
         print("model name is %s: not loading pre-trained model." % (args.model_name))
