@@ -211,8 +211,7 @@ def train(args, dataloader, im_backbone):
                 acc_mean += acc
                 err_mean += error
                 cnt += len(av)
-                
-       
+
         return (
             acc_mean / float(cnt),
             err_mean / float(cnt),

@@ -332,7 +332,7 @@ class Puzzle_Net(nn.Module):
         with torch.no_grad():
             outputs = self.im_backbone(**inputs)
         return outputs.last_hidden_state.mean(1)
-    
+
     def process_siglip(self, x):
         device = torch.device("cuda")
         # do not double rescale? TODO: I believe there is a HF bug here; may consider TIMM model
@@ -342,7 +342,7 @@ class Puzzle_Net(nn.Module):
         )
         outputs = self.im_backbone(**inputs)
         # last_hidden_state = outputs.last_hidden_state
-        pooled_output = outputs.pooler_output # TODO: DR do my own pooler
+        pooled_output = outputs.pooler_output  # TODO: DR do my own pooler
         return pooled_output
 
     def create_puzzle_head(self, args):
