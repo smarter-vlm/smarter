@@ -211,13 +211,13 @@ def train(args, dataloader, im_backbone):
                 err_mean += error
                 cnt += len(av)
                 val_tot_loss += val_loss.item()
-        val_tot_loss /= float(i)
+       
         return (
             acc_mean / float(cnt),
             err_mean / float(cnt),
             opt_mean / float(cnt),
             puzzle_acc,
-            val_tot_loss,
+            val_tot_loss / float(cnt),
         )
 
     def test_loop(test_loader, model):
