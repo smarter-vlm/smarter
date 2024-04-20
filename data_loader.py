@@ -27,7 +27,7 @@ class SMART_Data(Dataset):
         self.word_embed = None
         self.im_side = 224
         self.preprocess = args.preprocess
-        self.no_question = args.no_question
+        # self.no_question = args.no_question
         # self.no_image = args.no_image
 
         with open(vocab_path, "rb") as f:
@@ -63,11 +63,11 @@ class SMART_Data(Dataset):
     def quest_encode(self, question):
         tokens = nltk.tokenize.word_tokenize(question.lower())
         q_enc = np.zeros((self.max_qlen,), dtype="long")
-        if not self.no_question:
-            enc_tokens = (
-                [self.vocab("<start>")] + [self.vocab(tokens[t]) for t in range(len(tokens))] + [self.vocab("<end>")]
-            )
-            q_enc[: min(self.max_qlen, len(enc_tokens))] = np.array(enc_tokens)
+        # if not self.no_question:
+        enc_tokens = (
+            [self.vocab("<start>")] + [self.vocab(tokens[t]) for t in range(len(tokens))] + [self.vocab("<end>")]
+        )
+        q_enc[: min(self.max_qlen, len(enc_tokens))] = np.array(enc_tokens)
         return q_enc
 
     def ans_encode(self, answer):

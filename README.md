@@ -6,4 +6,4 @@ I hope PACE has privacy and security on student's folders.
 
 I commit and Comet log. And then ..let it go.
 
-"The cold never bothered me anyways".
+The cold never bothered me anyway.
