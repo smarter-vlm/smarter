@@ -244,7 +244,6 @@ class SMART_ValData(SMART_Data):
         self.data_root = args.data_root
         self.num_tot = args.data_tot
         self.word_embed = args.word_embed
-        # self.fewshot_K = args.fsK
         self.qa_info = []
 
         self.diff = args.test_diff if split == "test" else args.train_diff
@@ -254,11 +253,6 @@ class SMART_ValData(SMART_Data):
             puzzle_root = puzzle_id + "/" + gv.puzzle_diff_str[self.diff] + "/"
             csv_file = "puzzle_%s%s.csv" % (puzzle_id, gv.puzzle_diff[self.diff])
             qa_info = utils.read_csv(os.path.join(self.data_root, puzzle_root, csv_file), puzzle_id)
-            # if args.split_type == "fewshot":
-            #     qa_info = qa_info[
-            #         self.fewshot_K : self.num_tot
-            #     ]  # we use the fewshot_K for training. so use the rest for evaluation.
-            # else:
             qa_info = qa_info[: self.num_tot]
             for t in range(len(qa_info)):
                 qa_info[t]["AnswerValue"] = utils.get_val(qa_info[t], qa_info[t]["Answer"])

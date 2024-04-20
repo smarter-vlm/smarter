@@ -65,14 +65,20 @@ def train(args, dataloader, im_backbone):
     if args.model_name == "clip":
         import net_clip
 
-        model = net_clip.SMART_VL_CLIP_Net(args, VL_backbone=im_backbone)
+        model = net_clip.Smarter_VL_CLIP(args, VL_backbone=im_backbone)
     else:
-        model = net.SMART_Net(args, im_backbone=im_backbone)
+        model = net.Puzzle_Net(args, im_backbone=im_backbone)
+
+
+    print(f"\n Number trainable params before explicit freezing of dino {sum(p.numel() for p in model.parameters() if p.requires_grad)}")
 
     # Make sure Dino is frozen
     for name, param in model.named_parameters():
         if name.startswith("dinov2"):
             param.requires_grad = False
+
+    print(f"\n Number trainable params after explicit freezing of dino {sum(p.numel() for p in model.parameters() if p.requires_grad)}")
+
 
     device = torch.device("cuda")
     model.to(device)

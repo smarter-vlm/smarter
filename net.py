@@ -18,9 +18,9 @@ from torchvision import models
 import globvars as gv
 
 
-class SMART_VL_Net(nn.Module):
+class Smarter_VL(nn.Module):
     def __init__(self, args, VL_backbone):
-        super(SMART_VL_Net, self).__init__()
+        super(Smarter_VL, self).__init__()
         vocab_path = args.vocab_path
         with open(vocab_path, "rb") as f:
             self.vocab = pickle.load(f)
@@ -198,9 +198,9 @@ class SMART_VL_Net(nn.Module):
         return qvo_feat
 
 
-class SMART_Net(nn.Module):
+class Puzzle_Net(nn.Module):
     def __init__(self, args, im_backbone=None):
-        super(SMART_Net, self).__init__()
+        super(Puzzle_Net, self).__init__()
         vocab_path = args.vocab_path
         with open(vocab_path, "rb") as f:
             self.vocab = pickle.load(f)

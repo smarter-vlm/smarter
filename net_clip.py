@@ -16,9 +16,9 @@ from PIL import Image
 import globvars as gv
 
 
-class SMART_VL_CLIP_Net(nn.Module):
+class Smarter_VL_CLIP(nn.Module):
     def __init__(self, args, VL_backbone):
-        super(SMART_VL_CLIP_Net, self).__init__()
+        super(Smarter_VL_CLIP, self).__init__()
         vocab_path = args.vocab_path
         with open(vocab_path, "rb") as f:
             self.vocab = pickle.load(f)
