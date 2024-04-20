@@ -384,7 +384,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--split_ratio",
         type=str,
-        default="80:5:15",
+        default="85:5:5", 
         help="how to split train and val, when both use the same instance list.",
     )
     parser.add_argument("--save_root", type=str, default="./data/v2/", help="location to save intermediate files.")
@@ -393,7 +393,7 @@ if __name__ == "__main__":
     parser.add_argument("--pretrained", type=str, help="should use a pretrained model?")
     parser.add_argument("--optimizer", type=str, default="adam", help="optimizer to use")
     parser.add_argument("--loss_type", type=str, default="classification", help="classifier/regression")
-    parser.add_argument("--model_name", type=str, help="model to use resnet50/resnet18/...")
+    parser.add_argument("--model_name", type=str, help="model to use dinov2/siglip/resnet50/mae/clip")
     parser.add_argument("--seed", type=int, default=0, help="seed to use")
     parser.add_argument("--data_tot", type=int, default=2000, help="how many instances to use for train+val+test")
     parser.add_argument("--use_clip_text", action="store_true", help="should use clip text embeddings?")
