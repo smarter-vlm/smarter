@@ -81,7 +81,7 @@ class SMART_Data(Dataset):
         opt_enc[: min(self.max_olen, len(enc_tokens))] = np.array(enc_tokens)
         return opt_enc
 
-    def split_puzzles(self, puzzle_ids, split_ratio, split_name, split_type):
+    def split_puzzles(self, puzzle_ids, split_ratio, split_name, split_type="standard"):
         # if split_type == "puzzle" or split_type == "fewshot":
         #     if split_name == "train":
         #         val_test = gv.PS_VAL_IDX + gv.PS_TEST_IDX
@@ -190,11 +190,7 @@ class SMART_TrainData(SMART_Data):
         self.qa_info = []
         train_pids = None
 
-        puzzle_ids = (
-            self.split_puzzles(args.puzzle_ids, args.split_ratio, split, args.split_type)
-            if args.split_type == "puzzle"
-            else args.puzzle_ids
-        )
+        puzzle_ids = args.puzzle_ids 
         # if args.split_type == "fewshot":
         #     train_pids, fewshot_other_pids = self.split_fewshot_puzzles(
         #         args.puzzle_ids, args.split_ratio, split, args.split_type
@@ -209,7 +205,8 @@ class SMART_TrainData(SMART_Data):
             qa_info = qa_info[: self.num_tot]
             for t in range(len(qa_info)):
                 qa_info[t]["AnswerValue"] = utils.get_val(qa_info[t], qa_info[t]["Answer"])
-            self.qa_info = self.qa_info + self.split_data(qa_info, args.split_ratio, split, args.split_type)
+            self.qa_info = self.qa_info + self.split_data(qa_info, args.split_ratio, split, "standard")
+
             gv.MAX_VAL = max(gv.MAX_VAL, gv.NUM_CLASSES_PER_PUZZLE[puzzle_id])
         print("num_train=%d max_answer_value=%d" % (len(self.qa_info), gv.MAX_VAL))
         print("split=%s puzzle_ids=" % (split), end=" ")
@@ -251,11 +248,7 @@ class SMART_ValData(SMART_Data):
         self.qa_info = []
 
         self.diff = args.test_diff if split == "test" else args.train_diff
-        puzzle_ids = (
-            self.split_puzzles(args.puzzle_ids, args.split_ratio, split, args.split_type)
-            if args.split_type == "puzzle"
-            else args.puzzle_ids
-        )
+        puzzle_ids = args.puzzle_ids
 
         for puzzle_id in puzzle_ids:
             puzzle_root = puzzle_id + "/" + gv.puzzle_diff_str[self.diff] + "/"
@@ -269,7 +262,7 @@ class SMART_ValData(SMART_Data):
             qa_info = qa_info[: self.num_tot]
             for t in range(len(qa_info)):
                 qa_info[t]["AnswerValue"] = utils.get_val(qa_info[t], qa_info[t]["Answer"])
-            self.qa_info = self.qa_info + self.split_data(qa_info, args.split_ratio, split, args.split_type)
+            self.qa_info = self.qa_info + self.split_data(qa_info, args.split_ratio, split, "standard")
             gv.MAX_VAL = max(gv.MAX_VAL, gv.NUM_CLASSES_PER_PUZZLE[puzzle_id])
         print("num_val = %d max_answer_value=%d" % (len(self.qa_info), gv.MAX_VAL))
         print("split=%s puzzle_ids=" % (split), end=" ")
