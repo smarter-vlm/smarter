@@ -335,9 +335,9 @@ class Puzzle_Net(nn.Module):
 
     def process_siglip(self, x):
         device = torch.device("cuda")
-        # do not double rescale? TODO: I believe there is a HF bug here; may consider TIMM model
-        # but also double check the path to inputs
-        inputs = self.preprocess(images=x, do_rescale=False, return_tensors="pt").to(
+        print("what is x", x)
+        x = self.decode_image(x) 
+        inputs = self.preprocess(images=x, do_rescale=True, return_tensors="pt").to(
             device
         )
         outputs = self.im_backbone(**inputs)

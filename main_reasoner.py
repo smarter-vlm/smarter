@@ -73,9 +73,9 @@ def train(args, dataloader, im_backbone):
         f"\n Number trainable params before explicit freezing of dino {sum(p.numel() for p in model.parameters() if p.requires_grad)}"
     )
 
-    # Make sure Dino is frozen
+    # Make sure im backbone is frozen
     for name, param in model.named_parameters():
-        if name.startswith("dinov2"):
+        if name.startswith("dinov2") or name.startswith("siglip") :
             param.requires_grad = False
 
     print(
@@ -98,7 +98,6 @@ def train(args, dataloader, im_backbone):
         return err
 
     def get_result(out):
-        # if ltype == "classifier":
         pred_max = F.softmax(out, dim=1).argmax(dim=1).cpu()
 
         return pred_max
