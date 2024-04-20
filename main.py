@@ -158,7 +158,6 @@ def train(args, dataloader, im_backbone):
 
                 out = model(im, q, puzzle_ids=pids)
                 val_loss = criterion(out, av, pids)
-                val_tot_loss += val_loss.item()
 
                 experiment.log_metrics({"val_batch_loss":val_loss.item()}, step=i)
 
@@ -208,13 +207,14 @@ def train(args, dataloader, im_backbone):
 
     def test_loop(test_loader, model):
         
-        with experiment.context_manager("test"):
-            acc, err, opt, puzzle_acc, val_ep_loss = val_loop(test_loader, model)
-            class_perf = utils.print_puzz_acc(args, puzzle_acc, log=True)
-            print(
-                    "***** Final Test Performance: S_acc = %0.2f O_acc = %0.2f Prediction Variance = %0.2f "
-                    % (acc * 100, opt * 100, err)
-                )
+        acc, err, opt, puzzle_acc, test_ep_loss = val_loop(test_loader, model)
+        class_perf = utils.print_puzz_acc(args, puzzle_acc, log=True)
+        print(
+                "***** Final Test Performance: S_acc = %0.2f O_acc = %0.2f Prediction Variance = %0.2f "
+                % (acc * 100, opt * 100, err)
+            )
+        print(f"test class perf {class_perf}")
+        print(f"test val loss: val_ep_loss, {test_ep_loss}")
 
 
     if args.test:
@@ -255,9 +255,9 @@ def train(args, dataloader, im_backbone):
         if epoch >= 0: # always eval
             model.eval()
 
-            with experiment.context_manager("val"):
-                acc, err, oacc, puz_acc, val_tot_loss = val_loop(val_loader, model)
-                experiment.log_metrics({"acc": acc, "var": err, "oacc": oacc, "epoch_loss": val_tot_loss}, epoch=epoch)
+           
+            acc, err, oacc, puz_acc, val_tot_loss = val_loop(val_loader, model)
+            experiment.log_metrics({"val_acc": acc, "val_var": err, "val_oacc": oacc, "val_epoch_loss": val_tot_loss}, epoch=epoch)
 
             class_avg_perf = utils.print_puzz_acc(args, puz_acc, log=args.log)
 
@@ -287,9 +287,10 @@ def train(args, dataloader, im_backbone):
                 
         acc, err, oacc, puz_acc, val_tot_loss = val_loop(test_loader, model)
         print(
-            "puzzles %s: val: s_acc/o_acc/var = %f/%f/%f (%d)"
+            "puzzles %s: eval on test loader at end of ep: s_acc/o_acc/var = %f/%f/%f (%d)"
             % (args.puzzles, acc * 100, oacc * 100, err, best_epoch)
         )
+        
 
     test_loop(test_loader, best_model)
 
