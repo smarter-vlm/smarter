@@ -14,7 +14,7 @@ import torch.nn.functional as F
 from PIL import Image
 from torchvision import models
 
-import globvars as gv
+import text_encoder as gv
 
 
 class Smarter_VL(nn.Module):

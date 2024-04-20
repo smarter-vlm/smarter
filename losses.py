@@ -1,6 +1,6 @@
 import torch.nn as nn
 
-import globvars as gv
+import text_encoder as gv
 
 
 class Criterion(nn.Module):

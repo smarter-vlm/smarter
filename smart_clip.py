@@ -12,7 +12,7 @@ import numpy as np
 import torch.nn.functional as F
 from PIL import Image
 
-import globvars as gv
+import text_encoder as gv
 
 
 class Smarter_VL_CLIP(nn.Module):
