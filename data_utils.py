@@ -13,7 +13,7 @@ from PIL import Image
 from torch.utils.data import Dataset
 from torchvision.transforms import Compose, Normalize, Resize, ToTensor
 
-import globvars as gv
+import text_encoder as gv
 import utils
 
 
