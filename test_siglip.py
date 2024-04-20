@@ -1,17 +1,21 @@
 from PIL import Image
 import requests
 from transformers import (
-    AutoProcessor,
+    AutoImageProcessor,
     SiglipVisionModel,
     SiglipTextModel,
     AutoTokenizer,
 )
+from datasets import load_dataset
+
+dataset = load_dataset("huggingface/cats-image")
+image = dataset["test"]["image"][0]
 
 model = SiglipVisionModel.from_pretrained("google/siglip-base-patch16-224")
-processor = AutoProcessor.from_pretrained("google/siglip-base-patch16-224")
+processor = AutoImageProcessor.from_pretrained("google/siglip-base-patch16-224")
 
-url = "http://images.cocodataset.org/val2017/000000039769.jpg"
-image = Image.open(requests.get(url, stream=True).raw)
+# url = "http://images.cocodataset.org/val2017/000000039769.jpg"
+# image = Image.open(requests.get(url, stream=True).raw)
 
 print(image)
 

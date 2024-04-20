@@ -325,12 +325,11 @@ class Puzzle_Net(nn.Module):
         device = torch.device("cuda")
         # do not double rescale? TODO: I believe there is a HF bug here; may consider TIMM model
         # but also double check the path to inputs
+        x = self.decode_image(x) 
         inputs = self.preprocess(images=x, do_rescale=True, return_tensors="pt").to(
             device
         )
-
-        with torch.no_grad():
-            outputs = self.im_backbone(**inputs)
+        outputs = self.im_backbone(**inputs)
         return outputs.last_hidden_state.mean(1)
 
     def process_siglip(self, x):
@@ -538,19 +537,20 @@ def load_pretrained_models(args, model_name, model=None):
         preprocess = repr_extractor
 
     elif args.model_name == "dinov2":
-        from transformers import AutoProcessor, Dinov2Model
+        from transformers import AutoImageProcessor, Dinov2Model
 
-        image_processor = AutoProcessor.from_pretrained("facebook/dinov2-base")
+        image_processor = AutoImageProcessor.from_pretrained("facebook/dinov2-base")
         model = Dinov2Model.from_pretrained("facebook/dinov2-base")
         preprocess = image_processor
 
     elif args.model_name == "siglip":
         from transformers import (
-            AutoProcessor,
+            AutoImageProcessor,
             SiglipVisionModel,
         )
 
-        image_processor = AutoProcessor.from_pretrained(
+        # There is a bug of some kind in HF model.
+        image_processor = AutoImageProcessor.from_pretrained(
             "google/siglip-base-patch16-224"
         )
         model = SiglipVisionModel.from_pretrained("google/siglip-base-patch16-224")
