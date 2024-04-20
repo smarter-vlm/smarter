@@ -70,7 +70,7 @@ def train(args, dataloader, im_backbone):
         model = vlm_reasoners.Puzzle_Net(args, im_backbone=im_backbone)
 
     print(
-        f"\n Number trainable params before explicit freezing of {name} {sum(p.numel() for p in model.parameters() if p.requires_grad)}"
+        f"\n Number trainable params before explicit freezing of image backb {sum(p.numel() for p in model.parameters() if p.requires_grad)}"
     )
 
     # Make sure im backbone is frozen
@@ -79,7 +79,7 @@ def train(args, dataloader, im_backbone):
             param.requires_grad = False
 
     print(
-        f"\n Number trainable params after explicit freezing of {name} {sum(p.numel() for p in model.parameters() if p.requires_grad)}"
+        f"\n Number trainable params after explicit freezing of image backb  {sum(p.numel() for p in model.parameters() if p.requires_grad)}"
     )
 
     device = torch.device("cuda")
