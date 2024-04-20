@@ -186,7 +186,7 @@ class SMART_TrainData(SMART_Data):
         self.num_tot = args.data_tot  # how many instances per puzzles should we use?
         self.diff = args.train_diff
         self.word_embed = args.word_embed
-        self.fewshot_K = args.fsK
+        # self.fewshot_K = args.fsK
         self.qa_info = []
         train_pids = None
 
@@ -247,7 +247,7 @@ class SMART_ValData(SMART_Data):
         self.data_root = args.data_root
         self.num_tot = args.data_tot
         self.word_embed = args.word_embed
-        self.fewshot_K = args.fsK
+        # self.fewshot_K = args.fsK
         self.qa_info = []
 
         self.diff = args.test_diff if split == "test" else args.train_diff

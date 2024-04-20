@@ -345,7 +345,7 @@ if __name__ == "__main__":
     # parser.add_argument("--optimizer", type=str, default="adam", help="optimizer to use")
     # parser.add_argument("--loss_type", type=str, default="classification", help="classifier/regression")
 
-    parser.add_argument("--model_name", type=str, help="model to use dinov2/siglip/resnet50/mae/clip")
+    parser.add_argument("--model_name", type=str, help="model to use dinov2/siglip/dinov2+siglip/resnet50/mae/clip")
     parser.add_argument("--seed", type=int, default=0, help="seed to use")
     parser.add_argument("--data_tot", type=int, default=2000, help="how many instances to use for train+val+test")
     parser.add_argument("--use_clip_text", action="store_true", help="should use clip text embeddings?")
@@ -358,9 +358,9 @@ if __name__ == "__main__":
     parser.add_argument(
         "--use_single_image_head", action="store_true", help="use a single image head for all the puzzles?"
     )
-    parser.add_argument(
-        "--fsK", type=int, default=100, help="how many samples should we use to train in a fewshot setting?"
-    )
+    # parser.add_argument(
+    #     "--fsK", type=int, default=100, help="how many samples should we use to train in a fewshot setting?"
+    # )
     parser.add_argument("--log_freq", type=int, default=1, help="log frequency?")
     parser.add_argument("--test", action="store_true", help="evaluate a model?")
     # parser.add_argument("--train_backbone", action="store_true", help="train the image backbone?")

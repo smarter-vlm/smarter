@@ -2,8 +2,8 @@ Restarting refactor. This is the actual code I am working with to architect and 
 
 I am not sure what he is up to but his insistance of not writing anything in overleaf, or in code and that I generated all the reserach ideas and literature summaries in his Notion account first and now this stuff with his work colleagues which came out of the blue..All is not well. And that stuff he pulled at proposal submission which I have documented from this Notion thing he insisted to use. 
 
-I hope PACE has privacy and security on student's folders.
+I hope PACE has privacy and security on student's folders. OMSCS is a large program with people from everywhere not vetted by the US embassies for Visa purposes like the rest of us who came to the US with student visas on US territory. It is not known by GT who the individuals are, and what they are up to.
 
-I commit and Comet log. And then ..let it go.
+ANyways, for this project, I commit and Comet log. And then ... let it go.
 
 The cold never bothered me anyway.
