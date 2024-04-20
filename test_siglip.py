@@ -37,4 +37,3 @@ pooled_output = outputs.pooler_output
 # text model
 print("text model", model)
 print("text pooled shape", pooled_output.shape)
- 

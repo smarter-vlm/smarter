@@ -515,9 +515,7 @@ def load_pretrained_models(args, model_name, model=None):
     elif args.model_name == "mae":
         from transformers import AutoFeatureExtractor, ViTMAEModel
 
-        repr_extractor = AutoFeatureExtractor.from_pretrained(
-            "facebook/vit-mae-base"
-        )
+        repr_extractor = AutoFeatureExtractor.from_pretrained("facebook/vit-mae-base")
         model = ViTMAEModel.from_pretrained("facebook/vit-mae-base")
         preprocess = repr_extractor
 
@@ -529,27 +527,30 @@ def load_pretrained_models(args, model_name, model=None):
         preprocess = image_processor
 
     elif args.model_name == "siglip":
-       from transformers import (
+        from transformers import (
             AutoProcessor,
             SiglipVisionModel,
-            
         )
-       image_processor = AutoProcessor.from_pretrained("google/siglip-base-patch16-224")
-       model = SiglipVisionModel.from_pretrained("google/siglip-base-patch16-224")
-       preprocess = image_processor
+
+        image_processor = AutoProcessor.from_pretrained(
+            "google/siglip-base-patch16-224"
+        )
+        model = SiglipVisionModel.from_pretrained("google/siglip-base-patch16-224")
+        preprocess = image_processor
 
     elif args.model_name == "dinov2+siglip":
-       
-       from transformers import (
-            AutoProcessor,
-            SiglipVisionModel, Dinov2Model
-            
+
+        from transformers import AutoProcessor, SiglipVisionModel, Dinov2Model
+
+        image_processor_siglip = AutoProcessor.from_pretrained(
+            "google/siglip-base-patch16-224"
         )
-       image_processor_siglip = AutoProcessor.from_pretrained("google/siglip-base-patch16-224")
-       model_siglip = SiglipVisionModel.from_pretrained("google/siglip-base-patch16-224")
-       image_processor_dino = AutoProcessor.from_pretrained("facebook/dinov2-base")
-       model_dino = Dinov2Model.from_pretrained("facebook/dinov2-base")
-       preprocess = (image_processor_siglip, image_processor_dino)
+        model_siglip = SiglipVisionModel.from_pretrained(
+            "google/siglip-base-patch16-224"
+        )
+        image_processor_dino = AutoProcessor.from_pretrained("facebook/dinov2-base")
+        model_dino = Dinov2Model.from_pretrained("facebook/dinov2-base")
+        preprocess = (image_processor_siglip, image_processor_dino)
 
         # TODO: DR new functiionality needed to be able to pass down preprocess as tuple
 

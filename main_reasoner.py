@@ -26,7 +26,7 @@ import vocab_utils
 import data_utils as dl
 import text_encoder as gv
 import losses
-import deep_nets
+import vlm_reasoners
 import utils
 
 
@@ -67,7 +67,7 @@ def train(args, dataloader, im_backbone):
 
         model = smart_clip.Smarter_VL_CLIP(args, VL_backbone=im_backbone)
     else:
-        model = deep_nets.Puzzle_Net(args, im_backbone=im_backbone)
+        model = vlm_reasoners.Puzzle_Net(args, im_backbone=im_backbone)
 
     print(
         f"\n Number trainable params before explicit freezing of dino {sum(p.numel() for p in model.parameters() if p.requires_grad)}"
@@ -233,7 +233,7 @@ def train(args, dataloader, im_backbone):
         print(f"test val loss: val_ep_loss, {test_ep_loss}")
 
     if args.test:
-        deep_nets.load_pretrained_models(args, args.model_name, model=model)
+        vlm_reasoners.load_pretrained_models(args, args.model_name, model=model)
         test_loop(dataloader["test"], model)
         return
 
@@ -462,7 +462,7 @@ if __name__ == "__main__":
             args.save_root, "vocab_puzzle_" + args.puzzle_ids_str + ".pkl"
         )
 
-    im_backbone, preprocess = deep_nets.load_pretrained_models(
+    im_backbone, preprocess = vlm_reasoners.load_pretrained_models(
         args, args.model_name, model=None
     )
 
