@@ -384,7 +384,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--split_ratio",
         type=str,
-        default="85:5:5", 
+        default="85:10:5", 
         help="how to split train and val, when both use the same instance list.",
     )
     parser.add_argument("--save_root", type=str, default="./data/v2/", help="location to save intermediate files.")

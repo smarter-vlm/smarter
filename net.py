@@ -501,34 +501,17 @@ def load_pretrained_models(args, model_name, model=None):
         return
 
     preprocess = None
-    if args.model_name in ["resnet18"]:
-        model = models.__dict__[args.model_name](pretrained=True)
-    elif args.model_name in ["resnet50"]:  # use_resnet:
+    
+    if args.model_name in ["resnet50"]:  # use_resnet:
         from torchvision.models import ResNet50_Weights, resnet50
 
         weights = ResNet50_Weights.DEFAULT
         model = resnet50(weights=weights)
         preprocess = weights.transforms()
-    elif args.model_name == "swin_t":  # use_vit:
-        from torchvision.models import Swin_T_Weights, swin_t
 
-        weights = Swin_T_Weights.IMAGENET1K_V1
-        model = swin_t(weights=weights)
-        preprocess = weights.transforms()
-    elif args.model_name == "swin_b":  # use_vit:
-        from torchvision.models import Swin_B_Weights, swin_b
-
-        weights = Swin_B_Weights.IMAGENET1K_V1
-        model = swin_b(weights=weights)
-        preprocess = weights.transforms()
-    elif args.model_name == "vit":
-        from torchvision.models import ViT_B_16_Weights, vit_b_16
-
-        weights = ViT_B_16_Weights.IMAGENET1K_SWAG_E2E_V1  # ViT_B_16_Weights.DEFAULT #
-        model = vit_b_16(weights=weights)
-        preprocess = weights.transforms()
     elif args.model_name == "clip":
         model, preprocess = clip.load("ViT-B/32", device="cuda")
+
     elif args.model_name == "mae":
         from transformers import AutoFeatureExtractor, ViTMAEModel
 
@@ -542,7 +525,10 @@ def load_pretrained_models(args, model_name, model=None):
         model = Dinov2Model.from_pretrained("facebook/dinov2-base")
         preprocess = image_processor
        
-    elif args.model_name == "dinov2+clip":
+    elif args.model_name == "siglip":
+        pass #TODO
+
+    elif args.model_name == "dinov2+siglip":
         pass #TODO
 
     else:
