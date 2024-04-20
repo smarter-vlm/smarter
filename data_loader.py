@@ -82,32 +82,32 @@ class SMART_Data(Dataset):
         return opt_enc
 
     def split_puzzles(self, puzzle_ids, split_ratio, split_name, split_type):
-        if split_type == "puzzle" or split_type == "fewshot":
-            if split_name == "train":
-                val_test = gv.PS_VAL_IDX + gv.PS_TEST_IDX
-                val_test = set([str(ii) for ii in val_test])
-                puzzle_ids = list(set(puzzle_ids).difference(val_test))
-                print("number of train puzzles = %d" % (len(puzzle_ids)))
-            elif split_name == "val":
-                puzzle_ids = [str(ii) for ii in gv.PS_VAL_IDX]
-                print("number of val puzzles = %d" % (len(puzzle_ids)))
-            else:
-                puzzle_ids = [str(ii) for ii in gv.PS_TEST_IDX]
-                print("number of test puzzles = %d" % (len(puzzle_ids)))
+        # if split_type == "puzzle" or split_type == "fewshot":
+        #     if split_name == "train":
+        #         val_test = gv.PS_VAL_IDX + gv.PS_TEST_IDX
+        #         val_test = set([str(ii) for ii in val_test])
+        #         puzzle_ids = list(set(puzzle_ids).difference(val_test))
+        #         print("number of train puzzles = %d" % (len(puzzle_ids)))
+        #     elif split_name == "val":
+        #         puzzle_ids = [str(ii) for ii in gv.PS_VAL_IDX]
+        #         print("number of val puzzles = %d" % (len(puzzle_ids)))
+        #     else:
+        #         puzzle_ids = [str(ii) for ii in gv.PS_TEST_IDX]
+        #         print("number of test puzzles = %d" % (len(puzzle_ids)))
+        # else:
+        splits = np.array([int(spl) for spl in split_ratio.split(":")]).cumsum()
+        n = len(puzzle_ids)
+        if split_name == "train":
+            st = 0
+            en = int(np.floor(n * splits[0] / 100.0))
+            puzzle_ids = puzzle_ids[st:en]
+        elif split_name == "val":
+            st = int(np.ceil(n * splits[0] / 100.0))
+            en = int(np.floor(n * splits[1] / 100.0))
+            puzzle_ids = puzzle_ids[st:en]
         else:
-            splits = np.array([int(spl) for spl in split_ratio.split(":")]).cumsum()
-            n = len(puzzle_ids)
-            if split_name == "train":
-                st = 0
-                en = int(np.floor(n * splits[0] / 100.0))
-                puzzle_ids = puzzle_ids[st:en]
-            elif split_name == "val":
-                st = int(np.ceil(n * splits[0] / 100.0))
-                en = int(np.floor(n * splits[1] / 100.0))
-                puzzle_ids = puzzle_ids[st:en]
-            else:
-                st = int(np.ceil(n * splits[1] / 100.0))
-                puzzle_ids = puzzle_ids[st:]
+            st = int(np.ceil(n * splits[1] / 100.0))
+            puzzle_ids = puzzle_ids[st:]
         print("puzzles for %s =" % (split_name))
         print(puzzle_ids)
         return puzzle_ids
@@ -118,7 +118,7 @@ class SMART_Data(Dataset):
         split_type=exclude is to exclude answers from the split, e.g., train on all answers except say 1, and test 1
         split_type=puzzle is to split the puzzles into the respective ratios. so we don't have to do anything here.
         """
-        if split_type == "standard" or split_type == "puzzle" or split_type == "fewshot":
+        if split_type == "standard":
             splits = np.array([int(spl) for spl in split_ratio.split(":")]).cumsum()
             n = len(info)
             if split_name == "train":
@@ -132,47 +132,47 @@ class SMART_Data(Dataset):
             else:
                 st = int(np.ceil(n * splits[1] / 100.0))
                 info = info[st:]
-        elif split_type == "exclude":
-            pid = info[0]["puzzle_id"]
-            if int(pid) in gv.SEQ_PUZZLES or int(pid) == 58:
-                # we don't do exclude splits for seq_puzzles are as they are most likely always unique
-                info = self.split_data(info, split_ratio, split_name, split_type="standard")
-            else:
-                ans_distr = []
-                for t in range(len(info)):
-                    ans_distr.append(info[t]["AnswerValue"])
-                ans_distr = np.array(ans_distr)
-                bclassids = np.arange(gv.NUM_CLASSES_PER_PUZZLE[pid])
-                x = np.histogram(ans_distr, bclassids)[0]
-                x = x / x.sum()
+        # elif split_type == "exclude":
+        #     pid = info[0]["puzzle_id"]
+        #     if int(pid) in gv.SEQ_PUZZLES or int(pid) == 58:
+        #         # we don't do exclude splits for seq_puzzles are as they are most likely always unique
+        #         info = self.split_data(info, split_ratio, split_name, split_type="standard")
+            # else:
+            #     ans_distr = []
+            #     for t in range(len(info)):
+            #         ans_distr.append(info[t]["AnswerValue"])
+            #     ans_distr = np.array(ans_distr)
+            #     bclassids = np.arange(gv.NUM_CLASSES_PER_PUZZLE[pid])
+            #     x = np.histogram(ans_distr, bclassids)[0]
+            #     x = x / x.sum()
 
-                # select reasonable answers.
-                valid_ans_idx = np.where(x > 0.01)
-                x_cls = bclassids[valid_ans_idx]
-                x = x[valid_ans_idx]
-                median_class = x_cls[x <= np.median(x)][-1]
-                try:
-                    train_inst = np.array(info)[ans_distr != median_class]
-                    test_inst = np.array(info)[ans_distr == median_class]
-                except:
-                    print(pid)
-                    pdb.set_trace()
+            #     # select reasonable answers.
+            #     valid_ans_idx = np.where(x > 0.01)
+            #     x_cls = bclassids[valid_ans_idx]
+            #     x = x[valid_ans_idx]
+            #     median_class = x_cls[x <= np.median(x)][-1]
+            #     try:
+            #         train_inst = np.array(info)[ans_distr != median_class]
+            #         test_inst = np.array(info)[ans_distr == median_class]
+            #     except:
+            #         print(pid)
+            #         pdb.set_trace()
 
-                n = len(train_inst)
-                splits = np.array([int(spl) for spl in split_ratio.split(":")])
-                splits[0] = splits[0] + splits[2]
-                splits = splits.cumsum()[:2]
+            #     n = len(train_inst)
+            #     splits = np.array([int(spl) for spl in split_ratio.split(":")])
+            #     splits[0] = splits[0] + splits[2]
+            #     splits = splits.cumsum()[:2]
 
-                if split_name == "train":
-                    st = 0
-                    en = int(np.floor(n * splits[0] / 100.0))
-                    info = train_inst[st:en].tolist()
-                elif split_name == "val":
-                    st = int(np.ceil(n * splits[0] / 100.0))
-                    en = int(np.floor(n * splits[1] / 100.0))
-                    info = train_inst[st:en].tolist()
-                else:
-                    info = test_inst.tolist()
+            #     if split_name == "train":
+            #         st = 0
+            #         en = int(np.floor(n * splits[0] / 100.0))
+            #         info = train_inst[st:en].tolist()
+            #     elif split_name == "val":
+            #         st = int(np.ceil(n * splits[0] / 100.0))
+            #         en = int(np.floor(n * splits[1] / 100.0))
+            #         info = train_inst[st:en].tolist()
+            #     else:
+            #         info = test_inst.tolist()
         else:
             raise "Unknown puzzle split type!!"
 
@@ -195,18 +195,18 @@ class SMART_TrainData(SMART_Data):
             if args.split_type == "puzzle"
             else args.puzzle_ids
         )
-        if args.split_type == "fewshot":
-            train_pids, fewshot_other_pids = self.split_fewshot_puzzles(
-                args.puzzle_ids, args.split_ratio, split, args.split_type
-            )
+        # if args.split_type == "fewshot":
+        #     train_pids, fewshot_other_pids = self.split_fewshot_puzzles(
+        #         args.puzzle_ids, args.split_ratio, split, args.split_type
+        #     )
         for puzzle_id in puzzle_ids:
             puzzle_root = puzzle_id + "/" + gv.puzzle_diff_str[self.diff] + "/"
             csv_file = "puzzle_%s%s.csv" % (puzzle_id, gv.puzzle_diff[self.diff])
             qa_info = utils.read_csv(os.path.join(self.data_root, puzzle_root, csv_file), puzzle_id)
-            if args.split_type == "fewshot" and puzzle_id in fewshot_other_pids:
-                qa_info = qa_info[: self.fewshot_K]
-            else:
-                qa_info = qa_info[: self.num_tot]
+            # if args.split_type == "fewshot" and puzzle_id in fewshot_other_pids:
+            #     qa_info = qa_info[: self.fewshot_K]
+            # else:
+            qa_info = qa_info[: self.num_tot]
             for t in range(len(qa_info)):
                 qa_info[t]["AnswerValue"] = utils.get_val(qa_info[t], qa_info[t]["Answer"])
             self.qa_info = self.qa_info + self.split_data(qa_info, args.split_ratio, split, args.split_type)
@@ -256,21 +256,17 @@ class SMART_ValData(SMART_Data):
             if args.split_type == "puzzle"
             else args.puzzle_ids
         )
-        if args.split_type == "fewshot":
-            puzzle_ids, fewshot_other_pids = self.split_fewshot_puzzles(
-                args.puzzle_ids, args.split_ratio, split, args.split_type
-            )
 
         for puzzle_id in puzzle_ids:
             puzzle_root = puzzle_id + "/" + gv.puzzle_diff_str[self.diff] + "/"
             csv_file = "puzzle_%s%s.csv" % (puzzle_id, gv.puzzle_diff[self.diff])
             qa_info = utils.read_csv(os.path.join(self.data_root, puzzle_root, csv_file), puzzle_id)
-            if args.split_type == "fewshot":
-                qa_info = qa_info[
-                    self.fewshot_K : self.num_tot
-                ]  # we use the fewshot_K for training. so use the rest for evaluation.
-            else:
-                qa_info = qa_info[: self.num_tot]
+            # if args.split_type == "fewshot":
+            #     qa_info = qa_info[
+            #         self.fewshot_K : self.num_tot
+            #     ]  # we use the fewshot_K for training. so use the rest for evaluation.
+            # else:
+            qa_info = qa_info[: self.num_tot]
             for t in range(len(qa_info)):
                 qa_info[t]["AnswerValue"] = utils.get_val(qa_info[t], qa_info[t]["Answer"])
             self.qa_info = self.qa_info + self.split_data(qa_info, args.split_ratio, split, args.split_type)
