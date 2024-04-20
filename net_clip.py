@@ -35,10 +35,10 @@ class SMART_VL_CLIP_Net(nn.Module):
         self.train_backbone = args.train_backbone
         self.sorted_puzzle_ids = np.sort(np.array([int(ii) for ii in args.puzzle_ids]))
 
-        if args.loss_type == "classifier" or args.loss_type == "puzzle_tails":
-            self.max_val = gv.MAX_VAL + 1
-        elif args.loss_type == "regression":
-            self.max_val = 1
+        # if args.loss_type == "classifier" or args.loss_type == "puzzle_tails":
+        self.max_val = gv.MAX_VAL + 1
+        # elif args.loss_type == "regression":
+        #     self.max_val = 1
 
         self.preprocess = args.preprocess
         self.VL_backbone = VL_backbone

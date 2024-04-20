@@ -26,7 +26,7 @@ class SMART_VL_Net(nn.Module):
             self.vocab = pickle.load(f)
 
         self.num_opts = 5
-        self.out_dim = args.feat_size  # the intermediate feature size.
+        self.out_dim = args.feat_size 
         self.h_sz = 256
         self.feat_size = 768
         self.dummy_question = None
@@ -37,10 +37,10 @@ class SMART_VL_Net(nn.Module):
         self.train_backbone = args.train_backbone
         self.sorted_puzzle_ids = np.sort(np.array([int(ii) for ii in args.puzzle_ids]))
 
-        if args.loss_type == "classifier" or args.loss_type == "puzzle_tails":
-            self.max_val = gv.MAX_VAL + 1
-        elif args.loss_type == "regression":
-            self.max_val = 1
+        # if args.loss_type == "classifier" or args.loss_type == "puzzle_tails":
+        self.max_val = gv.MAX_VAL + 1
+        # elif args.loss_type == "regression":
+        #     self.max_val = 1
 
         self.processor = args.preprocess
         self.VL_backbone = VL_backbone
@@ -94,7 +94,7 @@ class SMART_VL_Net(nn.Module):
             puzzles = range(1, gv.num_puzzles + 1)
         else:
             puzzles = self.puzzle_ids
-        for pid in puzzles:  # self.puzzle_ids:
+        for pid in puzzles:  
             num_classes = gv.NUM_CLASSES_PER_PUZZLE[str(pid)] if args.loss_type == "classifier" else 1
             if int(pid) not in gv.SEQ_PUZZLES:
                 ans_decoder.append(
@@ -207,7 +207,6 @@ class SMART_VL_Net(nn.Module):
         return qvo_feat
 
 
-# Vision backbones and language backbones.
 class SMART_Net(nn.Module):
     def __init__(self, args, im_backbone=None):
         super(SMART_Net, self).__init__()
@@ -216,8 +215,8 @@ class SMART_Net(nn.Module):
             self.vocab = pickle.load(f)
 
         self.num_opts = 5
-        self.out_dim = args.feat_size  #  64 #
-        self.h_sz = 256  # 256 #128 #
+        self.out_dim = args.feat_size  
+        self.h_sz = 256  
         self.dummy_question = None
         self.model_name = args.model_name
         self.use_clip_text = args.use_clip_text
@@ -237,22 +236,7 @@ class SMART_Net(nn.Module):
             self.im_feat_size = im_backbone.fc.weight.shape[1]
             modules = list(im_backbone.children())[:-1]
             self.im_cnn = nn.Sequential(*modules)
-        elif args.model_name in ["alexnet", "vgg"]:
-            im_backbone.classifier[-1] = nn.Identity()
-            self.im_cnn = im_backbone
-            self.im_encoder = nn.Linear(im_backbone.classifier[-3].weight.shape[1], self.out_dim)
-        elif args.model_name in ["swin_t"]:
-            self.im_feat_size = 768
-            self.im_cnn = im_backbone
-            self.im_cnn.head = nn.Identity()
-        elif args.model_name in ["swin_b"]:
-            self.im_feat_size = 1024
-            self.im_cnn = im_backbone
-            self.im_cnn.head = nn.Identity()
-        elif args.model_name in ["vit"]:
-            self.im_feat_size = 768
-            self.im_cnn = im_backbone
-            self.im_cnn.heads.head = nn.Identity()
+       
         elif args.model_name in ["mae"]:
             self.preprocess = args.preprocess
             self.im_cnn = lambda x: self.process_MAE(x)  # inputs = feature_extractor(images=image, return_tensors="pt")
@@ -266,18 +250,6 @@ class SMART_Net(nn.Module):
             self.im_backbone = im_backbone
             self.im_feat_size = 768
 
-        elif args.model_name in ["cross_transformer"]:  # when using a vision transformer model.
-            from vit_pytorch.crossformer import CrossFormer
-
-            self.im_cnn = CrossFormer(
-                num_classes=256,  # number of output classes
-                dim=(64, 128, 256, 512),  # dimension at each stage
-                depth=(2, 2, 8, 2),  # depth of transformer at each stage
-                global_window_size=(8, 4, 2, 1),  # global window sizes at each stage
-                local_window_size=7,  # local window size (can be customized for each stage, but in paper, held constant at 7 for all stages)
-            )
-
-            self.im_feat_size = 256
         else:
             raise "unknown model_name %s" % (args.model_name)
 

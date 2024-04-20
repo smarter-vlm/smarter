@@ -350,9 +350,7 @@ if __name__ == "__main__":
     parser.add_argument("--seed", type=int, default=0, help="seed to use")
     parser.add_argument("--data_tot", type=int, default=2000, help="how many instances to use for train+val+test")
     parser.add_argument("--use_clip_text", action="store_true", help="should use clip text embeddings?")
-    # parser.add_argument("--no_meta", action="store_true", help="do not use meta learning for optimization?")
     parser.add_argument("--log", action="store_true", help="should print detailed log of accuracy?")
-    parser.add_argument("--baselines", action="store_true", help="run the baselines from answer distributions?")
  
     parser.add_argument(
         "--split_type", type=str, default="standard", help="type of data split: stanard/exclude/puzzle/fewshot"
@@ -369,7 +367,6 @@ if __name__ == "__main__":
     parser.add_argument("--train_backbone", action="store_true", help="train the image backbone?")
     parser.add_argument("--no_question", action="store_true", help="do not use questions?")
     parser.add_argument("--no_image", action="store_true", help="do not use images?")
-    # parser.add_argument("--num_meta_updates", type=int, default=1, help="number of meta updates?")
     parser.add_argument(
         "--feat_size", type=int, default=128, help="intermediate feature size for image and language features?"
     )
