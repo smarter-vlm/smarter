@@ -364,7 +364,7 @@ if __name__ == "__main__":
     parser.add_argument("--log_freq", type=int, default=1, help="log frequency?")
     parser.add_argument("--test", action="store_true", help="evaluate a model?")
     # parser.add_argument("--train_backbone", action="store_true", help="train the image backbone?")
-    parser.add_argument("--no_question", action="store_true", help="do not use questions?")
+    # parser.add_argument("--no_question", action="store_true", help="do not use questions?")
     # parser.add_argument("--no_image", action="store_true", help="do not use images?")
 
     parser.add_argument(

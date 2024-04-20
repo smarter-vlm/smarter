@@ -4,6 +4,6 @@ I am not sure what he is up to but his insistance of not writing anything in ove
 
 I hope PACE has privacy and security on student's folders.
 
-For now I am just making sure I keep commits for history. I will be going to demo at TA the office hours. 
+I commit and Comet log. And then ..let it go.
 
-All I can do is git commit, comet log, and overleaf history track.
+"The cold never bothered me anyways".
