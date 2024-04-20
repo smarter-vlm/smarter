@@ -408,11 +408,6 @@ def get_puzzle_ids(args):
         puzzle_ids = [str(ii) for ii in sorted_puzzle_ids]
         puzzle_ids_str = "_".join(puzzle_ids)
 
-    if args.monolithic:
-        # remove sequential puzzles from the monolithic architecture.
-        puzzle_ids = set(puzzle_ids).difference(set([str(ii) for ii in gv.SEQ_PUZZLES]))
-        puzzle_ids = list(puzzle_ids)
-        puzzle_ids_str = puzzle_ids_str + "_monolithic"
 
     return puzzle_ids_str, puzzle_ids
 

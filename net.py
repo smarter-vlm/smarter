@@ -33,7 +33,6 @@ class SMART_VL_Net(nn.Module):
         self.model_name = args.model_name
         self.use_clip_text = args.use_clip_text
         self.loss_type = args.loss_type
-        self.monolithic = args.monolithic
         self.use_single_image_head = args.use_single_image_head
         self.train_backbone = args.train_backbone
         self.sorted_puzzle_ids = np.sort(np.array([int(ii) for ii in args.puzzle_ids]))
@@ -67,10 +66,8 @@ class SMART_VL_Net(nn.Module):
             nn.Linear(self.out_dim, self.out_dim),
             nn.GELU(),
         )
-        if self.monolithic:
-            self.qvo_fusion = nn.Sequential(nn.Linear(self.out_dim, self.max_val))
-        else:
-            self.create_puzzle_tail(args)
+        
+        self.create_puzzle_tail(args)
 
     def create_puzzle_head(self, args):
         if args.use_single_image_head:
@@ -205,11 +202,7 @@ class SMART_VL_Net(nn.Module):
 
         qv_feat = self.qv_fusion(torch.cat([im_feat.mean(1), q_feat.mean(1)], dim=1))
 
-        if self.monolithic:
-            qv_feat = qv_feat.unsqueeze(1)
-            qvo_feat = self.qvo_fusion(qv_feat).squeeze()
-        else:
-            qvo_feat = self.decode_individual_puzzles(qv_feat, puzzle_ids)
+        qvo_feat = self.decode_individual_puzzles(qv_feat, puzzle_ids)
 
         return qvo_feat
 
@@ -229,7 +222,6 @@ class SMART_Net(nn.Module):
         self.model_name = args.model_name
         self.use_clip_text = args.use_clip_text
         self.loss_type = args.loss_type
-        self.monolithic = args.monolithic
         self.use_single_image_head = args.use_single_image_head
         self.train_backbone = args.train_backbone
         self.word_embed = args.word_embed
@@ -319,10 +311,8 @@ class SMART_Net(nn.Module):
             nn.Linear(self.out_dim, self.out_dim),
             nn.GELU(),
         )
-        if self.monolithic:
-            self.qvo_fusion = nn.Sequential(nn.Linear(self.out_dim, self.max_val))
-        else:
-            self.create_puzzle_tail(args)
+            
+        self.create_puzzle_tail(args)
 
     def process_MAE(self, x):
         x = self.decode_image(x)  # get from tensor to PIL images
@@ -483,11 +473,8 @@ class SMART_Net(nn.Module):
         im_feat = self.encode_image(im.float(), puzzle_ids).float()
        
         qv_feat = self.qv_fusion(torch.cat([im_feat, q_feat], dim=1))
-        if self.monolithic:
-            qv_feat = qv_feat.unsqueeze(1)
-            qvo_feat = self.qvo_fusion(qv_feat).squeeze()
-        else:
-            qvo_feat = self.decode_individual_puzzles(qv_feat, puzzle_ids)
+       
+        qvo_feat = self.decode_individual_puzzles(qv_feat, puzzle_ids)
         return qvo_feat
 
 
