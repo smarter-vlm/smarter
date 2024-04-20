@@ -14,7 +14,6 @@ from PIL import Image
 from torch.utils.data import Dataset
 from torchvision.transforms import Compose, Normalize, Resize, ToTensor
 
-import baselines
 import globvars as gv
 import utils
 
@@ -223,8 +222,6 @@ class SMART_TrainData(SMART_Data):
                 qa_info[t]["AnswerValue"] = utils.get_val(qa_info[t], qa_info[t]["Answer"])
             self.qa_info = self.qa_info + self.split_data(qa_info, args.split_ratio, split, args.split_type)
             gv.MAX_VAL = max(gv.MAX_VAL, gv.NUM_CLASSES_PER_PUZZLE[puzzle_id])
-        if args.baselines:
-            self.baseline_perf = baselines.get_baseline_performance(args, self.qa_info, split, self.num_tot, log=True)
         print("num_train=%d max_answer_value=%d" % (len(self.qa_info), gv.MAX_VAL))
         print("split=%s puzzle_ids=" % (split), end=" ")
         print(puzzle_ids)
@@ -290,8 +287,6 @@ class SMART_ValData(SMART_Data):
             self.qa_info = self.qa_info + self.split_data(qa_info, args.split_ratio, split, args.split_type)
             gv.MAX_VAL = max(gv.MAX_VAL, gv.NUM_CLASSES_PER_PUZZLE[puzzle_id])
         print("num_val = %d max_answer_value=%d" % (len(self.qa_info), gv.MAX_VAL))
-        if args.baselines:
-            self.baseline_perf = baselines.get_baseline_performance(args, self.qa_info, split, self.num_tot, log=True)
         print("split=%s puzzle_ids=" % (split), end=" ")
         print(puzzle_ids)
 
