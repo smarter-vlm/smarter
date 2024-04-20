@@ -163,6 +163,7 @@ def train(args, dataloader, im_backbone):
 
                 out = model(im, q, puzzle_ids=pids)
                 val_loss = criterion(out, av, pids)
+                val_tot_loss += val_loss.item()
 
                 experiment.log_metrics({"val_batch_loss": val_loss.item()}, step=i)
 
@@ -210,14 +211,14 @@ def train(args, dataloader, im_backbone):
                 acc_mean += acc
                 err_mean += error
                 cnt += len(av)
-                val_tot_loss += val_loss.item()
+                
        
         return (
             acc_mean / float(cnt),
             err_mean / float(cnt),
             opt_mean / float(cnt),
             puzzle_acc,
-            val_tot_loss / float(cnt),
+            val_tot_loss / len(val_loader),
         )
 
     def test_loop(test_loader, model):
