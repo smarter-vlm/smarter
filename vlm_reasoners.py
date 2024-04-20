@@ -323,8 +323,6 @@ class Puzzle_Net(nn.Module):
 
     def process_dinov2(self, x):
         device = torch.device("cuda")
-        # do not double rescale? TODO: I believe there is a HF bug here; may consider TIMM model
-        # but also double check the path to inputs
         x = self.decode_image(x) 
         inputs = self.preprocess(images=x, do_rescale=True, return_tensors="pt").to(
             device
@@ -334,15 +332,17 @@ class Puzzle_Net(nn.Module):
 
     def process_siglip(self, x):
         device = torch.device("cuda")
-        print("what is x", x)
+        # print("what is x", x)
         x = self.decode_image(x) 
         inputs = self.preprocess(images=x, do_rescale=True, return_tensors="pt").to(
             device
         )
         outputs = self.im_backbone(**inputs)
         # last_hidden_state = outputs.last_hidden_state
-        pooled_output = outputs.pooler_output  # TODO: DR do my own pooler
-        return pooled_output
+        # pooled_output = outputs.pooler_output  # TODO: DR do my own pooler
+        # return pooled_output
+        outputs = self.im_backbone(**inputs)
+        return outputs.last_hidden_state.mean(1)
 
     def create_puzzle_head(self, args):
         if args.use_single_image_head:
