@@ -91,13 +91,9 @@ def train(args, dataloader, im_backbone):
             err[t] = err[t] / gv.NUM_CLASSES_PER_PUZZLE[str(pids[t])]
         return err
 
-    def get_result(out, ltype):
-        if ltype == "classifier":
-            pred_max = F.softmax(out, dim=1).argmax(dim=1).cpu()
-        elif ltype == "regression":
-            pred_max = torch.floor(out).long().cpu()[:, 0]
-        else:
-            raise "unknown loss type"
+    def get_result(out):
+        # if ltype == "classifier":
+        pred_max = F.softmax(out, dim=1).argmax(dim=1).cpu()
 
         return pred_max
 
