@@ -403,7 +403,7 @@ if __name__ == "__main__":
     utils.backup_code_and_start_logger(args, args.log_path, args.seed)
 
     print(args)
-    print(f"Train steps: {len(train_loader)}, val setpes {len(val_loader)}, and test loader lens {len(test_loader)}")
+    print(f"\n Num batches: train {len(train_loader)}, val {len(val_loader)}, and test {len(test_loader)}")
     
     print("num_puzzles=%d" % (len(args.puzzle_ids)))
 
