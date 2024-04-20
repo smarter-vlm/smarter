@@ -24,7 +24,7 @@ import torch.nn.functional as F
 from tqdm import tqdm
 
 import vocab_utils
-import data_loader as dl
+import data_utils as dl
 import globvars as gv
 import losses
 import net
@@ -231,7 +231,7 @@ def train(args, dataloader, im_backbone):
 
     num_steps = args.num_epochs * len(train_loader)
 
-    # TODO: don't think this is working
+    # TODO: don't think the scheduler is working
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, eta_min=0, T_max=num_steps)
 
     # training loop

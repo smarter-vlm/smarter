@@ -1,4 +1,3 @@
-
 import os
 import pdb
 
@@ -8,13 +7,16 @@ import torch
 
 import utils
 
+
 class BERT:
     # https://huggingface.co/docs/transformers/model_doc/bert
     def __init__(self):
         super(BERT, self).__init__()
         from transformers import BertModel, BertTokenizer
 
-        self.model = BertModel.from_pretrained("bert-base-multilingual-cased").to("cuda")
+        self.model = BertModel.from_pretrained("bert-base-multilingual-cased").to(
+            "cuda"
+        )
         self.tokenizer = BertTokenizer.from_pretrained("bert-base-multilingual-cased")
         self.word_dim = 768
 
@@ -23,7 +25,9 @@ class BERT:
 
     def word_embed(self, sentence):
         with torch.no_grad():
-            inputs = self.tokenizer(sentence, return_tensors="pt", padding=True).to("cuda")
+            inputs = self.tokenizer(sentence, return_tensors="pt", padding=True).to(
+                "cuda"
+            )
             outputs = self.model(**inputs)
             word_reprs = outputs.last_hidden_state
         return torch.tensor(word_reprs.squeeze()).cuda()
@@ -48,7 +52,9 @@ def globals_init(args):
     max_qlen = 110
     seed = 10
     icon_dataset_path = "./dataset/icon-classes.txt"  #'/homes/cherian/train_data/NAR/SMART/SMART_cpl/puzzles/anoops/resources/icons-50/Icons-50/'
-    icon_class_ids = utils.get_icon_dataset_classes(icon_dataset_path)  # os.listdir(icon_dataset_path) # puzzle 1
+    icon_class_ids = utils.get_icon_dataset_classes(
+        icon_dataset_path
+    )  # os.listdir(icon_dataset_path) # puzzle 1
     signs = np.array(["+", "-", "x", "/"])  # puzzle 58
     NUM_CLASSES_PER_PUZZLE = {}
     SEQ_PUZZLES = [16, 18, 35, 39, 63, 100]
@@ -56,7 +62,29 @@ def globals_init(args):
     num_actual_puzz = 102
     puzzles_not_included = set([])
     PS_VAL_IDX = [7, 43, 64]
-    PS_TEST_IDX = [94, 95, 96, 97, 98, 99, 101, 61, 62, 65, 66, 67, 69, 70, 71, 72, 73, 74, 75, 76, 77]
+    PS_TEST_IDX = [
+        94,
+        95,
+        96,
+        97,
+        98,
+        99,
+        101,
+        61,
+        62,
+        65,
+        66,
+        67,
+        69,
+        70,
+        71,
+        72,
+        73,
+        74,
+        75,
+        76,
+        77,
+    ]
 
     if not os.path.exists(args.save_root):
         os.makedirs(args.save_root)

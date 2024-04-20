@@ -1,4 +1,3 @@
-
 import os
 import warnings
 
@@ -27,8 +26,6 @@ class SMART_Data(Dataset):
         self.word_embed = None
         self.im_side = 224
         self.preprocess = args.preprocess
-        # self.no_question = args.no_question
-        # self.no_image = args.no_image
 
         with open(vocab_path, "rb") as f:
             self.vocab = pickle.load(f)
@@ -37,13 +34,18 @@ class SMART_Data(Dataset):
         if args.preprocess is None:  # VL models, will do preprocess later.
             self.transform = Compose(
                 [
-                    Resize(224),  # if the images are of higher resolution. we work with pre-resized 224x224 images.
+                    Resize(
+                        224
+                    ),  # if the images are of higher resolution. we work with pre-resized 224x224 images.
                     # RandomCrop(224),
                     ToTensor(),
                     Normalize(torch.Tensor([0.5]), torch.Tensor([0.5])),
                 ]
             )
-        elif args.model_name in ["mae", "dinov2"]:  # this will do feature extractin later.
+        elif args.model_name in [
+            "mae",
+            "dinov2",
+        ]:  # this will do feature extractin later.
             self.transform = Compose(
                 [
                     Resize(300),
@@ -65,7 +67,9 @@ class SMART_Data(Dataset):
         q_enc = np.zeros((self.max_qlen,), dtype="long")
         # if not self.no_question:
         enc_tokens = (
-            [self.vocab("<start>")] + [self.vocab(tokens[t]) for t in range(len(tokens))] + [self.vocab("<end>")]
+            [self.vocab("<start>")]
+            + [self.vocab(tokens[t]) for t in range(len(tokens))]
+            + [self.vocab("<end>")]
         )
         q_enc[: min(self.max_qlen, len(enc_tokens))] = np.array(enc_tokens)
         return q_enc
@@ -82,7 +86,7 @@ class SMART_Data(Dataset):
         return opt_enc
 
     def split_puzzles(self, puzzle_ids, split_ratio, split_name, split_type="standard"):
-        
+
         splits = np.array([int(spl) for spl in split_ratio.split(":")]).cumsum()
         n = len(puzzle_ids)
         if split_name == "train":
@@ -120,47 +124,7 @@ class SMART_Data(Dataset):
             else:
                 st = int(np.ceil(n * splits[1] / 100.0))
                 info = info[st:]
-        # elif split_type == "exclude":
-        #     pid = info[0]["puzzle_id"]
-        #     if int(pid) in gv.SEQ_PUZZLES or int(pid) == 58:
-        #         # we don't do exclude splits for seq_puzzles are as they are most likely always unique
-        #         info = self.split_data(info, split_ratio, split_name, split_type="standard")
-            # else:
-            #     ans_distr = []
-            #     for t in range(len(info)):
-            #         ans_distr.append(info[t]["AnswerValue"])
-            #     ans_distr = np.array(ans_distr)
-            #     bclassids = np.arange(gv.NUM_CLASSES_PER_PUZZLE[pid])
-            #     x = np.histogram(ans_distr, bclassids)[0]
-            #     x = x / x.sum()
 
-            #     # select reasonable answers.
-            #     valid_ans_idx = np.where(x > 0.01)
-            #     x_cls = bclassids[valid_ans_idx]
-            #     x = x[valid_ans_idx]
-            #     median_class = x_cls[x <= np.median(x)][-1]
-            #     try:
-            #         train_inst = np.array(info)[ans_distr != median_class]
-            #         test_inst = np.array(info)[ans_distr == median_class]
-            #     except:
-            #         print(pid)
-            #         pdb.set_trace()
-
-            #     n = len(train_inst)
-            #     splits = np.array([int(spl) for spl in split_ratio.split(":")])
-            #     splits[0] = splits[0] + splits[2]
-            #     splits = splits.cumsum()[:2]
-
-            #     if split_name == "train":
-            #         st = 0
-            #         en = int(np.floor(n * splits[0] / 100.0))
-            #         info = train_inst[st:en].tolist()
-            #     elif split_name == "val":
-            #         st = int(np.ceil(n * splits[0] / 100.0))
-            #         en = int(np.floor(n * splits[1] / 100.0))
-            #         info = train_inst[st:en].tolist()
-            #     else:
-            #         info = test_inst.tolist()
         else:
             raise "Unknown puzzle split type!!"
 
@@ -174,26 +138,26 @@ class SMART_TrainData(SMART_Data):
         self.num_tot = args.data_tot  # how many instances per puzzles should we use?
         self.diff = args.train_diff
         self.word_embed = args.word_embed
-        # self.fewshot_K = args.fsK
         self.qa_info = []
         train_pids = None
 
-        puzzle_ids = args.puzzle_ids 
-        # if args.split_type == "fewshot":
-        #     train_pids, fewshot_other_pids = self.split_fewshot_puzzles(
-        #         args.puzzle_ids, args.split_ratio, split, args.split_type
-        #     )
+        puzzle_ids = args.puzzle_ids
         for puzzle_id in puzzle_ids:
             puzzle_root = puzzle_id + "/" + gv.puzzle_diff_str[self.diff] + "/"
             csv_file = "puzzle_%s%s.csv" % (puzzle_id, gv.puzzle_diff[self.diff])
-            qa_info = utils.read_csv(os.path.join(self.data_root, puzzle_root, csv_file), puzzle_id)
-            # if args.split_type == "fewshot" and puzzle_id in fewshot_other_pids:
-            #     qa_info = qa_info[: self.fewshot_K]
-            # else:
+
+            qa_info = utils.read_csv(
+                os.path.join(self.data_root, puzzle_root, csv_file), puzzle_id
+            )
             qa_info = qa_info[: self.num_tot]
+
             for t in range(len(qa_info)):
-                qa_info[t]["AnswerValue"] = utils.get_val(qa_info[t], qa_info[t]["Answer"])
-            self.qa_info = self.qa_info + self.split_data(qa_info, args.split_ratio, split, "standard")
+                qa_info[t]["AnswerValue"] = utils.get_val(
+                    qa_info[t], qa_info[t]["Answer"]
+                )
+            self.qa_info = self.qa_info + self.split_data(
+                qa_info, args.split_ratio, split, "standard"
+            )
 
             gv.MAX_VAL = max(gv.MAX_VAL, gv.NUM_CLASSES_PER_PUZZLE[puzzle_id])
         print("num_train=%d max_answer_value=%d" % (len(self.qa_info), gv.MAX_VAL))
@@ -204,7 +168,9 @@ class SMART_TrainData(SMART_Data):
         info = self.qa_info[idx]
         pid = info["puzzle_id"]
         puzzle_root = pid + "/" + gv.puzzle_diff_str[self.diff] + "/"
-        im = self.apply_transform(gv.osp(self.data_root, puzzle_root, "img", info["image"]))
+        im = self.apply_transform(
+            gv.osp(self.data_root, puzzle_root, "img", info["image"])
+        )
         qa = self.quest_encode(info["Question"])
         opts = 0
         lbl = self.ans_encode(info["Answer"])
@@ -220,7 +186,14 @@ class SMART_TrainData(SMART_Data):
             except:
                 print(info)
                 pdb.set_trace()
-        return im, torch.tensor(qa), torch.tensor(opts), torch.tensor(lbl), torch.tensor(answer), torch.tensor(int(pid))
+        return (
+            im,
+            torch.tensor(qa),
+            torch.tensor(opts),
+            torch.tensor(lbl),
+            torch.tensor(answer),
+            torch.tensor(int(pid)),
+        )
 
     def __len__(self):
         return len(self.qa_info)
@@ -240,11 +213,17 @@ class SMART_ValData(SMART_Data):
         for puzzle_id in puzzle_ids:
             puzzle_root = puzzle_id + "/" + gv.puzzle_diff_str[self.diff] + "/"
             csv_file = "puzzle_%s%s.csv" % (puzzle_id, gv.puzzle_diff[self.diff])
-            qa_info = utils.read_csv(os.path.join(self.data_root, puzzle_root, csv_file), puzzle_id)
+            qa_info = utils.read_csv(
+                os.path.join(self.data_root, puzzle_root, csv_file), puzzle_id
+            )
             qa_info = qa_info[: self.num_tot]
             for t in range(len(qa_info)):
-                qa_info[t]["AnswerValue"] = utils.get_val(qa_info[t], qa_info[t]["Answer"])
-            self.qa_info = self.qa_info + self.split_data(qa_info, args.split_ratio, split, "standard")
+                qa_info[t]["AnswerValue"] = utils.get_val(
+                    qa_info[t], qa_info[t]["Answer"]
+                )
+            self.qa_info = self.qa_info + self.split_data(
+                qa_info, args.split_ratio, split, "standard"
+            )
             gv.MAX_VAL = max(gv.MAX_VAL, gv.NUM_CLASSES_PER_PUZZLE[puzzle_id])
         print("num_val = %d max_answer_value=%d" % (len(self.qa_info), gv.MAX_VAL))
         print("split=%s puzzle_ids=" % (split), end=" ")
@@ -254,11 +233,16 @@ class SMART_ValData(SMART_Data):
         info = self.qa_info[idx]
         pid = info["puzzle_id"]
         puzzle_root = info["puzzle_id"] + "/" + gv.puzzle_diff_str[self.diff] + "/"
-        im = self.apply_transform(gv.osp(self.data_root, puzzle_root, "img", info["image"]))
+        im = self.apply_transform(
+            gv.osp(self.data_root, puzzle_root, "img", info["image"])
+        )
         qa = self.quest_encode(info["Question"])
 
         _ = [utils.str_replace_(info, key) for key in ["A", "B", "C", "D", "E"]]
-        opts = [utils.get_val(info, key, is_one_of_option=True) for key in ["A", "B", "C", "D", "E"]]
+        opts = [
+            utils.get_val(info, key, is_one_of_option=True)
+            for key in ["A", "B", "C", "D", "E"]
+        ]
         lbl = self.ans_encode(info["Answer"])
         answer_value = info["AnswerValue"]
         answer = np.zeros(
@@ -268,7 +252,14 @@ class SMART_ValData(SMART_Data):
             answer[0] = answer_value
         else:
             answer[: len(answer_value)] = answer_value
-        return im, torch.tensor(qa), opts, torch.tensor(lbl), torch.tensor(answer), torch.tensor(int(info["puzzle_id"]))
+        return (
+            im,
+            torch.tensor(qa),
+            opts,
+            torch.tensor(lbl),
+            torch.tensor(answer),
+            torch.tensor(int(info["puzzle_id"])),
+        )
 
     def __len__(self):
         return len(self.qa_info)

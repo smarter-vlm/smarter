@@ -1,4 +1,3 @@
-
 import torch.nn as nn
 
 import globvars as gv
@@ -7,11 +6,7 @@ import globvars as gv
 class Criterion(nn.Module):
     def __init__(self, args):
         super(Criterion, self).__init__()
-        # self.loss_type = args.loss_type
-        # if args.loss_type == "classifier":
         self.criterion = nn.CrossEntropyLoss()
-        # elif args.loss_type == "regression":
-        #     self.criterion = nn.L1Loss()
 
     def compute_loss(self, a, b, pids):
         loss = 0
@@ -31,8 +26,5 @@ class Criterion(nn.Module):
         return loss
 
     def forward(self, a, b, pids=None):
-        # if self.loss_type == "classifier":
         loss = self.compute_loss(a, b.long(), pids)
-        # else:
-        #     raise "Unknown loss type: use classifer/regression"
         return loss
