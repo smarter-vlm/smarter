@@ -28,7 +28,7 @@ class SMART_Data(Dataset):
         self.im_side = 224
         self.preprocess = args.preprocess
         self.no_question = args.no_question
-        self.no_image = args.no_image
+        # self.no_image = args.no_image
 
         with open(vocab_path, "rb") as f:
             self.vocab = pickle.load(f)
@@ -54,10 +54,10 @@ class SMART_Data(Dataset):
             self.transform = args.preprocess
 
     def apply_transform(self, im_path):
-        if self.no_image:  # create a dummy image.
-            im = Image.fromarray((np.random.rand(self.im_side, self.im_side, 3) * 255).astype("uint8"))
-        else:
-            im = Image.open(im_path).convert("RGB")
+        # if self.no_image:  # create a dummy image.
+        #     im = Image.fromarray((np.random.rand(self.im_side, self.im_side, 3) * 255).astype("uint8"))
+        # else:
+        im = Image.open(im_path).convert("RGB")
         return self.transform(im)
 
     def quest_encode(self, question):
