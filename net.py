@@ -32,15 +32,10 @@ class SMART_VL_Net(nn.Module):
         self.dummy_question = None
         self.model_name = args.model_name
         self.use_clip_text = args.use_clip_text
-        # self.loss_type = args.loss_type
         self.use_single_image_head = args.use_single_image_head
-        # self.train_backbone = args.train_backbone
         self.sorted_puzzle_ids = np.sort(np.array([int(ii) for ii in args.puzzle_ids]))
 
-        # if args.loss_type == "classifier" or args.loss_type == "puzzle_tails":
         self.max_val = gv.MAX_VAL + 1
-        # elif args.loss_type == "regression":
-        #     self.max_val = 1
 
         self.processor = args.preprocess
         self.VL_backbone = VL_backbone
@@ -187,9 +182,6 @@ class SMART_VL_Net(nn.Module):
         q_text = self.decode_text(q)
         inputs = self.process(im, q_text)
 
-        # if self.train_backbone:
-        #     outputs = self.VL_backbone(**inputs)
-        # else:
         with torch.no_grad():
             outputs = self.VL_backbone(**inputs)
 
@@ -450,7 +442,7 @@ def load_pretrained_models(args, model_name, model=None):
 
     preprocess = None
     
-    if args.model_name in ["resnet50"]:  # use_resnet:
+    if args.model_name in ["resnet50"]:
         from torchvision.models import ResNet50_Weights, resnet50
 
         weights = ResNet50_Weights.DEFAULT

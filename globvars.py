@@ -14,8 +14,8 @@ class BERT:
         super(BERT, self).__init__()
         from transformers import BertModel, BertTokenizer
 
-        self.model = BertModel.from_pretrained("bert-base-uncased").to("cuda")
-        self.tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
+        self.model = BertModel.from_pretrained("bert-base-multilingual-cased").to("cuda")
+        self.tokenizer = BertTokenizer.from_pretrained("bert-base-multilingual-cased")
         self.word_dim = 768
 
     def get_word_dim(self):
