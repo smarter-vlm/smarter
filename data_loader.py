@@ -43,7 +43,7 @@ class SMART_Data(Dataset):
                     Normalize(torch.Tensor([0.5]), torch.Tensor([0.5])),
                 ]
             )
-        elif args.model_name in ["flava", "mae", "dinov2"]:  # this will do feature extractin later.
+        elif args.model_name in ["mae", "dinov2"]:  # this will do feature extractin later.
             self.transform = Compose(
                 [
                     Resize(300),
@@ -82,19 +82,7 @@ class SMART_Data(Dataset):
         return opt_enc
 
     def split_puzzles(self, puzzle_ids, split_ratio, split_name, split_type="standard"):
-        # if split_type == "puzzle" or split_type == "fewshot":
-        #     if split_name == "train":
-        #         val_test = gv.PS_VAL_IDX + gv.PS_TEST_IDX
-        #         val_test = set([str(ii) for ii in val_test])
-        #         puzzle_ids = list(set(puzzle_ids).difference(val_test))
-        #         print("number of train puzzles = %d" % (len(puzzle_ids)))
-        #     elif split_name == "val":
-        #         puzzle_ids = [str(ii) for ii in gv.PS_VAL_IDX]
-        #         print("number of val puzzles = %d" % (len(puzzle_ids)))
-        #     else:
-        #         puzzle_ids = [str(ii) for ii in gv.PS_TEST_IDX]
-        #         print("number of test puzzles = %d" % (len(puzzle_ids)))
-        # else:
+        
         splits = np.array([int(spl) for spl in split_ratio.split(":")]).cumsum()
         n = len(puzzle_ids)
         if split_name == "train":

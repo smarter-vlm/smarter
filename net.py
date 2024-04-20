@@ -26,9 +26,9 @@ class Smarter_VL(nn.Module):
             self.vocab = pickle.load(f)
 
         self.num_opts = 5
-        self.out_dim = args.feat_size 
+        self.out_dim = args.repr_size 
         self.h_sz = 256
-        self.feat_size = 768
+        self.repr_size = 768
         self.dummy_question = None
         self.model_name = args.model_name
         self.use_clip_text = args.use_clip_text
@@ -42,14 +42,14 @@ class Smarter_VL(nn.Module):
         self.create_puzzle_head(args)
 
         self.q_MLP = nn.Sequential(
-            nn.Linear(self.feat_size, self.h_sz),
+            nn.Linear(self.repr_size, self.h_sz),
             nn.GELU(),
             nn.Linear(self.h_sz, self.out_dim),
             nn.GELU(),
         )
 
         self.qv_MLP = nn.Sequential(
-            nn.Linear(self.feat_size, self.h_sz),
+            nn.Linear(self.repr_size, self.h_sz),
             nn.GELU(),
             nn.Linear(self.h_sz, self.out_dim),
             nn.GELU(),
@@ -67,7 +67,7 @@ class Smarter_VL(nn.Module):
     def create_puzzle_head(self, args):
         if args.use_single_image_head:
             self.im_encoder = nn.Sequential(
-                nn.Linear(self.feat_size, self.out_dim), nn.GELU(), nn.Linear(self.out_dim, self.out_dim)
+                nn.Linear(self.repr_size, self.out_dim), nn.GELU(), nn.Linear(self.out_dim, self.out_dim)
             )
         else:
             self.puzzle_ids = args.puzzle_ids
@@ -75,7 +75,7 @@ class Smarter_VL(nn.Module):
             for i in range(1, gv.num_puzzles + 1):
                 im_encoder.append(
                     nn.Sequential(
-                        nn.Linear(self.feat_size, self.out_dim), nn.GELU(), nn.Linear(self.out_dim, self.out_dim)
+                        nn.Linear(self.repr_size, self.out_dim), nn.GELU(), nn.Linear(self.out_dim, self.out_dim)
                     )
                 )
             self.im_encoder = nn.ModuleList(im_encoder)
@@ -120,24 +120,24 @@ class Smarter_VL(nn.Module):
         inputs = inputs.to("cuda")
         return inputs
 
-    def encode_image(self, im_feat, pids=None):
+    def encode_image(self, im_repr, pids=None):
         if self.use_single_image_head:
-            y = self.im_encoder(im_feat)
+            y = self.im_encoder(im_repr)
         else:
-            y = torch.zeros(len(im_feat), im_feat.shape[1], self.out_dim).cuda()
+            y = torch.zeros(len(im_repr), im_repr.shape[1], self.out_dim).cuda()
             for t in range(len(self.puzzle_ids)):
                 idx = pids == int(self.puzzle_ids[t])
                 idx = idx.cuda()
                 if idx.sum() > 0:
-                    y[idx] = F.relu(self.im_encoder[int(self.puzzle_ids[t])](im_feat[idx]))
+                    y[idx] = F.relu(self.im_encoder[int(self.puzzle_ids[t])](im_repr[idx]))
         return y
 
-    def encode_image_and_text(self, qv_feat):
-        x = F.relu(self.qv_MLP(qv_feat))
+    def encode_image_and_text(self, qv_repr):
+        x = F.relu(self.qv_MLP(qv_repr))
         return x
 
-    def encode_text(self, q_feat):
-        x = F.relu(self.q_MLP(q_feat))
+    def encode_text(self, q_repr):
+        x = F.relu(self.q_MLP(q_repr))
         return x
 
     def decode_image(self, im_list):
@@ -153,29 +153,29 @@ class Smarter_VL(nn.Module):
         ]
         return text
 
-    def seq_decoder(self, decoder, feat):
+    def seq_decoder(self, decoder, repr):
         """run the LSTM decoder sequentially for k steps"""
         out = [None] * gv.MAX_DECODE_STEPS
         hx = None
         for k in range(gv.MAX_DECODE_STEPS):
             try:
-                out[k], hx = decoder(feat, hx)
+                out[k], hx = decoder(repr, hx)
             except:
                 pdb.set_trace()
         return out
 
-    def decode_individual_puzzles(self, feat, pids):
+    def decode_individual_puzzles(self, repr, pids):
         upids = torch.unique(pids)
-        out_feats = {}
+        out_reprs = {}
         for t in range(len(upids)):
             idx = pids == upids[t]
             key = str(upids[t].item())
             key_idx = np.where(int(key) == np.array(self.sorted_puzzle_ids))[0][0] + 1  # +1 because we use 1-indexed.
             if upids[t] not in gv.SEQ_PUZZLES:
-                out_feats[int(key)] = self.ans_decoder[key_idx](feat[idx])
+                out_reprs[int(key)] = self.ans_decoder[key_idx](repr[idx])
             else:
-                out_feats[int(key)] = self.seq_decoder(self.ans_decoder[key_idx], feat[idx])
-        return out_feats
+                out_reprs[int(key)] = self.seq_decoder(self.ans_decoder[key_idx], repr[idx])
+        return out_reprs
 
     def forward(self, im, q=None, puzzle_ids=None):
         im = self.decode_image(im)
@@ -185,17 +185,17 @@ class Smarter_VL(nn.Module):
         with torch.no_grad():
             outputs = self.VL_backbone(**inputs)
 
-        im_feat = outputs.image_embeddings  # Batch size X (Number of image patches + 1) x Hidden size => 2 X 197 X 768
-        q_feat = outputs.text_embeddings  # Batch size X (Text sequence length + 1) X Hidden size => 2 X 77 X 768
+        im_repr = outputs.image_embeddings  # Batch size X (Number of image patches + 1) x Hidden size => 2 X 197 X 768
+        q_repr = outputs.text_embeddings  # Batch size X (Text sequence length + 1) X Hidden size => 2 X 77 X 768
         
-        im_feat = self.encode_image(im_feat.float(), puzzle_ids)
-        q_feat = self.encode_text(q_feat)
+        im_repr = self.encode_image(im_repr.float(), puzzle_ids)
+        q_repr = self.encode_text(q_repr)
 
-        qv_feat = self.qv_fusion(torch.cat([im_feat.mean(1), q_feat.mean(1)], dim=1))
+        qv_repr = self.qv_fusion(torch.cat([im_repr.mean(1), q_repr.mean(1)], dim=1))
 
-        qvo_feat = self.decode_individual_puzzles(qv_feat, puzzle_ids)
+        qvo_repr = self.decode_individual_puzzles(qv_repr, puzzle_ids)
 
-        return qvo_feat
+        return qvo_repr
 
 
 class Puzzle_Net(nn.Module):
@@ -206,7 +206,7 @@ class Puzzle_Net(nn.Module):
             self.vocab = pickle.load(f)
 
         self.num_opts = 5
-        self.out_dim = args.feat_size  
+        self.out_dim = args.repr_size  
         self.h_sz = 256  
         self.dummy_question = None
         self.model_name = args.model_name
@@ -219,7 +219,7 @@ class Puzzle_Net(nn.Module):
 
         # image backbones.
         if args.model_name[:6] == "resnet":
-            self.im_feat_size = im_backbone.fc.weight.shape[1]
+            self.im_repr_size = im_backbone.fc.weight.shape[1]
             modules = list(im_backbone.children())[:-1]
             self.im_cnn = nn.Sequential(*modules)
        
@@ -227,13 +227,13 @@ class Puzzle_Net(nn.Module):
             self.preprocess = args.preprocess
             self.im_cnn = lambda x: self.process_MAE(x)
             self.im_backbone = im_backbone
-            self.im_feat_size = 768
+            self.im_repr_size = 768
 
         elif args.model_name in ["dinov2"]:
             self.preprocess = args.preprocess
             self.im_cnn = lambda x: self.process_dinov2(x)
             self.im_backbone = im_backbone
-            self.im_feat_size = 768
+            self.im_repr_size = 768
 
         else:
             raise "unknown model_name %s" % (args.model_name)
@@ -290,7 +290,7 @@ class Puzzle_Net(nn.Module):
     def create_puzzle_head(self, args):
         if args.use_single_image_head:
             self.im_encoder = nn.Sequential(
-                nn.Linear(self.im_feat_size, self.out_dim), nn.GELU(), nn.Linear(self.out_dim, self.out_dim)
+                nn.Linear(self.im_repr_size, self.out_dim), nn.GELU(), nn.Linear(self.out_dim, self.out_dim)
             )
         else:
             self.puzzle_ids = args.puzzle_ids
@@ -298,7 +298,7 @@ class Puzzle_Net(nn.Module):
             for i in range(1, gv.num_puzzles + 1):
                 im_encoder.append(
                     nn.Sequential(
-                        nn.Linear(self.im_feat_size, self.out_dim), nn.GELU(), nn.Linear(self.out_dim, self.out_dim)
+                        nn.Linear(self.im_repr_size, self.out_dim), nn.GELU(), nn.Linear(self.out_dim, self.out_dim)
                     )
                 )
             self.im_encoder = nn.ModuleList(im_encoder)
@@ -388,8 +388,8 @@ class Puzzle_Net(nn.Module):
             text = self.decode_text(text)
             q_enc = torch.zeros(len(text), gv.max_qlen, gv.word_dim).cuda()
             for ii, tt in enumerate(text):
-                q_feat = gv.word_embed(tt)
-                q_enc[ii, : min(gv.max_qlen, len(q_feat)), :] = q_feat
+                q_repr = gv.word_embed(tt)
+                q_enc[ii, : min(gv.max_qlen, len(q_repr)), :] = q_repr
             x, (h, _) = self.q_lstm(q_enc.float())
             x = F.relu(self.q_MLP(x.mean(1)))
         else:
@@ -397,38 +397,38 @@ class Puzzle_Net(nn.Module):
 
         return x
 
-    def seq_decoder(self, decoder, feat):
+    def seq_decoder(self, decoder, repr):
         """run the LSTM decoder sequentially for k steps"""
         out = [None] * gv.MAX_DECODE_STEPS
         hx = None
         for k in range(gv.MAX_DECODE_STEPS):
             try:
-                out[k], hx = decoder(feat, hx)
+                out[k], hx = decoder(repr, hx)
             except:
                 pdb.set_trace()
         return out
 
-    def decode_individual_puzzles(self, feat, pids):
+    def decode_individual_puzzles(self, repr, pids):
         upids = torch.unique(pids)
-        out_feats = {}
+        out_reprs = {}
         for t in range(len(upids)):
             idx = pids == upids[t]
             key = str(upids[t].item())
             key_idx = np.where(int(key) == np.array(self.sorted_puzzle_ids))[0][0] + 1  # +1 because we use 1-indexed.
             if upids[t] not in gv.SEQ_PUZZLES:
-                out_feats[int(key)] = self.ans_decoder[key_idx](feat[idx])
+                out_reprs[int(key)] = self.ans_decoder[key_idx](repr[idx])
             else:
-                out_feats[int(key)] = self.seq_decoder(self.ans_decoder[key_idx], feat[idx])
-        return out_feats
+                out_reprs[int(key)] = self.seq_decoder(self.ans_decoder[key_idx], repr[idx])
+        return out_reprs
 
     def forward(self, im, q=None, puzzle_ids=None):
-        q_feat = self.encode_text(q)
-        im_feat = self.encode_image(im.float(), puzzle_ids).float()
+        q_repr = self.encode_text(q)
+        im_repr = self.encode_image(im.float(), puzzle_ids).float()
        
-        qv_feat = self.qv_fusion(torch.cat([im_feat, q_feat], dim=1))
+        qv_repr = self.qv_fusion(torch.cat([im_repr, q_repr], dim=1))
        
-        qvo_feat = self.decode_individual_puzzles(qv_feat, puzzle_ids)
-        return qvo_feat
+        qvo_repr = self.decode_individual_puzzles(qv_repr, puzzle_ids)
+        return qvo_repr
 
 
 def load_pretrained_models(args, model_name, model=None):
@@ -453,11 +453,11 @@ def load_pretrained_models(args, model_name, model=None):
         model, preprocess = clip.load("ViT-B/32", device="cuda")
 
     elif args.model_name == "mae":
-        from transformers import AutoFeatureExtractor, ViTMAEModel
+        from transformers import AutoreprureExtractor, ViTMAEModel
 
-        feature_extractor = AutoFeatureExtractor.from_pretrained("facebook/vit-mae-base")
+        reprure_extractor = AutoreprureExtractor.from_pretrained("facebook/vit-mae-base")
         model = ViTMAEModel.from_pretrained("facebook/vit-mae-base")
-        preprocess = feature_extractor
+        preprocess = reprure_extractor
 
     elif args.model_name == "dinov2":
         from transformers import AutoImageProcessor, Dinov2Model

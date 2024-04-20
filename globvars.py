@@ -25,8 +25,8 @@ class BERT:
         with torch.no_grad():
             inputs = self.tokenizer(sentence, return_tensors="pt", padding=True).to("cuda")
             outputs = self.model(**inputs)
-            word_feats = outputs.last_hidden_state
-        return torch.tensor(word_feats.squeeze()).cuda()
+            word_reprs = outputs.last_hidden_state
+        return torch.tensor(word_reprs.squeeze()).cuda()
 
 
 def globals_init(args):

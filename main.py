@@ -359,7 +359,7 @@ if __name__ == "__main__":
     parser.add_argument("--test", action="store_true", help="evaluate a model?")
 
     parser.add_argument(
-        "--feat_size", type=int, default=128, help="intermediate feature size for image and language features?"
+        "--repr_size", type=int, default=128, help="intermediate representation size for image and language encoders?"
     )
 
     args = parser.parse_args()

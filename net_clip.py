@@ -24,9 +24,9 @@ class Smarter_VL_CLIP(nn.Module):
             self.vocab = pickle.load(f)
 
         self.num_opts = 5
-        self.out_dim = args.feat_size
+        self.out_dim = args.repr_size
         self.h_sz = 256
-        self.feat_size = 512
+        self.repr_size = 512
         self.dummy_question = None
         self.model_name = args.model_name
         self.use_clip_text = args.use_clip_text
@@ -41,7 +41,7 @@ class Smarter_VL_CLIP(nn.Module):
         self.create_puzzle_head(args)
 
         self.q_MLP = nn.Sequential(
-            nn.Linear(self.feat_size, self.h_sz),
+            nn.Linear(self.repr_size, self.h_sz),
             nn.GELU(),
             nn.Linear(self.h_sz, self.out_dim),
             nn.GELU(),
@@ -58,7 +58,7 @@ class Smarter_VL_CLIP(nn.Module):
     def create_puzzle_head(self, args):
         if args.use_single_image_head:
             self.im_encoder = nn.Sequential(
-                nn.Linear(self.feat_size, self.out_dim), nn.GELU(), nn.Linear(self.out_dim, self.out_dim)
+                nn.Linear(self.repr_size, self.out_dim), nn.GELU(), nn.Linear(self.out_dim, self.out_dim)
             )
         else:
             self.puzzle_ids = args.puzzle_ids
@@ -66,7 +66,7 @@ class Smarter_VL_CLIP(nn.Module):
             for i in range(1, gv.num_puzzles + 1):
                 im_encoder.append(
                     nn.Sequential(
-                        nn.Linear(self.feat_size, self.out_dim), nn.GELU(), nn.Linear(self.out_dim, self.out_dim)
+                        nn.Linear(self.repr_size, self.out_dim), nn.GELU(), nn.Linear(self.out_dim, self.out_dim)
                     )
                 )
             self.im_encoder = nn.ModuleList(im_encoder)
@@ -101,20 +101,20 @@ class Smarter_VL_CLIP(nn.Module):
         text = clip.tokenize(q_text, truncate=True).to("cuda")
         return im, text
 
-    def encode_image(self, im_feat, pids=None):
+    def encode_image(self, im_repr, pids=None):
         if self.use_single_image_head:
-            y = self.im_encoder(im_feat)
+            y = self.im_encoder(im_repr)
         else:
-            y = torch.zeros(len(im_feat), self.out_dim).cuda()
+            y = torch.zeros(len(im_repr), self.out_dim).cuda()
             for t in range(len(self.puzzle_ids)):
                 idx = pids == int(self.puzzle_ids[t])
                 idx = idx.cuda()
                 if idx.sum() > 0:
-                    y[idx] = F.relu(self.im_encoder[int(self.puzzle_ids[t])](im_feat[idx]))
+                    y[idx] = F.relu(self.im_encoder[int(self.puzzle_ids[t])](im_repr[idx]))
         return y
 
-    def encode_text(self, q_feat):
-        x = F.relu(self.q_MLP(q_feat))
+    def encode_text(self, q_repr):
+        x = F.relu(self.q_MLP(q_repr))
         return x
 
     def decode_image(self, im_list):
@@ -132,43 +132,43 @@ class Smarter_VL_CLIP(nn.Module):
         ]
         return text
 
-    def seq_decoder(self, decoder, feat):
+    def seq_decoder(self, decoder, repr):
         """run the LSTM decoder sequentially for k steps"""
         out = [None] * gv.MAX_DECODE_STEPS
         hx = None
         for k in range(gv.MAX_DECODE_STEPS):
             try:
-                out[k], hx = decoder(feat, hx)
+                out[k], hx = decoder(repr, hx)
             except:
                 pdb.set_trace()
         return out
 
-    def decode_individual_puzzles(self, feat, pids):
+    def decode_individual_puzzles(self, repr, pids):
         upids = torch.unique(pids)
-        out_feats = {}
+        out_reprs = {}
         for t in range(len(upids)):
             idx = pids == upids[t]
             key = str(upids[t].item())
             key_idx = np.where(int(key) == np.array(self.sorted_puzzle_ids))[0][0] + 1  # +1 because we use 1-indexed.
             if upids[t] not in gv.SEQ_PUZZLES:
-                out_feats[int(key)] = self.ans_decoder[key_idx](feat[idx])
+                out_reprs[int(key)] = self.ans_decoder[key_idx](repr[idx])
             else:
-                out_feats[int(key)] = self.seq_decoder(self.ans_decoder[key_idx], feat[idx])
-        return out_feats
+                out_reprs[int(key)] = self.seq_decoder(self.ans_decoder[key_idx], repr[idx])
+        return out_reprs
 
     def forward(self, im, q=None, puzzle_ids=None):
         im, text = self.process(im, q)
 
         with torch.no_grad():
-            im_feat = self.VL_backbone.encode_image(im)
-            q_feat = self.VL_backbone.encode_text(text)
+            im_repr = self.VL_backbone.encode_image(im)
+            q_repr = self.VL_backbone.encode_text(text)
 
         # TODO: dr debug - is this double encoding?
         
-        im_feat = self.encode_image(im_feat.float(), puzzle_ids)
-        q_feat = self.encode_text(q_feat.float())
-        qv_feat = self.qv_fusion(torch.cat([im_feat, q_feat], dim=1))
+        im_repr = self.encode_image(im_repr.float(), puzzle_ids)
+        q_repr = self.encode_text(q_repr.float())
+        qv_repr = self.qv_fusion(torch.cat([im_repr, q_repr], dim=1))
 
-        qvo_feat = self.decode_individual_puzzles(qv_feat, puzzle_ids)
+        qvo_repr = self.decode_individual_puzzles(qv_repr, puzzle_ids)
 
-        return qvo_feat
+        return qvo_repr
