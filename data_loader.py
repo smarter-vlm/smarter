@@ -81,17 +81,6 @@ class SMART_Data(Dataset):
         opt_enc[: min(self.max_olen, len(enc_tokens))] = np.array(enc_tokens)
         return opt_enc
 
-    def split_fewshot_puzzles(self, puzzle_ids, split_ratio, split_name, split_type):
-        if split_name == "train":
-            split_pids = self.split_puzzles(puzzle_ids, split_ratio, "train", split_type)
-            other_pids = self.split_puzzles(puzzle_ids, split_ratio, "test", split_type)
-            other_pids = other_pids + self.split_puzzles(puzzle_ids, split_ratio, "val", split_type)
-            return split_pids, other_pids
-        else:
-            split_pids = self.split_puzzles(puzzle_ids, split_ratio, split_name, split_type)
-            other_pids = None
-        return split_pids, other_pids
-
     def split_puzzles(self, puzzle_ids, split_ratio, split_name, split_type):
         if split_type == "puzzle" or split_type == "fewshot":
             if split_name == "train":

@@ -81,8 +81,8 @@ def train(args, dataloader, im_backbone):
     log_model(experiment, model, model_name="Puzzle_Net")
 
     parameters = model.parameters()
-    if not args.no_meta:
-        anshead_parameters = list(model.ans_decoder.parameters())
+    # if not args.no_meta:
+    #     anshead_parameters = list(model.ans_decoder.parameters())
 
     def normalize(err, pids):
         """this function divides the error by the gt number of classes for each puzzle."""
@@ -350,7 +350,7 @@ if __name__ == "__main__":
     parser.add_argument("--seed", type=int, default=0, help="seed to use")
     parser.add_argument("--data_tot", type=int, default=2000, help="how many instances to use for train+val+test")
     parser.add_argument("--use_clip_text", action="store_true", help="should use clip text embeddings?")
-    parser.add_argument("--no_meta", action="store_true", help="do not use meta learning for optimization?")
+    # parser.add_argument("--no_meta", action="store_true", help="do not use meta learning for optimization?")
     parser.add_argument("--log", action="store_true", help="should print detailed log of accuracy?")
     parser.add_argument("--baselines", action="store_true", help="run the baselines from answer distributions?")
  
@@ -369,7 +369,7 @@ if __name__ == "__main__":
     parser.add_argument("--train_backbone", action="store_true", help="train the image backbone?")
     parser.add_argument("--no_question", action="store_true", help="do not use questions?")
     parser.add_argument("--no_image", action="store_true", help="do not use images?")
-    parser.add_argument("--num_meta_updates", type=int, default=1, help="number of meta updates?")
+    # parser.add_argument("--num_meta_updates", type=int, default=1, help="number of meta updates?")
     parser.add_argument(
         "--feat_size", type=int, default=128, help="intermediate feature size for image and language features?"
     )

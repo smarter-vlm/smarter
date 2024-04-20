@@ -16,7 +16,6 @@ from PIL import Image
 import globvars as gv
 
 
-# Vision and Language pretrained models.
 class SMART_VL_CLIP_Net(nn.Module):
     def __init__(self, args, VL_backbone):
         super(SMART_VL_CLIP_Net, self).__init__()
