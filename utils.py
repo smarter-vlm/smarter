@@ -5,16 +5,13 @@ import pdb
 import pickle as pkl
 import sys
 
-from comet_ml import Experiment
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from PIL import Image
 
-import globvars as gv
-
-from main import experiment
+import text_encoder as gv
 
 
 def fix_acc(acc_list):
