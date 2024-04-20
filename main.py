@@ -222,8 +222,7 @@ def train(args, dataloader, im_backbone):
         test_loop(dataloader["test"], model)
         return
 
-    if args.optimizer == "adam":
-        optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr, betas=(0.9, 0.98), eps=1e-8, weight_decay=0.05)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr, betas=(0.9, 0.98), eps=1e-8, weight_decay=0.05)
 
 
     train_loader = dataloader["train"]
@@ -318,7 +317,7 @@ def get_data_loader(args, split, batch_size=100, shuffle=True, num_workers=6, pi
 if __name__ == "__main__":
     device = torch.device("cuda")
 
-    parser = argparse.ArgumentParser(description="SMART dataset")
+    parser = argparse.ArgumentParser(description="SMART puzzles")
     parser.add_argument(
         "--puzzles", default="all", type=str, help="comma separated / all / puzzle groups (counting,math etc.)"
     )
@@ -344,8 +343,10 @@ if __name__ == "__main__":
     parser.add_argument("--vocab_path", type=str, default="none", help="location to save intermediate files.")
     parser.add_argument("--num_workers", type=int, default=16, help="number of workers")
     parser.add_argument("--pretrained", type=str, help="should use a pretrained model?")
-    parser.add_argument("--optimizer", type=str, default="adam", help="optimizer to use")
-    parser.add_argument("--loss_type", type=str, default="classification", help="classifier/regression")
+
+    # parser.add_argument("--optimizer", type=str, default="adam", help="optimizer to use")
+    # parser.add_argument("--loss_type", type=str, default="classification", help="classifier/regression")
+
     parser.add_argument("--model_name", type=str, help="model to use dinov2/siglip/resnet50/mae/clip")
     parser.add_argument("--seed", type=int, default=0, help="seed to use")
     parser.add_argument("--data_tot", type=int, default=2000, help="how many instances to use for train+val+test")
@@ -364,7 +365,7 @@ if __name__ == "__main__":
     )
     parser.add_argument("--log_freq", type=int, default=1, help="log frequency?")
     parser.add_argument("--test", action="store_true", help="evaluate a model?")
-    parser.add_argument("--train_backbone", action="store_true", help="train the image backbone?")
+    # parser.add_argument("--train_backbone", action="store_true", help="train the image backbone?")
     parser.add_argument("--no_question", action="store_true", help="do not use questions?")
     parser.add_argument("--no_image", action="store_true", help="do not use images?")
     parser.add_argument(

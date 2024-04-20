@@ -32,7 +32,7 @@ class SMART_VL_CLIP_Net(nn.Module):
         self.use_clip_text = args.use_clip_text
         self.loss_type = args.loss_type
         self.use_single_image_head = args.use_single_image_head
-        self.train_backbone = args.train_backbone
+        # self.train_backbone = args.train_backbone
         self.sorted_puzzle_ids = np.sort(np.array([int(ii) for ii in args.puzzle_ids]))
 
         # if args.loss_type == "classifier" or args.loss_type == "puzzle_tails":
@@ -163,15 +163,15 @@ class SMART_VL_CLIP_Net(nn.Module):
     def forward(self, im, q=None, puzzle_ids=None):
         im, text = self.process(im, q)
 
-        if self.train_backbone:
+        # if self.train_backbone:
+        #     im_feat = self.VL_backbone.encode_image(im)
+        #     q_feat = self.VL_backbone.encode_text(text)
+        # else:
+        with torch.no_grad():
             im_feat = self.VL_backbone.encode_image(im)
             q_feat = self.VL_backbone.encode_text(text)
-        else:
-            with torch.no_grad():
-                im_feat = self.VL_backbone.encode_image(im)
-                q_feat = self.VL_backbone.encode_text(text)
 
-        # TODO: dr is this double encoding?
+        # TODO: dr debug - is this double encoding?
         
         im_feat = self.encode_image(im_feat.float(), puzzle_ids)
         q_feat = self.encode_text(q_feat.float())

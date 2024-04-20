@@ -34,7 +34,7 @@ class SMART_VL_Net(nn.Module):
         self.use_clip_text = args.use_clip_text
         self.loss_type = args.loss_type
         self.use_single_image_head = args.use_single_image_head
-        self.train_backbone = args.train_backbone
+        # self.train_backbone = args.train_backbone
         self.sorted_puzzle_ids = np.sort(np.array([int(ii) for ii in args.puzzle_ids]))
 
         # if args.loss_type == "classifier" or args.loss_type == "puzzle_tails":
@@ -186,17 +186,16 @@ class SMART_VL_Net(nn.Module):
         im = self.decode_image(im)
         q_text = self.decode_text(q)
         inputs = self.process(im, q_text)
-        if self.train_backbone:
+
+        # if self.train_backbone:
+        #     outputs = self.VL_backbone(**inputs)
+        # else:
+        with torch.no_grad():
             outputs = self.VL_backbone(**inputs)
-        else:
-            with torch.no_grad():
-                outputs = self.VL_backbone(**inputs)
 
         im_feat = outputs.image_embeddings  # Batch size X (Number of image patches + 1) x Hidden size => 2 X 197 X 768
         q_feat = outputs.text_embeddings  # Batch size X (Text sequence length + 1) X Hidden size => 2 X 77 X 768
-        #        qv_feat_mm = outputs.multimodal_embeddings # Batch size X (Number of image patches + Text Sequence Length + 3) X Hidden size => 2 X 275 x 768
-        # Multimodal embeddings can be used for multimodal tasks such as VQA
-
+        
         im_feat = self.encode_image(im_feat.float(), puzzle_ids)
         q_feat = self.encode_text(q_feat)
 
@@ -222,14 +221,14 @@ class SMART_Net(nn.Module):
         self.use_clip_text = args.use_clip_text
         self.loss_type = args.loss_type
         self.use_single_image_head = args.use_single_image_head
-        self.train_backbone = args.train_backbone
+        # self.train_backbone = args.train_backbone
         self.word_embed = args.word_embed
         self.sorted_puzzle_ids = np.sort(np.array([int(ii) for ii in args.puzzle_ids]))
 
-        if args.loss_type == "classifier" or args.loss_type == "puzzle_tails":
-            self.max_val = gv.MAX_VAL + 1
-        elif args.loss_type == "regression":
-            self.max_val = 1
+        # if args.loss_type == "classifier" or args.loss_type == "puzzle_tails":
+        self.max_val = gv.MAX_VAL + 1
+        # elif args.loss_type == "regression":
+        #     self.max_val = 1
 
         # image backbones.
         if args.model_name[:6] == "resnet":
@@ -367,11 +366,11 @@ class SMART_Net(nn.Module):
         return fwd_hook
 
     def encode_image(self, im, pids=None):
-        if self.train_backbone:
+        # if self.train_backbone:
+        #     x = self.im_cnn(im).squeeze()
+        # else:
+        with torch.no_grad():
             x = self.im_cnn(im).squeeze()
-        else:
-            with torch.no_grad():
-                x = self.im_cnn(im).squeeze()
 
         if len(x.shape) == 1:
             x = x.unsqueeze(0)
