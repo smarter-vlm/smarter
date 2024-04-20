@@ -1,4 +1,3 @@
-
 import json
 import os
 import os.path as osp
@@ -6,21 +5,24 @@ import pdb
 import pickle as pkl
 import sys
 
-from comet_ml import Experiment
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from PIL import Image
 
-import globvars as gv
-
-from main import experiment
+import text_encoder as gv
 
 
 def fix_acc(acc_list):
     """removes accuracy for puzzles in gv.puzzles_not_included"""
-    idx = np.array(list(set(np.arange(1, gv.num_puzzles + 1)).difference(set(gv.puzzles_not_included))))
+    idx = np.array(
+        list(
+            set(np.arange(1, gv.num_puzzles + 1)).difference(
+                set(gv.puzzles_not_included)
+            )
+        )
+    )
     new_acc_list = acc_list[idx - 1]
     return new_acc_list
 
@@ -35,9 +37,10 @@ def get_icon_dataset_classes(icon_path):
 def print_puzz_acc(args, puzz_acc, log=True):
     class_avg_perf = {}
     to_int = lambda x: np.array(list(x)).astype("int")
-    cls_mean = lambda x, idx, pids: np.array([x[int(ii)] for ii in idx]).sum() / max(len(
-        set(to_int(idx)).intersection(set(to_int(pids)))), 1) # fix nan
-    
+    cls_mean = lambda x, idx, pids: np.array([x[int(ii)] for ii in idx]).sum() / max(
+        len(set(to_int(idx)).intersection(set(to_int(pids)))), 1
+    )  # fix nan
+
     acc_list = np.zeros(
         gv.num_puzzles + 1,
     )
@@ -48,54 +51,53 @@ def print_puzz_acc(args, puzz_acc, log=True):
     if not os.path.exists(os.path.join(args.save_root, "results/%d/" % (gv.seed))):
         os.makedirs(os.path.join(args.save_root, "results/%d/" % (gv.seed)))
 
-    if len(puzz_acc.keys()) > 4:
+    if len(puzz_acc.keys()) >= 3:
         for k, key in enumerate(puzz_acc.keys()):
-            acc = 100.0 * puzz_acc[key][0] / puzz_acc[key][2] if puzz_acc[key][2] else 0.0
-            oacc = 100.0 * puzz_acc[key][1] / puzz_acc[key][2] if puzz_acc[key][2] else 0.0
+            acc = (
+                100.0 * puzz_acc[key][0] / puzz_acc[key][2] if puzz_acc[key][2] else 0.0
+            )
+            oacc = (
+                100.0 * puzz_acc[key][1] / puzz_acc[key][2] if puzz_acc[key][2] else 0.0
+            )
             acc_list[int(key)] = acc
             opt_acc_list[int(key)] = oacc
         if log:
-                    
+
             for t in range(1, gv.num_puzzles + 1):
-                print("%d opt_acc=%0.2f acc=%0.2f" % (t, opt_acc_list[t], acc_list[t]), end="\t")
+                print(
+                    "%d opt_acc=%0.2f acc=%0.2f" % (t, opt_acc_list[t], acc_list[t]),
+                    end="\t",
+                )
                 if t % 5 == 0:
                     print("\n")
             print("\n\n")
 
             puzzles = read_dataset_info(gv.SMART_DATASET_INFO_FILE)
             class_avg_perf = {}
-            classes = ["counting", "math", "logic", "path", "algebra", "measure", "spatial", "pattern"]
+            classes = [
+                "counting",
+                "math",
+                "logic",
+                "path",
+                "algebra",
+                "measure",
+                "spatial",
+                "pattern",
+            ]
             print(classes)
+
             for kk in classes:
                 idx_list = puzzles[kk]
                 class_avg_perf[kk] = (
                     cls_mean(acc_list, idx_list, list(puzz_acc.keys())),
                     cls_mean(opt_acc_list, idx_list, list(puzz_acc.keys())),
                 )
-                print("%0.1f/%0.1f & " % (class_avg_perf[kk][0], class_avg_perf[kk][1]), end=" ")
+                print(
+                    "%0.1f/%0.1f & " % (class_avg_perf[kk][0], class_avg_perf[kk][1]),
+                    end=" ",
+                )
             print("\n\n")
-            
-                
 
-        fig = plt.figure(figsize=(30, 4))
-        ax = plt.gca()
-        ax.bar(np.arange(1, gv.num_actual_puzz), fix_acc(acc_list[1:]))
-        ax.set_xticks(np.arange(1, gv.num_actual_puzz))
-        ax.set_xlabel("puzzle ids", fontsize=16)
-        ax.set_ylabel("$O_{acc}$ %", fontsize=20)
-        fig.tight_layout()
-        plt.savefig(os.path.join(args.save_root, "results/%d/acc_perf_scores_1.png" % (gv.seed)))
-        plt.close()
-
-        fig = plt.figure(figsize=(30, 4))
-        ax = plt.gca()
-        ax.bar(np.arange(1, gv.num_actual_puzz), fix_acc(opt_acc_list[1:]))
-        ax.set_xticks(np.arange(1, gv.num_actual_puzz))  # , [str(i) for i in np.arange(1,num_puzzles+1)])
-        ax.set_xlabel("puzzle ids", fontsize=16)
-        ax.set_ylabel("$S_{acc}$ %", fontsize=20)
-        fig.tight_layout()
-        plt.savefig(os.path.join(args.save_root, "results/%d/opt_acc_perf_scores_1.png" % (gv.seed)))
-        plt.close()
     else:
         for key in puzz_acc.keys():
             acc = 100.0 * puzz_acc[key][0] / puzz_acc[key][2]
@@ -105,14 +107,6 @@ def print_puzz_acc(args, puzz_acc, log=True):
             acc_list[int(key)] = acc
             opt_acc_list[int(key)] = opt_acc
 
-        plt.figure()
-        plt.bar(np.arange(gv.num_puzzles + 1), acc_list)
-        plt.savefig(os.path.join(args.save_root, "results/%d/acc_perf_scores.png" % (gv.seed)))
-        plt.close()
-        plt.figure()
-        plt.bar(np.arange(gv.num_puzzles + 1), opt_acc_list)
-        plt.savefig(os.path.join(args.save_root, "results/%d/opt_acc_perf_scores.png" % (gv.seed)))
-        plt.close()
     return class_avg_perf if class_avg_perf else {}
 
 
@@ -121,7 +115,11 @@ def get_option_sel_acc(pred_ans, opts, answer, answer_values, pid):
     opts is b x num_options matrix"""
 
     def get_op_str(ii):
-        return gv.signs[int(str(ii)[0]) - 1] + str(ii)[1:] if ii >= 10 else gv.signs[0] + str(ii)
+        return (
+            gv.signs[int(str(ii)[0]) - 1] + str(ii)[1:]
+            if ii >= 10
+            else gv.signs[0] + str(ii)
+        )
 
     if pid in gv.SEQ_PUZZLES:
         result = np.abs(answer_values - pred_ans).sum(axis=1) == 0
@@ -130,7 +128,9 @@ def get_option_sel_acc(pred_ans, opts, answer, answer_values, pid):
     else:
         try:
             result = (
-                np.abs(opts.astype("float") - pred_ans.unsqueeze(1).cpu().numpy()).argmin(axis=1)
+                np.abs(
+                    opts.astype("float") - pred_ans.unsqueeze(1).cpu().numpy()
+                ).argmin(axis=1)
                 == answer.cpu().numpy()
             )
         except:
@@ -215,14 +215,24 @@ def get_val(qinfo, ans_opt, is_one_of_option=False):
     if pid in gv.SEQ_PUZZLES:
         ans = qinfo[ans_opt]
         if pid == 16:
-            ans_opt_val = [int(ii) for ii in ans.replace("and", ",").replace(", ,", ",").replace(" ", "").split(",")]
+            ans_opt_val = [
+                int(ii)
+                for ii in ans.replace("and", ",")
+                .replace(", ,", ",")
+                .replace(" ", "")
+                .split(",")
+            ]
             ans_opt_val = pad_with_max_val(ans_opt_val, 26)
         elif pid == 18:
             ans_opt_val = [int(ii) for ii in ans.split("-")]
             ans_opt_val = pad_with_max_val(ans_opt_val, 5)
         elif pid == 35:
             ans_opt_val = [
-                ord(ii) - ord("A") for ii in ans.replace("and", ",").replace(", ,", ",").replace(" ", "").split(",")
+                ord(ii) - ord("A")
+                for ii in ans.replace("and", ",")
+                .replace(", ,", ",")
+                .replace(" ", "")
+                .split(",")
             ]
             ans_opt_val = pad_with_max_val(ans_opt_val, 5)
         elif pid == 39:
@@ -240,7 +250,9 @@ def get_val(qinfo, ans_opt, is_one_of_option=False):
             ]
             key = str(63)
             if key in gv.NUM_CLASSES_PER_PUZZLE:
-                ans_opt_val = pad_with_max_val(ans_opt_val, gv.NUM_CLASSES_PER_PUZZLE[key] - 1)
+                ans_opt_val = pad_with_max_val(
+                    ans_opt_val, gv.NUM_CLASSES_PER_PUZZLE[key] - 1
+                )
         elif pid == 100:
             ans_opt_val = [ord(ii) - ord("A") for ii in list(ans)]
             ans_opt_val = pad_with_max_val(ans_opt_val, 26)
@@ -267,13 +279,19 @@ def get_val(qinfo, ans_opt, is_one_of_option=False):
                 except:
                     try:
                         ans_opt_val = str_replace(qinfo[ans_opt])
-                        ans_opt_val = ans_opt_val.replace("Impossible", "0")  # puzzle 58.
-                        if int(qinfo["puzzle_id"]) == 1:  # if the puzzle id is 1, then the options are icon classes.
+                        ans_opt_val = ans_opt_val.replace(
+                            "Impossible", "0"
+                        )  # puzzle 58.
+                        if (
+                            int(qinfo["puzzle_id"]) == 1
+                        ):  # if the puzzle id is 1, then the options are icon classes.
                             ans_opt_val = "_".join(ans_opt_val.split(" "))
                             if ans_opt_val in gv.icon_class_ids:
                                 ans_opt_val = where(gv.icon_class_ids, ans_opt_val)
                             elif ans_opt_val + "s" in gv.icon_class_ids:
-                                ans_opt_val = where(gv.icon_class_ids, ans_opt_val + "s")
+                                ans_opt_val = where(
+                                    gv.icon_class_ids, ans_opt_val + "s"
+                                )
                         ans_opt_val = int(ans_opt_val)
                     except:
                         print(qinfo)
@@ -291,18 +309,27 @@ def get_puzzle_class_info(args):
     for puzzle_id in args.puzzle_ids:
         puzzle_root = puzzle_id + "/" + gv.puzzle_diff_str[args.train_diff] + "/"
         csv_file = "puzzle_%s%s.csv" % (puzzle_id, gv.puzzle_diff[args.train_diff])
-        qa_info = read_csv(os.path.join(args.data_root, puzzle_root, csv_file), puzzle_id)
+        qa_info = read_csv(
+            os.path.join(args.data_root, puzzle_root, csv_file), puzzle_id
+        )
 
         pid = int(puzzle_id)
         if pid not in gv.SEQ_PUZZLES:
-            num_classes = np.array([get_val(qa, qa["Answer"]) for qa in qa_info]).max() + 1
+            num_classes = (
+                np.array([get_val(qa, qa["Answer"]) for qa in qa_info]).max() + 1
+            )
         else:
             if pid in [16, 39, 100]:
-                num_classes = 26 + 1  # if the output is a string of numbers, and the max classes is - max val.
+                num_classes = (
+                    26 + 1
+                )  # if the output is a string of numbers, and the max classes is - max val.
             elif pid in [18, 35]:
                 num_classes = 5 + 1  # the minus one is for end of items.
             elif pid in [63]:
-                num_classes = np.array([get_val(qa, qa["Answer"]).max() for qa in qa_info]).max() + 1
+                num_classes = (
+                    np.array([get_val(qa, qa["Answer"]).max() for qa in qa_info]).max()
+                    + 1
+                )
         puzzle_classes[str(puzzle_id)] = num_classes
     return puzzle_classes
 
@@ -321,13 +348,6 @@ class Logger(object):
         # this handles the flush command by doing nothing.
         # you might want to specify some extra behavior here.
         pass
-
-
-def set_gpu_devices(gpu_id):
-    gpu = ""
-    if gpu_id != -1:
-        gpu = str(gpu_id)
-    os.environ["CUDA_VISIBLE_DEVICES"] = gpu
 
 
 def load_file(filename):
@@ -396,7 +416,9 @@ def get_puzzle_ids(args):
     puzzles = read_dataset_info(gv.SMART_DATASET_INFO_FILE)
     if args.puzzles == "all":
         puzzle_ids = os.listdir(args.data_root)
-        puzzle_ids = np.array(puzzle_ids)[np.array([x.find(".") == -1 for x in puzzle_ids])]
+        puzzle_ids = np.array(puzzle_ids)[
+            np.array([x.find(".") == -1 for x in puzzle_ids])
+        ]
         puzzle_ids = puzzle_ids.tolist()
         puzzle_ids_str = "all"
     elif args.puzzles in puzzles:
@@ -407,12 +429,6 @@ def get_puzzle_ids(args):
         sorted_puzzle_ids = np.sort(np.array([int(ii) for ii in puzzle_ids]))
         puzzle_ids = [str(ii) for ii in sorted_puzzle_ids]
         puzzle_ids_str = "_".join(puzzle_ids)
-
-    if args.monolithic:
-        # remove sequential puzzles from the monolithic architecture.
-        puzzle_ids = set(puzzle_ids).difference(set([str(ii) for ii in gv.SEQ_PUZZLES]))
-        puzzle_ids = list(puzzle_ids)
-        puzzle_ids_str = puzzle_ids_str + "_monolithic"
 
     return puzzle_ids_str, puzzle_ids
 

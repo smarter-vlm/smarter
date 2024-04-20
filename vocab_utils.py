@@ -1,4 +1,3 @@
-
 import nltk
 
 try:
@@ -76,12 +75,24 @@ def read_csv(csvfilename):
         datareader = csv.DictReader(csvfile)
         for row in datareader:
             qa_info.append(row["Question"])
-            qa_info.append(row["A"] + " " + row["B"] + " " + row["C"] + " " + row["D"] + " " + row["E"])
+            qa_info.append(
+                row["A"]
+                + " "
+                + row["B"]
+                + " "
+                + row["C"]
+                + " "
+                + row["D"]
+                + " "
+                + row["E"]
+            )
     return qa_info
 
 
 def process_text_for_puzzle(args):
-    vocab_path = os.path.join(args.save_root, "vocab_puzzle_" + args.puzzle_ids_str + ".pkl")
+    vocab_path = os.path.join(
+        args.save_root, "vocab_puzzle_" + args.puzzle_ids_str + ".pkl"
+    )
     if os.path.exists(vocab_path):
         print("loading vocab %s" % (vocab_path))
         with open(vocab_path, "rb") as f:
@@ -90,14 +101,21 @@ def process_text_for_puzzle(args):
         text_rows = []
         for puzzle_id in args.puzzle_ids:
             print("reading puzzle %s" % (puzzle_id))
-            text_files = glob.glob(os.path.join(args.data_root, str(puzzle_id), "puzzle_%s.csv" % (puzzle_id)))
+            text_files = glob.glob(
+                os.path.join(
+                    args.data_root, str(puzzle_id), "puzzle_%s.csv" % (puzzle_id)
+                )
+            )
             for t in range(len(text_files)):
                 rows = read_csv(text_files[t])
                 text_rows = text_rows + rows
         vocab = build_vocab(text_rows, threshold=3)
         with open(vocab_path, "wb") as f:
             pickle.dump(vocab, f)
-        print("generating new vocab for %s: num_words=%d" % (args.puzzle_ids_str, len(vocab)))
+        print(
+            "generating new vocab for %s: num_words=%d"
+            % (args.puzzle_ids_str, len(vocab))
+        )
     return vocab
 
 
@@ -111,11 +129,13 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--anno_path", type=str, default="dataset/nextqa/train.csv", help="path for train annotation file"
+        "--vocab_path",
+        type=str,
+        default="dataset/VideoQA/vocab.pkl",
+        help="path for saving vocabulary wrapper",
     )
     parser.add_argument(
-        "--vocab_path", type=str, default="dataset/VideoQA/vocab.pkl", help="path for saving vocabulary wrapper"
+        "--threshold", type=int, default=1, help="minimum word count threshold"
     )
-    parser.add_argument("--threshold", type=int, default=1, help="minimum word count threshold")
     args = parser.parse_args()
     main(args)
