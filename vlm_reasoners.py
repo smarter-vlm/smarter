@@ -106,7 +106,7 @@ class Smarter_VL(nn.Module):
                 )
             else:
                 ans_decoder.append(
-                    nn.LSTM(self.out_dim, num_classes, num_layers=1, batch_first=True)
+                    nn.GRU(torch.int(self.out_dim), torch.int(num_classes), num_layers=1, batch_first=True)
                 )
         self.ans_decoder = nn.ModuleList(ans_decoder)
 
@@ -387,7 +387,7 @@ class Puzzle_Net(nn.Module):
                 )
             else:
                 ans_decoder.append(
-                    nn.LSTM(self.out_dim, num_classes, num_layers=1, batch_first=True)
+                    nn.GRU(self.h_sz, torch.int(num_classes), num_layers=1, batch_first=True)
                 )
         self.ans_decoder = nn.ModuleList(ans_decoder)
 
