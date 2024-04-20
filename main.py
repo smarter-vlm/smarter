@@ -322,7 +322,7 @@ if __name__ == "__main__":
     parser.add_argument("--batch_size", default=64, type=int, help="batch size (16)")
     parser.add_argument("--num_epochs", default=10, type=int, help="epoch")
     parser.add_argument("--lr", default=0.001, type=float, help="learning rate (0.001)")
-    parser.add_argument("--test_file", type=str, help="csv file for train")
+    # parser.add_argument("--test_file", type=str, help="csv file for train")
     parser.add_argument(
         "--data_root",
         type=str,
@@ -366,7 +366,7 @@ if __name__ == "__main__":
     # parser.add_argument("--train_backbone", action="store_true", help="train the image backbone?")
     parser.add_argument("--no_question", action="store_true", help="do not use questions?")
     # parser.add_argument("--no_image", action="store_true", help="do not use images?")
-    
+
     parser.add_argument(
         "--feat_size", type=int, default=128, help="intermediate feature size for image and language features?"
     )
