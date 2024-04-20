@@ -12,7 +12,7 @@ inputs = processor(images=image, return_tensors="pt")
 
 outputs = model(**inputs)
 last_hidden_state = outputs.last_hidden_state
-pooled_output = outputs.pooler_output  # pooled features
+pooled_output = outputs.pooler_output  # pooled features #TODO DR: do my own pooling
 
 print("image model", model)
 print("frozen vision output", pooled_output)
