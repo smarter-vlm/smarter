@@ -48,7 +48,7 @@ def print_puzz_acc(args, puzz_acc, log=True):
     if not os.path.exists(os.path.join(args.save_root, "results/%d/" % (gv.seed))):
         os.makedirs(os.path.join(args.save_root, "results/%d/" % (gv.seed)))
 
-    if len(puzz_acc.keys()) > 4:
+    if len(puzz_acc.keys()) >= 3:
         for k, key in enumerate(puzz_acc.keys()):
             acc = 100.0 * puzz_acc[key][0] / puzz_acc[key][2] if puzz_acc[key][2] else 0.0
             oacc = 100.0 * puzz_acc[key][1] / puzz_acc[key][2] if puzz_acc[key][2] else 0.0
