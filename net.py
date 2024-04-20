@@ -18,7 +18,6 @@ from torchvision import models
 import globvars as gv
 
 
-# Vision and Language pretrained models. e.g., FLAVA model.
 class SMART_VL_Net(nn.Module):
     def __init__(self, args, VL_backbone):
         super(SMART_VL_Net, self).__init__()
@@ -63,7 +62,7 @@ class SMART_VL_Net(nn.Module):
         )
 
         self.qv_fusion = nn.Sequential(
-            nn.Linear(self.out_dim * 2, self.out_dim),  # for flava its *2.
+            nn.Linear(self.out_dim * 2, self.out_dim),  
             nn.GELU(),
             nn.Linear(self.out_dim, self.out_dim),
             nn.GELU(),
@@ -528,11 +527,6 @@ def load_pretrained_models(args, model_name, model=None):
         weights = ViT_B_16_Weights.IMAGENET1K_SWAG_E2E_V1  # ViT_B_16_Weights.DEFAULT #
         model = vit_b_16(weights=weights)
         preprocess = weights.transforms()
-    elif args.model_name == "flava":
-        from transformers import FlavaForPreTraining, FlavaProcessor  # FlavaModel,
-
-        model = FlavaForPreTraining.from_pretrained("facebook/flava-full").eval()
-        preprocess = FlavaProcessor.from_pretrained("facebook/flava-full")
     elif args.model_name == "clip":
         model, preprocess = clip.load("ViT-B/32", device="cuda")
     elif args.model_name == "mae":
@@ -543,7 +537,6 @@ def load_pretrained_models(args, model_name, model=None):
         preprocess = feature_extractor
 
     elif args.model_name == "dinov2":
-        # dinov2_vits14 = torch.hub.load('facebookresearch/dinov2', 'dinov2_vits14')
         from transformers import AutoImageProcessor, Dinov2Model
         image_processor = AutoImageProcessor.from_pretrained("facebook/dinov2-base")
         model = Dinov2Model.from_pretrained("facebook/dinov2-base")

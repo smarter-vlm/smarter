@@ -61,10 +61,8 @@ def reset_state(args):
 
 def train(args, dataloader, im_backbone):
     criterion = losses.Criterion(args)
-    if args.model_name == "flava":
-        model = net.SMART_VL_Net(args, VL_backbone=im_backbone)
 
-    elif args.model_name == "clip":
+    if args.model_name == "clip":
         import net_clip
 
         model = net_clip.SMART_VL_CLIP_Net(args, VL_backbone=im_backbone)
