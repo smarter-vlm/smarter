@@ -219,16 +219,11 @@ class SMART_Net(nn.Module):
         self.dummy_question = None
         self.model_name = args.model_name
         self.use_clip_text = args.use_clip_text
-        # self.loss_type = args.loss_type
         self.use_single_image_head = args.use_single_image_head
-        # self.train_backbone = args.train_backbone
         self.word_embed = args.word_embed
         self.sorted_puzzle_ids = np.sort(np.array([int(ii) for ii in args.puzzle_ids]))
 
-        # if args.loss_type == "classifier" or args.loss_type == "puzzle_tails":
         self.max_val = gv.MAX_VAL + 1
-        # elif args.loss_type == "regression":
-        #     self.max_val = 1
 
         # image backbones.
         if args.model_name[:6] == "resnet":
@@ -238,11 +233,10 @@ class SMART_Net(nn.Module):
        
         elif args.model_name in ["mae"]:
             self.preprocess = args.preprocess
-            self.im_cnn = lambda x: self.process_MAE(x)  # inputs = feature_extractor(images=image, return_tensors="pt")
+            self.im_cnn = lambda x: self.process_MAE(x)
             self.im_backbone = im_backbone
             self.im_feat_size = 768
 
-        #dinov2 should be similar to mae
         elif args.model_name in ["dinov2"]:
             self.preprocess = args.preprocess
             self.im_cnn = lambda x: self.process_dinov2(x)
@@ -366,9 +360,6 @@ class SMART_Net(nn.Module):
         return fwd_hook
 
     def encode_image(self, im, pids=None):
-        # if self.train_backbone:
-        #     x = self.im_cnn(im).squeeze()
-        # else:
         with torch.no_grad():
             x = self.im_cnn(im).squeeze()
 
@@ -401,7 +392,7 @@ class SMART_Net(nn.Module):
             x = self.q_emb(text)
             x, (h, _) = self.q_lstm(x.float())
             x = F.relu(self.q_MLP(x.mean(1)))
-        elif self.word_embed == "gpt" or "bert" or "glove":
+        elif self.word_embed == "bert":
             text = self.decode_text(text)
             q_enc = torch.zeros(len(text), gv.max_qlen, gv.word_dim).cuda()
             for ii, tt in enumerate(text):
@@ -439,7 +430,6 @@ class SMART_Net(nn.Module):
         return out_feats
 
     def forward(self, im, q=None, puzzle_ids=None):
-        # im_feat = self.encode_image(im, puzzle_ids)
         q_feat = self.encode_text(q)
         im_feat = self.encode_image(im.float(), puzzle_ids).float()
        

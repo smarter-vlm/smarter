@@ -8,32 +8,6 @@ import torch
 
 import utils
 
-
-class GPT2:
-    # https://github.com/huggingface/transformers/issues/1458
-    def __init__(self):
-        super(GPT2, self).__init__()
-        from transformers import GPT2LMHeadModel, GPT2Tokenizer
-
-        self.model = GPT2LMHeadModel.from_pretrained("gpt2").to("cuda")
-        self.tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
-        self.word_dim = 768
-
-    def embeds(self, word_tk):
-        tkidx = self.tokenizer.encode(word_tk, add_prefix_space=True)
-        emb = self.model.transformer.wte.weight[tkidx, :]
-        return emb  # .numpy()
-
-    def get_word_dim(self):
-        return self.word_dim
-
-    def word_embed(self, sentence):
-        with torch.no_grad():
-            tokens = nltk.tokenize.word_tokenize(sentence.lower())
-            word_feats = torch.row_stack([self.embeds(tk) for tk in tokens])
-        return word_feats
-
-
 class BERT:
     # https://huggingface.co/docs/transformers/model_doc/bert
     def __init__(self):
@@ -53,23 +27,6 @@ class BERT:
             outputs = self.model(**inputs)
             word_feats = outputs.last_hidden_state
         return torch.tensor(word_feats.squeeze()).cuda()
-
-
-class GloVe:
-    def __init__(self):
-        super(GloVe, self).__init__()
-        import torchtext
-
-        self.model = torchtext.vocab.GloVe(name="6B", dim=300)
-        self.word_dim = 300
-
-    def get_word_dim(self):
-        return self.word_dim
-
-    def word_embed(self, sentence):
-        tokens = nltk.tokenize.word_tokenize(sentence.lower())
-        word_feats = np.row_stack([self.model[tk] for tk in tokens])
-        return torch.tensor(word_feats).cuda()
 
 
 def globals_init(args):
@@ -104,16 +61,7 @@ def globals_init(args):
     if not os.path.exists(args.save_root):
         os.makedirs(args.save_root)
 
-    # if gpt2
-    if args.word_embed == "glove":
-        Embed = GloVe()
-        word_dim = Embed.get_word_dim()
-        word_embed = Embed.word_embed
-    elif args.word_embed == "gpt":
-        Embed = GPT2()
-        word_dim = Embed.get_word_dim()
-        word_embed = Embed.word_embed
-    elif args.word_embed == "bert":
+    if args.word_embed == "bert":
         Embed = BERT()
         word_dim = Embed.get_word_dim()
         word_embed = Embed.word_embed

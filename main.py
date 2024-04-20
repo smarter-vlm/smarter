@@ -81,8 +81,6 @@ def train(args, dataloader, im_backbone):
     log_model(experiment, model, model_name="Puzzle_Net")
 
     parameters = model.parameters()
-    # if not args.no_meta:
-    #     anshead_parameters = list(model.ans_decoder.parameters())
 
     def normalize(err, pids):
         """this function divides the error by the gt number of classes for each puzzle."""
@@ -168,7 +166,6 @@ def train(args, dataloader, im_backbone):
                     tt = t.item()
 
                     if t not in gv.SEQ_PUZZLES:
-                        # pred_max = get_result(out[int(tt)], args.loss_type)
                         pred_max = get_result(out[int(tt)])
                         pacc = (pred_max == av[idx, 0]).sum()
                         perror = normalize(np.abs(pred_max - av[idx, 0]), pids).sum()
@@ -177,7 +174,6 @@ def train(args, dataloader, im_backbone):
                         pred_ans = []
                         pacc = 1
                         for k in range(gv.MAX_DECODE_STEPS):
-                            # pred_max = get_result(out[int(tt)][k], args.loss_type)
                             pred_max = get_result(out[int(tt)][k])
                             pred_ans.append(pred_max)
                             pacc = pacc * (pred_max == av[idx][:, k])
@@ -276,15 +272,13 @@ def train(args, dataloader, im_backbone):
                     print("no training improvement... stopping the training.")
                     class_avg_perf = utils.print_puzz_acc(args, puz_acc, log=args.log)
                     break
-            # if epoch % args.log_freq == 0:
+
             print(
                 "%d) Time taken=%f Epoch=%d Train_loss = %f S_acc = %f O_acc=%f Variance = %f Best S_acc (epoch) = %f (%d)\n"
                 % (gv.seed, tt, epoch, loss, acc * 100, oacc * 100, err, best_acc * 100, best_epoch)
             )
             
                 
-
-        # if epoch % args.log_freq == 0:
         acc, err, oacc, puz_acc, val_tot_loss = val_loop(test_loader, model)
         print(
             "puzzles %s: val: s_acc/o_acc/var = %f/%f/%f (%d)"
@@ -322,7 +316,7 @@ if __name__ == "__main__":
     parser.add_argument("--batch_size", default=64, type=int, help="batch size (16)")
     parser.add_argument("--num_epochs", default=10, type=int, help="epoch")
     parser.add_argument("--lr", default=0.001, type=float, help="learning rate (0.001)")
-    # parser.add_argument("--test_file", type=str, help="csv file for train")
+
     parser.add_argument(
         "--data_root",
         type=str,
@@ -342,30 +336,21 @@ if __name__ == "__main__":
     parser.add_argument("--num_workers", type=int, default=16, help="number of workers")
     parser.add_argument("--pretrained", type=str, help="should use a pretrained model?")
 
-    # parser.add_argument("--optimizer", type=str, default="adam", help="optimizer to use")
-    # parser.add_argument("--loss_type", type=str, default="classification", help="classifier/regression")
 
     parser.add_argument("--model_name", type=str, help="model to use dinov2/siglip/dinov2+siglip/resnet50/mae/clip")
     parser.add_argument("--seed", type=int, default=0, help="seed to use")
     parser.add_argument("--data_tot", type=int, default=2000, help="how many instances to use for train+val+test")
+
     parser.add_argument("--use_clip_text", action="store_true", help="should use clip text embeddings?")
     parser.add_argument("--log", action="store_true", help="should print detailed log of accuracy?")
  
-    parser.add_argument(
-        "--split_type", type=str, default="standard", help="type of data split: stanard/exclude/puzzle/fewshot"
-    )
     parser.add_argument("--word_embed", type=str, default="bert", help="standard/gpt/glove")
     parser.add_argument(
         "--use_single_image_head", action="store_true", help="use a single image head for all the puzzles?"
     )
-    # parser.add_argument(
-    #     "--fsK", type=int, default=100, help="how many samples should we use to train in a fewshot setting?"
-    # )
+
     parser.add_argument("--log_freq", type=int, default=1, help="log frequency?")
     parser.add_argument("--test", action="store_true", help="evaluate a model?")
-    # parser.add_argument("--train_backbone", action="store_true", help="train the image backbone?")
-    # parser.add_argument("--no_question", action="store_true", help="do not use questions?")
-    # parser.add_argument("--no_image", action="store_true", help="do not use images?")
 
     parser.add_argument(
         "--feat_size", type=int, default=128, help="intermediate feature size for image and language features?"

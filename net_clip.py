@@ -32,13 +32,9 @@ class SMART_VL_CLIP_Net(nn.Module):
         self.use_clip_text = args.use_clip_text
         self.loss_type = args.loss_type
         self.use_single_image_head = args.use_single_image_head
-        # self.train_backbone = args.train_backbone
         self.sorted_puzzle_ids = np.sort(np.array([int(ii) for ii in args.puzzle_ids]))
 
-        # if args.loss_type == "classifier" or args.loss_type == "puzzle_tails":
         self.max_val = gv.MAX_VAL + 1
-        # elif args.loss_type == "regression":
-        #     self.max_val = 1
 
         self.preprocess = args.preprocess
         self.VL_backbone = VL_backbone
@@ -163,10 +159,6 @@ class SMART_VL_CLIP_Net(nn.Module):
     def forward(self, im, q=None, puzzle_ids=None):
         im, text = self.process(im, q)
 
-        # if self.train_backbone:
-        #     im_feat = self.VL_backbone.encode_image(im)
-        #     q_feat = self.VL_backbone.encode_text(text)
-        # else:
         with torch.no_grad():
             im_feat = self.VL_backbone.encode_image(im)
             q_feat = self.VL_backbone.encode_text(text)
