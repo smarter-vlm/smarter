@@ -258,6 +258,12 @@ class Puzzle_Net(nn.Module):
             self.im_backbone = im_backbone
             self.im_repr_size = 768
 
+        elif args.model_name in ["siglip"]:
+            self.preprocess = args.preprocess
+            self.im_cnn = lambda x: self.process_siglip(x)
+            self.im_backbone = im_backbone
+            self.im_repr_size = 768
+
         else:
             raise "unknown model_name %s" % (args.model_name)
 
@@ -326,6 +332,18 @@ class Puzzle_Net(nn.Module):
         with torch.no_grad():
             outputs = self.im_backbone(**inputs)
         return outputs.last_hidden_state.mean(1)
+    
+    def process_siglip(self, x):
+        device = torch.device("cuda")
+        # do not double rescale? TODO: I believe there is a HF bug here; may consider TIMM model
+        # but also double check the path to inputs
+        inputs = self.preprocess(images=x, do_rescale=False, return_tensors="pt").to(
+            device
+        )
+        outputs = self.im_backbone(**inputs)
+        # last_hidden_state = outputs.last_hidden_state
+        pooled_output = outputs.pooler_output # TODO: DR do my own pooler
+        return pooled_output
 
     def create_puzzle_head(self, args):
         if args.use_single_image_head:
