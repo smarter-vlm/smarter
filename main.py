@@ -172,7 +172,8 @@ def train(args, dataloader, im_backbone):
                     tt = t.item()
 
                     if t not in gv.SEQ_PUZZLES:
-                        pred_max = get_result(out[int(tt)], args.loss_type)
+                        # pred_max = get_result(out[int(tt)], args.loss_type)
+                        pred_max = get_result(out[int(tt)])
                         pacc = (pred_max == av[idx, 0]).sum()
                         perror = normalize(np.abs(pred_max - av[idx, 0]), pids).sum()
                         oacc = utils.get_option_sel_acc(pred_max, o[idx], a[idx], av[idx], t).sum()
@@ -180,7 +181,8 @@ def train(args, dataloader, im_backbone):
                         pred_ans = []
                         pacc = 1
                         for k in range(gv.MAX_DECODE_STEPS):
-                            pred_max = get_result(out[int(tt)][k], args.loss_type)
+                            # pred_max = get_result(out[int(tt)][k], args.loss_type)
+                            pred_max = get_result(out[int(tt)][k])
                             pred_ans.append(pred_max)
                             pacc = pacc * (pred_max == av[idx][:, k])
                         pacc = pacc.sum()

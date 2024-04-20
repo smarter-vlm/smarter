@@ -32,7 +32,7 @@ class SMART_VL_Net(nn.Module):
         self.dummy_question = None
         self.model_name = args.model_name
         self.use_clip_text = args.use_clip_text
-        self.loss_type = args.loss_type
+        # self.loss_type = args.loss_type
         self.use_single_image_head = args.use_single_image_head
         # self.train_backbone = args.train_backbone
         self.sorted_puzzle_ids = np.sort(np.array([int(ii) for ii in args.puzzle_ids]))
@@ -95,7 +95,7 @@ class SMART_VL_Net(nn.Module):
         else:
             puzzles = self.puzzle_ids
         for pid in puzzles:  
-            num_classes = gv.NUM_CLASSES_PER_PUZZLE[str(pid)] if args.loss_type == "classifier" else 1
+            num_classes = gv.NUM_CLASSES_PER_PUZZLE[str(pid)]
             if int(pid) not in gv.SEQ_PUZZLES:
                 ans_decoder.append(
                     nn.Sequential(
@@ -219,7 +219,7 @@ class SMART_Net(nn.Module):
         self.dummy_question = None
         self.model_name = args.model_name
         self.use_clip_text = args.use_clip_text
-        self.loss_type = args.loss_type
+        # self.loss_type = args.loss_type
         self.use_single_image_head = args.use_single_image_head
         # self.train_backbone = args.train_backbone
         self.word_embed = args.word_embed
@@ -327,7 +327,7 @@ class SMART_Net(nn.Module):
         else:
             puzzles = self.puzzle_ids
         for pid in puzzles:  # self.puzzle_ids:
-            num_classes = gv.NUM_CLASSES_PER_PUZZLE[str(pid)] if args.loss_type == "classifier" else 1
+            num_classes = gv.NUM_CLASSES_PER_PUZZLE[str(pid)]
             if int(pid) not in gv.SEQ_PUZZLES:
                 ans_decoder.append(
                     nn.Sequential(

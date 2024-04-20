@@ -66,6 +66,7 @@ def print_puzz_acc(args, puzz_acc, log=True):
             class_avg_perf = {}
             classes = ["counting", "math", "logic", "path", "algebra", "measure", "spatial", "pattern"]
             print(classes)
+            
             for kk in classes:
                 idx_list = puzzles[kk]
                 class_avg_perf[kk] = (
@@ -77,25 +78,25 @@ def print_puzz_acc(args, puzz_acc, log=True):
             
                 
 
-        fig = plt.figure(figsize=(30, 4))
-        ax = plt.gca()
-        ax.bar(np.arange(1, gv.num_actual_puzz), fix_acc(acc_list[1:]))
-        ax.set_xticks(np.arange(1, gv.num_actual_puzz))
-        ax.set_xlabel("puzzle ids", fontsize=16)
-        ax.set_ylabel("$O_{acc}$ %", fontsize=20)
-        fig.tight_layout()
-        plt.savefig(os.path.join(args.save_root, "results/%d/acc_perf_scores_1.png" % (gv.seed)))
-        plt.close()
+        # fig = plt.figure(figsize=(30, 4))
+        # ax = plt.gca()
+        # ax.bar(np.arange(1, gv.num_actual_puzz), fix_acc(acc_list[1:]))
+        # ax.set_xticks(np.arange(1, gv.num_actual_puzz))
+        # ax.set_xlabel("puzzle ids", fontsize=16)
+        # ax.set_ylabel("$O_{acc}$ %", fontsize=20)
+        # fig.tight_layout()
+        # plt.savefig(os.path.join(args.save_root, "results/%d/acc_perf_scores_1.png" % (gv.seed)))
+        # plt.close()
 
-        fig = plt.figure(figsize=(30, 4))
-        ax = plt.gca()
-        ax.bar(np.arange(1, gv.num_actual_puzz), fix_acc(opt_acc_list[1:]))
-        ax.set_xticks(np.arange(1, gv.num_actual_puzz))  # , [str(i) for i in np.arange(1,num_puzzles+1)])
-        ax.set_xlabel("puzzle ids", fontsize=16)
-        ax.set_ylabel("$S_{acc}$ %", fontsize=20)
-        fig.tight_layout()
-        plt.savefig(os.path.join(args.save_root, "results/%d/opt_acc_perf_scores_1.png" % (gv.seed)))
-        plt.close()
+        # fig = plt.figure(figsize=(30, 4))
+        # ax = plt.gca()
+        # ax.bar(np.arange(1, gv.num_actual_puzz), fix_acc(opt_acc_list[1:]))
+        # ax.set_xticks(np.arange(1, gv.num_actual_puzz))  # , [str(i) for i in np.arange(1,num_puzzles+1)])
+        # ax.set_xlabel("puzzle ids", fontsize=16)
+        # ax.set_ylabel("$S_{acc}$ %", fontsize=20)
+        # fig.tight_layout()
+        # # plt.savefig(os.path.join(args.save_root, "results/%d/opt_acc_perf_scores_1.png" % (gv.seed)))
+        # plt.close()
     else:
         for key in puzz_acc.keys():
             acc = 100.0 * puzz_acc[key][0] / puzz_acc[key][2]
@@ -105,14 +106,14 @@ def print_puzz_acc(args, puzz_acc, log=True):
             acc_list[int(key)] = acc
             opt_acc_list[int(key)] = opt_acc
 
-        plt.figure()
-        plt.bar(np.arange(gv.num_puzzles + 1), acc_list)
-        plt.savefig(os.path.join(args.save_root, "results/%d/acc_perf_scores.png" % (gv.seed)))
-        plt.close()
-        plt.figure()
-        plt.bar(np.arange(gv.num_puzzles + 1), opt_acc_list)
-        plt.savefig(os.path.join(args.save_root, "results/%d/opt_acc_perf_scores.png" % (gv.seed)))
-        plt.close()
+        # plt.figure()
+        # plt.bar(np.arange(gv.num_puzzles + 1), acc_list)
+        # plt.savefig(os.path.join(args.save_root, "results/%d/acc_perf_scores.png" % (gv.seed)))
+        # plt.close()
+        # plt.figure()
+        # plt.bar(np.arange(gv.num_puzzles + 1), opt_acc_list)
+        # plt.savefig(os.path.join(args.save_root, "results/%d/opt_acc_perf_scores.png" % (gv.seed)))
+        # plt.close()
     return class_avg_perf if class_avg_perf else {}
 
 
