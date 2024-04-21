@@ -190,7 +190,7 @@ class SMART_TrainData(SMART_Data):
         return (
             im,
             torch.tensor(qa),
-            torch.tensor(opts),
+            opts,
             torch.tensor(lbl),
             torch.tensor(answer),
             torch.tensor(int(pid)),
