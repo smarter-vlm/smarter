@@ -128,7 +128,7 @@ def train(args, dataloader, im_backbone):
 
             # im = im.float()
             print("Im now*************:", im)
-            im = im.to(device)
+            im = im['pixel_values'].to(device)
             q = q.cuda()
             a = a.cuda()
             av = av.cuda()
