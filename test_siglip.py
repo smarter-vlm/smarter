@@ -27,7 +27,9 @@ pooled_output = outputs.pooler_output  # pooled features #TODO DR: do my own poo
 
 # print("image model", model)
 print("frozen vision output", pooled_output.shape, last_hidden_state.shape)
-print("frozen vision output", pooled_output[0][0], last_hidden_state[0][0]) # not the same
+print(
+    "frozen vision output", pooled_output[0][0], last_hidden_state[0][0]
+)  # not the same
 
 
 # model = SiglipTextModel.from_pretrained("google/siglip-base-patch16-224")

@@ -106,7 +106,12 @@ class Smarter_VL(nn.Module):
                 )
             else:
                 ans_decoder.append(
-                    nn.LSTM(int(self.out_dim), int(num_classes), num_layers=1, batch_first=True)
+                    nn.LSTM(
+                        int(self.out_dim),
+                        int(num_classes),
+                        num_layers=1,
+                        batch_first=True,
+                    )
                 )
         self.ans_decoder = nn.ModuleList(ans_decoder)
 
@@ -323,7 +328,7 @@ class Puzzle_Net(nn.Module):
 
     def process_dinov2(self, x):
         device = torch.device("cuda")
-        x = self.decode_image(x) 
+        x = self.decode_image(x)
         inputs = self.preprocess(images=x, do_rescale=True, return_tensors="pt").to(
             device
         )
@@ -333,7 +338,7 @@ class Puzzle_Net(nn.Module):
     def process_siglip(self, x):
         device = torch.device("cuda")
         # print("what is x", x)
-        x = self.decode_image(x) 
+        x = self.decode_image(x)
         inputs = self.preprocess(images=x, do_rescale=True, return_tensors="pt").to(
             device
         )
@@ -387,7 +392,9 @@ class Puzzle_Net(nn.Module):
                 )
             else:
                 ans_decoder.append(
-                    nn.LSTM(int(self.h_sz), int(num_classes), num_layers=1, batch_first=True)
+                    nn.LSTM(
+                        int(self.h_sz), int(num_classes), num_layers=1, batch_first=True
+                    )
                 )
         self.ans_decoder = nn.ModuleList(ans_decoder)
 

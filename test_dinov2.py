@@ -16,7 +16,8 @@
 # last_hidden_states = outputs.last_hidden_state
 # list(last_hidden_states.shape)
 import torch
-a = torch.tensor(1,dtype=torch.int)
+
+a = torch.tensor(1, dtype=torch.int)
 print(a.int())
 
 # issues loging in

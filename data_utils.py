@@ -45,7 +45,7 @@ class SMART_Data(Dataset):
         elif args.model_name in [
             "mae",
             "dinov2",
-            "siglip"
+            "siglip",
         ]:  # this will do feature extractin later.
             self.transform = Compose(
                 [
