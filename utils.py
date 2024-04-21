@@ -65,7 +65,7 @@ def print_puzz_acc(args, puzz_acc, log=True):
 
             for t in range(1, gv.num_puzzles + 1):
                 print(
-                    "%d opt_acc=%0.2f acc=%0.2f" % (t, opt_acc_list[t], acc_list[t]),
+                    "%d acc=%0.2f" % (t, acc_list[t]),
                     end="\t",
                 )
                 if t % 5 == 0:
@@ -103,7 +103,7 @@ def print_puzz_acc(args, puzz_acc, log=True):
             acc = 100.0 * puzz_acc[key][0] / puzz_acc[key][2]
             opt_acc = 100.0 * puzz_acc[key][1] / puzz_acc[key][2]
             if log:
-                print("%s opt_acc=%0.2f acc=%0.2f" % (key, opt_acc, acc))
+                print("%s acc=%0.2f" % (key, acc))
             acc_list[int(key)] = acc
             opt_acc_list[int(key)] = opt_acc
 

@@ -152,16 +152,16 @@ def train(args, dataloader, im_backbone):
         opt_mean = 0
         puzzle_acc = {}
         with torch.no_grad():
-            for i, (im, q, o, a, av, pids) in enumerate(val_loader):
+            for i, (im, q, _, a, av, pids) in enumerate(val_loader):
 
                 q = q.cuda()
                 im = im.float()
                 im = im.to(device)
                 av = av.cuda()
 
-                print("what was o when working in prev version", o)
-                op_a = np.array(o)
-                print("what was op_a when working in prev version", op_a)
+                # print("what was o when working in prev version", o)
+                # op_a = np.array(o)
+                # print("what was op_a when working in prev version", op_a)
 
                 out = model(im, q, puzzle_ids=pids)
                 val_loss = criterion(out, av, pids)
@@ -173,7 +173,7 @@ def train(args, dataloader, im_backbone):
                 upids = torch.unique(pids)
                 acc = 0
                 error = 0
-                opts_acc = 0
+                # opts_acc = 0
                 for t in upids:
                     idx = pids == t
                     tt = t.item()
@@ -182,9 +182,9 @@ def train(args, dataloader, im_backbone):
                         pred_max = get_result(out[int(tt)])
                         pacc = (pred_max == av[idx, 0]).sum()
                         perror = normalize(np.abs(pred_max - av[idx, 0]), pids).sum()
-                        oacc = utils.get_option_sel_acc(
-                            pred_max, op_a[idx], a[idx], av[idx], t
-                        ).sum()
+                        # oacc = utils.get_option_sel_acc(
+                        #     pred_max, op_a[idx], a[idx], av[idx], t
+                        # ).sum()
                     else:
                         pred_ans = []
                         pacc = 1
@@ -194,22 +194,22 @@ def train(args, dataloader, im_backbone):
                             pacc = pacc * (pred_max == av[idx][:, k])
                         pacc = pacc.sum()
                         perror = 0
-                        oacc = utils.get_option_sel_acc(
-                            np.column_stack(pred_ans), op_a[idx], a[idx], av[idx], t
-                        ).sum()
+                        # oacc = utils.get_option_sel_acc(
+                        #     np.column_stack(pred_ans), op_a[idx], a[idx], av[idx], t
+                        # ).sum()
 
                     if str(tt) in puzzle_acc.keys():
                         puzzle_acc[str(tt)][0] += pacc
-                        puzzle_acc[str(tt)][1] += oacc
+                        # puzzle_acc[str(tt)][1] += oacc
                         puzzle_acc[str(tt)][2] += idx.sum()
                     else:
-                        puzzle_acc[str(tt)] = [pacc, oacc, idx.sum()]
+                        puzzle_acc[str(tt)] = [pacc, 0, idx.sum()]
                     # we use the ansewr value here.
-                    opts_acc += oacc
+                    # opts_acc += oacc
                     acc += pacc
                     error += perror
 
-                opt_mean += opts_acc
+                # opt_mean += opts_acc
                 acc_mean += acc
                 err_mean += error
                 cnt += len(av)
@@ -217,7 +217,7 @@ def train(args, dataloader, im_backbone):
         return (
             acc_mean / float(cnt),
             err_mean / float(cnt),
-            opt_mean / float(cnt),
+            # opt_mean / float(cnt),
             puzzle_acc,
             val_tot_loss / len(val_loader),
         )
@@ -274,12 +274,12 @@ def train(args, dataloader, im_backbone):
         if epoch >= 0:  # always eval
             model.eval()
 
-            acc, err, oacc, puz_acc, val_tot_loss = val_loop(val_loader, model)
+            acc, err, puz_acc, val_tot_loss = val_loop(val_loader, model)
             experiment.log_metrics(
                 {
                     "val_acc": acc,
                     "val_var": err,
-                    "val_oacc": oacc,
+                    # "val_oacc": oacc,
                     "val_epoch_loss": val_tot_loss,
                 },
                 epoch=epoch,
@@ -291,10 +291,10 @@ def train(args, dataloader, im_backbone):
                 experiment.log_metrics(
                     {k: v[0] for k, v in class_avg_perf.items()}, epoch=epoch
                 )
-            with experiment.context_manager("val_oacc"):
-                experiment.log_metrics(
-                    {k: v[1] for k, v in class_avg_perf.items()}, epoch=epoch
-                )
+            # with experiment.context_manager("val_oacc"):
+            #     experiment.log_metrics(
+            #         {k: v[1] for k, v in class_avg_perf.items()}, epoch=epoch
+            #     )
 
             if acc >= best_acc:
                 best_epoch = epoch
@@ -317,17 +317,17 @@ def train(args, dataloader, im_backbone):
                     epoch,
                     loss,
                     acc * 100,
-                    oacc * 100,
+                    # oacc * 100,
                     err,
                     best_acc * 100,
                     best_epoch,
                 )
             )
 
-        acc, err, oacc, puz_acc, val_tot_loss = val_loop(test_loader, model)
+        acc, err, puz_acc, val_tot_loss = val_loop(test_loader, model)
         print(
-            "puzzles %s: eval on test loader at end of ep: s_acc/o_acc/var = %f/%f/%f (%d)"
-            % (args.puzzles, acc * 100, oacc * 100, err, best_epoch)
+            "puzzles %s: eval on test loader at end of ep: s_acc/var = %f/%f/%f (%d)"
+            % (args.puzzles, acc * 100, err, best_epoch)
         )
 
     test_loop(test_loader, best_model)
