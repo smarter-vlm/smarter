@@ -562,17 +562,17 @@ def load_pretrained_models(args, model_name, model=None):
         model = SiglipVisionModel.from_pretrained("google/siglip-base-patch16-224")
         preprocess = image_processor
 
-    elif args.model_name == "dinov2+siglip":
+    elif args.model_name == "fused_dinov2_siglip":
 
-        from transformers import AutoProcessor, SiglipVisionModel, Dinov2Model
+        from transformers import AutoImageProcessor, SiglipVisionModel, Dinov2Model
 
-        image_processor_siglip = AutoProcessor.from_pretrained(
+        image_processor_siglip = AutoImageProcessor.from_pretrained(
             "google/siglip-base-patch16-224"
         )
         model_siglip = SiglipVisionModel.from_pretrained(
             "google/siglip-base-patch16-224"
         )
-        image_processor_dino = AutoProcessor.from_pretrained("facebook/dinov2-base")
+        image_processor_dino = AutoImageProcessor.from_pretrained("facebook/dinov2-base")
         model_dino = Dinov2Model.from_pretrained("facebook/dinov2-base")
         preprocess = (image_processor_siglip, image_processor_dino)
 

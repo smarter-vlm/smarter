@@ -65,7 +65,7 @@ def train(args, dataloader, im_backbone):
     if args.model_name == "clip":
         import smart_clip
 
-        model = smart_clip.Smarter_VL_CLIP(args, VL_backbone=im_backbone)
+        model = smart_clip.Smarter_VL_CLIP(args, VL_backbone=im_backbone) # for baseline
     else:
         model = deep_vlm_reasoners.Puzzle_Net(args, im_backbone=im_backbone)
 
@@ -403,7 +403,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--model_name",
         type=str,
-        help="model to use dinov2/siglip/dinov2+siglip/resnet50/mae/clip",
+        help="model to use dinov2/siglip/fused_dinov2_siglip/resnet50/mae/clip",
     )
     parser.add_argument("--seed", type=int, default=0, help="seed to use")
     parser.add_argument(
@@ -463,9 +463,15 @@ if __name__ == "__main__":
             args.save_root, "vocab_puzzle_" + args.puzzle_ids_str + ".pkl"
         )
 
-    im_backbone, preprocess = deep_vlm_reasoners.load_pretrained_models(
+    if args.model_name == "fused_dinov2_siglip":
+        (im_backbone_din, im_backbone_sig), (preprocess_din, preprocess_sig)  = deep_vlm_reasoners.load_pretrained_models(
         args, args.model_name, model=None
     )
+    else:
+        # only one vision encoder
+        im_backbone, preprocess = deep_vlm_reasoners.load_pretrained_models(
+            args, args.model_name, model=None
+        )
 
     args.preprocess = preprocess
 

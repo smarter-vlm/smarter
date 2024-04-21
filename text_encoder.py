@@ -51,10 +51,10 @@ def globals_init(args):
     num_puzzles = 101
     max_qlen = 110
     seed = 10
-    icon_dataset_path = "./dataset/icon-classes.txt"  #'/homes/cherian/train_data/NAR/SMART/SMART_cpl/puzzles/anoops/resources/icons-50/Icons-50/'
+    icon_dataset_path = "./dataset/icon-classes.txt" 
     icon_class_ids = utils.get_icon_dataset_classes(
         icon_dataset_path
-    )  # os.listdir(icon_dataset_path) # puzzle 1
+    ) 
     signs = np.array(["+", "-", "x", "/"])  # puzzle 58
     NUM_CLASSES_PER_PUZZLE = {}
     SEQ_PUZZLES = [16, 18, 35, 39, 63, 100]
