@@ -389,7 +389,10 @@ class Puzzle_Net(nn.Module):
             else:
                 ans_decoder.append(
                     nn.GRU(
-                        int(self.out_dim), int(num_classes), num_layers=1, batch_first=True
+                        int(self.out_dim),
+                        int(num_classes),
+                        num_layers=1,
+                        batch_first=True,
                     )
                 )
         self.ans_decoder = nn.ModuleList(ans_decoder)

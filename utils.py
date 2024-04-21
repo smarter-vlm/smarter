@@ -84,7 +84,7 @@ def print_puzz_acc(args, puzz_acc, log=True):
                 "spatial",
                 "pattern",
             ]
-           
+
             print("Class acc: ")
             print(classes)
             for kk in classes:

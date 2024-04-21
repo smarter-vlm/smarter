@@ -75,7 +75,7 @@ def train(args, dataloader, im_backbone):
 
     # Make sure im backbone is frozen
     for name, param in model.named_parameters():
-        if name.startswith("dinov2") or name.startswith("siglip") :
+        if name.startswith("dinov2") or name.startswith("siglip"):
             param.requires_grad = False
 
     print(
