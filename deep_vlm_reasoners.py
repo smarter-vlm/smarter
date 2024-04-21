@@ -106,7 +106,12 @@ class Smarter_VL(nn.Module):
                 )
             else:
                 ans_decoder.append(
-                    nn.LSTM(self.out_dim, num_classes, num_layers=1, batch_first=True)
+                    nn.GRU(
+                        int(self.out_dim),
+                        int(num_classes),
+                        num_layers=1,
+                        batch_first=True,
+                    )
                 )
         self.ans_decoder = nn.ModuleList(ans_decoder)
 
@@ -258,6 +263,12 @@ class Puzzle_Net(nn.Module):
             self.im_backbone = im_backbone
             self.im_repr_size = 768
 
+        elif args.model_name in ["siglip"]:
+            self.preprocess = args.preprocess
+            self.im_cnn = lambda x: self.process_siglip(x)
+            self.im_backbone = im_backbone
+            self.im_repr_size = 768
+
         else:
             raise "unknown model_name %s" % (args.model_name)
 
@@ -276,8 +287,8 @@ class Puzzle_Net(nn.Module):
             if args.word_embed == "standard":
                 self.q_emb = nn.Embedding(len(self.vocab), self.h_sz, max_norm=1)
                 self.q_lstm = nn.LSTM(
-                    self.h_sz,
-                    self.h_sz,
+                    int(self.h_sz),
+                    int(self.h_sz),
                     num_layers=2,
                     batch_first=True,
                     bidirectional=True,
@@ -286,8 +297,8 @@ class Puzzle_Net(nn.Module):
                 word_dim = gv.word_dim
                 self.q_emb = nn.Identity()
                 self.q_lstm = nn.GRU(
-                    word_dim,
-                    self.h_sz,
+                    int(word_dim),
+                    int(self.h_sz),
                     num_layers=1,
                     batch_first=True,
                     bidirectional=True,
@@ -317,14 +328,25 @@ class Puzzle_Net(nn.Module):
 
     def process_dinov2(self, x):
         device = torch.device("cuda")
-        # do not double rescale? TODO: I believe there is a HF bug here; may consider TIMM model
-        # but also double check the path to inputs
+        x = self.decode_image(x)
         inputs = self.preprocess(images=x, do_rescale=True, return_tensors="pt").to(
             device
         )
+        outputs = self.im_backbone(**inputs)
+        return outputs.last_hidden_state.mean(1)
 
-        with torch.no_grad():
-            outputs = self.im_backbone(**inputs)
+    def process_siglip(self, x):
+        device = torch.device("cuda")
+        # print("what is x", x)
+        x = self.decode_image(x)
+        inputs = self.preprocess(images=x, do_rescale=True, return_tensors="pt").to(
+            device
+        )
+        outputs = self.im_backbone(**inputs)
+        # last_hidden_state = outputs.last_hidden_state
+        # pooled_output = outputs.pooler_output  # TODO: DR do my own pooler
+        # return pooled_output
+        outputs = self.im_backbone(**inputs)
         return outputs.last_hidden_state.mean(1)
 
     def create_puzzle_head(self, args):
@@ -370,7 +392,9 @@ class Puzzle_Net(nn.Module):
                 )
             else:
                 ans_decoder.append(
-                    nn.LSTM(self.out_dim, num_classes, num_layers=1, batch_first=True)
+                    nn.GRU(
+                        int(self.out_dim), int(num_classes), num_layers=1, batch_first=True
+                    )
                 )
         self.ans_decoder = nn.ModuleList(ans_decoder)
 
@@ -454,7 +478,7 @@ class Puzzle_Net(nn.Module):
         """run the LSTM decoder sequentially for k steps"""
         out = [None] * gv.MAX_DECODE_STEPS
         hx = None
-        for k in range(gv.MAX_DECODE_STEPS):
+        for k in range(int(gv.MAX_DECODE_STEPS)):
             try:
                 out[k], hx = decoder(repr, hx)
             except:
@@ -513,13 +537,11 @@ def load_pretrained_models(args, model_name, model=None):
         model, preprocess = clip.load("ViT-B/32", device="cuda")
 
     elif args.model_name == "mae":
-        from transformers import AutoreprureExtractor, ViTMAEModel
+        from transformers import AutoFeatureExtractor, ViTMAEModel
 
-        reprure_extractor = AutoreprureExtractor.from_pretrained(
-            "facebook/vit-mae-base"
-        )
+        repr_extractor = AutoFeatureExtractor.from_pretrained("facebook/vit-mae-base")
         model = ViTMAEModel.from_pretrained("facebook/vit-mae-base")
-        preprocess = reprure_extractor
+        preprocess = repr_extractor
 
     elif args.model_name == "dinov2":
         from transformers import AutoImageProcessor, Dinov2Model
@@ -529,10 +551,33 @@ def load_pretrained_models(args, model_name, model=None):
         preprocess = image_processor
 
     elif args.model_name == "siglip":
-        pass  # TODO
+        from transformers import (
+            AutoImageProcessor,
+            SiglipVisionModel,
+        )
+
+        # There is a bug of some kind in HF model.
+        image_processor = AutoImageProcessor.from_pretrained(
+            "google/siglip-base-patch16-224"
+        )
+        model = SiglipVisionModel.from_pretrained("google/siglip-base-patch16-224")
+        preprocess = image_processor
 
     elif args.model_name == "dinov2+siglip":
-        pass  # TODO
+
+        from transformers import AutoProcessor, SiglipVisionModel, Dinov2Model
+
+        image_processor_siglip = AutoProcessor.from_pretrained(
+            "google/siglip-base-patch16-224"
+        )
+        model_siglip = SiglipVisionModel.from_pretrained(
+            "google/siglip-base-patch16-224"
+        )
+        image_processor_dino = AutoProcessor.from_pretrained("facebook/dinov2-base")
+        model_dino = Dinov2Model.from_pretrained("facebook/dinov2-base")
+        preprocess = (image_processor_siglip, image_processor_dino)
+
+        # TODO: DR new functiionality needed to be able to pass down preprocess as tuple
 
     else:
         print("model name is %s: not loading pre-trained model." % (args.model_name))

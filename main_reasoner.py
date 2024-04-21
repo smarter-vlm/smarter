@@ -26,7 +26,7 @@ import vocab_utils
 import data_utils as dl
 import text_encoder as gv
 import losses
-import deep_nets
+import deep_vlm_reasoners
 import utils
 
 
@@ -67,19 +67,19 @@ def train(args, dataloader, im_backbone):
 
         model = smart_clip.Smarter_VL_CLIP(args, VL_backbone=im_backbone)
     else:
-        model = deep_nets.Puzzle_Net(args, im_backbone=im_backbone)
+        model = deep_vlm_reasoners.Puzzle_Net(args, im_backbone=im_backbone)
 
     print(
-        f"\n Number trainable params before explicit freezing of dino {sum(p.numel() for p in model.parameters() if p.requires_grad)}"
+        f"\n Number trainable params before explicit freezing of image backb {sum(p.numel() for p in model.parameters() if p.requires_grad)}"
     )
 
-    # Make sure Dino is frozen
+    # Make sure im backbone is frozen
     for name, param in model.named_parameters():
-        if name.startswith("dinov2"):
+        if name.startswith("dinov2") or name.startswith("siglip") :
             param.requires_grad = False
 
     print(
-        f"\n Number trainable params after explicit freezing of dino {sum(p.numel() for p in model.parameters() if p.requires_grad)}"
+        f"\n Number trainable params after explicit freezing of image backb  {sum(p.numel() for p in model.parameters() if p.requires_grad)}"
     )
 
     device = torch.device("cuda")
@@ -98,7 +98,6 @@ def train(args, dataloader, im_backbone):
         return err
 
     def get_result(out):
-        # if ltype == "classifier":
         pred_max = F.softmax(out, dim=1).argmax(dim=1).cpu()
 
         return pred_max
@@ -211,8 +210,7 @@ def train(args, dataloader, im_backbone):
                 acc_mean += acc
                 err_mean += error
                 cnt += len(av)
-                
-       
+
         return (
             acc_mean / float(cnt),
             err_mean / float(cnt),
@@ -233,7 +231,7 @@ def train(args, dataloader, im_backbone):
         print(f"test val loss: val_ep_loss, {test_ep_loss}")
 
     if args.test:
-        deep_nets.load_pretrained_models(args, args.model_name, model=model)
+        deep_vlm_reasoners.load_pretrained_models(args, args.model_name, model=model)
         test_loop(dataloader["test"], model)
         return
 
@@ -462,7 +460,7 @@ if __name__ == "__main__":
             args.save_root, "vocab_puzzle_" + args.puzzle_ids_str + ".pkl"
         )
 
-    im_backbone, preprocess = deep_nets.load_pretrained_models(
+    im_backbone, preprocess = deep_vlm_reasoners.load_pretrained_models(
         args, args.model_name, model=None
     )
 
