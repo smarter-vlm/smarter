@@ -343,10 +343,6 @@ class Puzzle_Net(nn.Module):
             device
         )
         outputs = self.im_backbone(**inputs)
-        # last_hidden_state = outputs.last_hidden_state
-        # pooled_output = outputs.pooler_output  # TODO: DR do my own pooler
-        # return pooled_output
-        outputs = self.im_backbone(**inputs)
         return outputs.last_hidden_state.mean(1)
 
     def create_puzzle_head(self, args):
