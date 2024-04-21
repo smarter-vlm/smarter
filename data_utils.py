@@ -275,4 +275,5 @@ def SMART_collate_fn(data):
     lbl = concat(lbl)
     answer = concat(answer)
     puzzle_ids = concat(puzzle_ids)
+    print("what is opts in collate", opts)
     return im, qa, opts, lbl, answer, puzzle_ids
