@@ -154,14 +154,13 @@ def train(args, dataloader, im_backbone):
         with torch.no_grad():
             for i, (im, q, o, a, av, pids) in enumerate(val_loader):
 
-                print("\n batch content in val_load:", (im, q, o, a, av, pids))
                 q = q.cuda()
                 im = im.float()
                 im = im.to(device)
                 av = av.cuda()
 
                 print("\n *************what is o causing bug:", o)
-                
+
                 o = np.array(o)
 
                 out = model(im, q, puzzle_ids=pids)

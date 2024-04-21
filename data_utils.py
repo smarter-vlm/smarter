@@ -256,7 +256,7 @@ class SMART_ValData(SMART_Data):
         return (
             im,
             torch.tensor(qa),
-            opts,
+            torch.tensor(opts),
             torch.tensor(lbl),
             torch.tensor(answer),
             torch.tensor(int(info["puzzle_id"])),
