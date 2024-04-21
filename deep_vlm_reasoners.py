@@ -269,6 +269,12 @@ class Puzzle_Net(nn.Module):
             self.im_backbone = im_backbone
             self.im_repr_size = 768
 
+        elif args.model_name in ["fused_dinov2_siglip"]:
+            self.preprocess = args.preprocess
+            self.im_cnn = lambda x: self.process_fused(x)
+            self.im_backbone = im_backbone
+            self.im_repr_size = 768+768
+
         else:
             raise "unknown model_name %s" % (args.model_name)
 
@@ -335,15 +341,23 @@ class Puzzle_Net(nn.Module):
         outputs = self.im_backbone(**inputs)
         return outputs.last_hidden_state.mean(1)
 
-    def process_siglip(self, x):
+    def process_fused(self, x):
         device = torch.device("cuda")
         # print("what is x", x)
         x = self.decode_image(x)
-        inputs = self.preprocess(images=x, do_rescale=True, return_tensors="pt").to(
+        proc1, proc2 = self.preprocess
+
+        inputs_din = proc1(images=x, do_rescale=True, return_tensors="pt").to(
             device
         )
-        outputs = self.im_backbone(**inputs)
-        return outputs.last_hidden_state.mean(1)
+        inputs_sig = proc2(images=x, do_rescale=True, return_tensors="pt").to(
+            device
+        )
+        im_backbone_din, im_backbone_sig = self.im_backbone
+
+        outputs_din = im_backbone_din(**inputs_din)
+        outputs_sig = im_backbone_sig(**inputs_sig)
+        return torch.cat([outputs_din.last_hidden_state.mean(1), outputs_sig.last_hidden_state.mean(1)], dim=1)
 
     def create_puzzle_head(self, args):
         if args.use_single_image_head:
