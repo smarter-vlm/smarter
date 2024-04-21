@@ -130,12 +130,18 @@ def train(args, dataloader, im_backbone):
             q = q.cuda()
             a = a.cuda()
             av = av.cuda()
-
+            
+            # the model is puzzlenet
             out = model(im, q, puzzle_ids=pids)
+
+            print("what's out*************", out)
+
             loss = criterion(out, av, pids)
             optimizer.zero_grad()
             loss.backward()
+
             torch.nn.utils.clip_grad_norm_(model.parameters(), 0.5)
+
             optimizer.step()
 
             tot_loss += loss.item()
@@ -161,9 +167,6 @@ def train(args, dataloader, im_backbone):
                 im = im.to(device)
                 av = av.cuda()
 
-                # print("what was o when working in prev version", o)
-                # op_a = np.array(o)
-                # print("what was op_a when working in prev version", op_a)
 
                 out = model(im, q, puzzle_ids=pids)
                 val_loss = criterion(out, av, pids)

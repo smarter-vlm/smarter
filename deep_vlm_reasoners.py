@@ -153,7 +153,6 @@ class Smarter_VL(nn.Module):
         return x
 
     def decode_image(self, im_list):
-        """convert torch tensor images back to Image bcos VL FLAVA model works with images."""
         im_list = (im_list.permute(0, 2, 3, 1) * 255).cpu().numpy().astype("uint8")
         im_list = [
             Image.fromarray(im_list[ii]) for ii in range(len(im_list))
@@ -344,7 +343,6 @@ class Puzzle_Net(nn.Module):
 
     def process_fused(self, x):
         device = torch.device("cuda")
-        # print("what is x", x)
         x = self.decode_image(x)
         proc1, proc2 = self.preprocess
 
@@ -440,8 +438,9 @@ class Puzzle_Net(nn.Module):
         return fwd_hook
 
     def encode_image(self, im, pids=None):
+
         with torch.no_grad():
-            x = self.im_cnn(im).squeeze()
+            x = self.im_cnn(im).squeeze() #Should be concat here
 
         if len(x.shape) == 1:
             x = x.unsqueeze(0)
@@ -572,7 +571,6 @@ def load_pretrained_models(args, model_name, model=None):
             SiglipVisionModel,
         )
 
-        # There is a bug of some kind in HF model.
         image_processor = AutoImageProcessor.from_pretrained(
             "google/siglip-base-patch16-224"
         )
