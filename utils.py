@@ -94,7 +94,7 @@ def print_puzz_acc(args, puzz_acc, log=True):
                     cls_mean(opt_acc_list, idx_list, list(puzz_acc.keys())),
                 )
                 print(
-                    "%0.1f/%0.1f & " % (class_avg_perf[kk][0]),
+                    "%0.1f & " % (class_avg_perf[kk][0]),
                     end=" ",
                 )
             print("\n\n")
