@@ -253,6 +253,8 @@ class SMART_ValData(SMART_Data):
             answer[0] = answer_value
         else:
             answer[: len(answer_value)] = answer_value
+
+        print("What is opts in data**************************", opts)
         return (
             im,
             torch.tensor(qa),
