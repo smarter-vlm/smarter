@@ -161,7 +161,7 @@ def train(args, dataloader, im_backbone):
 
                 print("\n *************what is o causing bug:", o)
 
-                # o = np.array(o)
+                op_a = np.array([x.cpu().numpy() for x in o)
 
                 out = model(im, q, puzzle_ids=pids)
                 val_loss = criterion(out, av, pids)
@@ -183,7 +183,7 @@ def train(args, dataloader, im_backbone):
                         pacc = (pred_max == av[idx, 0]).sum()
                         perror = normalize(np.abs(pred_max - av[idx, 0]), pids).sum()
                         oacc = utils.get_option_sel_acc(
-                            pred_max, o[idx], a[idx], av[idx], t
+                            pred_max, op_a[idx], a[idx], av[idx], t
                         ).sum()
                     else:
                         pred_ans = []
@@ -195,7 +195,7 @@ def train(args, dataloader, im_backbone):
                         pacc = pacc.sum()
                         perror = 0
                         oacc = utils.get_option_sel_acc(
-                            np.column_stack(pred_ans), o[idx], a[idx], av[idx], t
+                            np.column_stack(pred_ans), op_a[idx], a[idx], av[idx], t
                         ).sum()
 
                     if str(tt) in puzzle_acc.keys():
