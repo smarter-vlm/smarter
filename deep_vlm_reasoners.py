@@ -593,8 +593,9 @@ def load_pretrained_models(args, model_name, model=None):
         model_dino = Dinov2Model.from_pretrained("facebook/dinov2-base")
 
         model = (model_dino, model_siglip)
-        preprocess = (image_processor_dino, image_processor_siglip)
 
+        # preprocess = (image_processor_dino, image_processor_siglip)
+        preprocess = image_processor_dino
     else:
         print("model name is %s: not loading pre-trained model." % (args.model_name))
 
