@@ -264,7 +264,7 @@ class Puzzle_Net(nn.Module):
 
         elif args.model_name in ["siglip"]:
             self.preprocess = args.preprocess
-            self.im_cnn = lambda x: self.process_siglip(x)
+            self.im_cnn = lambda x: self.process_dinov2(x)
             self.im_backbone = im_backbone
             self.im_repr_size = 768
 
@@ -344,14 +344,14 @@ class Puzzle_Net(nn.Module):
     def process_fused(self, x):
         device = torch.device("cuda")
         x = self.decode_image(x)
-        proc1, proc2 = self.preprocess
+        proc1 = self.preprocess
 
         inputs_din = proc1(images=x, do_rescale=True, return_tensors="pt").to(device)
-        inputs_sig = proc2(images=x, do_rescale=True, return_tensors="pt").to(device)
+        # inputs_sig = proc2(images=x, do_rescale=True, return_tensors="pt").to(device)
         im_backbone_din, im_backbone_sig = self.im_backbone
 
         outputs_din = im_backbone_din(**inputs_din)
-        outputs_sig = im_backbone_sig(**inputs_sig)
+        outputs_sig = im_backbone_sig(**inputs_din)
         return torch.cat(
             [
                 outputs_din.last_hidden_state.mean(1),
