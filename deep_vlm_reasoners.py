@@ -273,7 +273,7 @@ class Puzzle_Net(nn.Module):
             self.preprocess = args.preprocess
             self.im_cnn = lambda x: self.process_fused(x)
             self.im_backbone = im_backbone
-            self.im_repr_size = 768+768
+            self.im_repr_size = 768 + 768
 
         else:
             raise "unknown model_name %s" % (args.model_name)
@@ -347,17 +347,19 @@ class Puzzle_Net(nn.Module):
         x = self.decode_image(x)
         proc1, proc2 = self.preprocess
 
-        inputs_din = proc1(images=x, do_rescale=True, return_tensors="pt").to(
-            device
-        )
-        inputs_sig = proc2(images=x, do_rescale=True, return_tensors="pt").to(
-            device
-        )
+        inputs_din = proc1(images=x, do_rescale=True, return_tensors="pt").to(device)
+        inputs_sig = proc2(images=x, do_rescale=True, return_tensors="pt").to(device)
         im_backbone_din, im_backbone_sig = self.im_backbone
 
         outputs_din = im_backbone_din(**inputs_din)
         outputs_sig = im_backbone_sig(**inputs_sig)
-        return torch.cat([outputs_din.last_hidden_state.mean(1), outputs_sig.last_hidden_state.mean(1)], dim=1)
+        return torch.cat(
+            [
+                outputs_din.last_hidden_state.mean(1),
+                outputs_sig.last_hidden_state.mean(1),
+            ],
+            dim=1,
+        )
 
     def create_puzzle_head(self, args):
         if args.use_single_image_head:
@@ -586,7 +588,9 @@ def load_pretrained_models(args, model_name, model=None):
         model_siglip = SiglipVisionModel.from_pretrained(
             "google/siglip-base-patch16-224"
         )
-        image_processor_dino = AutoImageProcessor.from_pretrained("facebook/dinov2-base")
+        image_processor_dino = AutoImageProcessor.from_pretrained(
+            "facebook/dinov2-base"
+        )
         model_dino = Dinov2Model.from_pretrained("facebook/dinov2-base")
 
         model = (model_dino, model_siglip)
