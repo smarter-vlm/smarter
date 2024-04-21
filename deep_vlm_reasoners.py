@@ -340,6 +340,7 @@ class Puzzle_Net(nn.Module):
         )
         outputs = self.im_backbone(**inputs)
         return outputs.last_hidden_state.mean(1)
+    
 
     def process_fused(self, x):
         device = torch.device("cuda")
