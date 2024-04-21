@@ -224,7 +224,7 @@ def train(args, dataloader, im_backbone):
 
     def test_loop(test_loader, model):
 
-        acc, err, opt, puzzle_acc, test_ep_loss = val_loop(test_loader, model)
+        acc, err, puzzle_acc, test_ep_loss = val_loop(test_loader, model)
         class_perf = utils.print_puzz_acc(args, puzzle_acc, log=True)
         print(
             "***** Final Test Performance: S_acc = %0.2f Prediction Variance = %0.2f "
