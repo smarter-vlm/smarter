@@ -159,9 +159,9 @@ def train(args, dataloader, im_backbone):
                 im = im.to(device)
                 av = av.cuda()
 
-                print("\n *************what is o causing bug:", o)
+                print("\n *************what is o causing bug:", o.type)
 
-                op_a = o.cpu().numpy()
+                op_a = np.array(o)
 
                 out = model(im, q, puzzle_ids=pids)
                 val_loss = criterion(out, av, pids)
