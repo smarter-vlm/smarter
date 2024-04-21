@@ -2,6 +2,4 @@ Restarting refactor. This is the step-by-step code I am working with to architec
 
 I am not sure what the person is up to. He has been avoiding writing anything in overleaf, or in code so far. (7 days to submission deadline). From start (~Feb1) he insisted that I generated all the research ideas and literature summaries in his Notion account first. Now he speaks of involvement of unknown coworkers. Also, at proposal submission time there was (documented) concerning behavior.
 
-I hope PACE has privacy and security on student's folders. 
-
 On my part, for this project, I commit to github repos and Comet log training of models. I also have overleaf history and a copy of the Notion page with my work starting Feb1, at various project stages.
