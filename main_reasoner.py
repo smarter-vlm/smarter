@@ -473,6 +473,7 @@ if __name__ == "__main__":
     )
 
     args.preprocess = preprocess
+    print("preprocess now", preprocess)
 
     train_loader = get_data_loader(
         args,
