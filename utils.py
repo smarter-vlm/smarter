@@ -84,8 +84,9 @@ def print_puzz_acc(args, puzz_acc, log=True):
                 "spatial",
                 "pattern",
             ]
+           
+            print("Class acc: ")
             print(classes)
-
             for kk in classes:
                 idx_list = puzzles[kk]
                 class_avg_perf[kk] = (
@@ -93,7 +94,7 @@ def print_puzz_acc(args, puzz_acc, log=True):
                     cls_mean(opt_acc_list, idx_list, list(puzz_acc.keys())),
                 )
                 print(
-                    "%0.1f/%0.1f & " % (class_avg_perf[kk][0], class_avg_perf[kk][1]),
+                    "%0.1f/%0.1f & " % (class_avg_perf[kk][0]),
                     end=" ",
                 )
             print("\n\n")

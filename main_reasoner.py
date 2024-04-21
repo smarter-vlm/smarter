@@ -227,11 +227,11 @@ def train(args, dataloader, im_backbone):
         acc, err, opt, puzzle_acc, test_ep_loss = val_loop(test_loader, model)
         class_perf = utils.print_puzz_acc(args, puzzle_acc, log=True)
         print(
-            "***** Final Test Performance: S_acc = %0.2f O_acc = %0.2f Prediction Variance = %0.2f "
-            % (acc * 100, opt * 100, err)
+            "***** Final Test Performance: S_acc = %0.2f Prediction Variance = %0.2f "
+            % (acc * 100, err)
         )
-        print(f"test class perf {class_perf}")
-        print(f"test val loss: val_ep_loss, {test_ep_loss}")
+        print(f"Test class perf {class_perf}")
+        print(f"Test val loss: val_ep_loss, {test_ep_loss}")
 
     if args.test:
         deep_vlm_reasoners.load_pretrained_models(args, args.model_name, model=model)
@@ -310,7 +310,7 @@ def train(args, dataloader, im_backbone):
                     break
 
             print(
-                "%d) Time taken=%f Epoch=%d Train_loss = %f S_acc = %f O_acc=%f Variance = %f Best S_acc (epoch) = %f (%d)\n"
+                "%d) Time taken=%f Epoch=%d Train_loss = %f S_acc = %f Variance = %f Best S_acc (epoch) = %f (%d)\n"
                 % (
                     gv.seed,
                     tt,
