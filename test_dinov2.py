@@ -20,3 +20,7 @@ a = torch.tensor(1,dtype=torch.int)
 print(a.int())
 
 # issues loging in
+
+b = 1
+c = int(b)
+print(type(c))

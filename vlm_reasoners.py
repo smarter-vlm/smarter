@@ -106,7 +106,7 @@ class Smarter_VL(nn.Module):
                 )
             else:
                 ans_decoder.append(
-                    nn.GRU(torch.int(self.out_dim), torch.int(num_classes), num_layers=1, batch_first=True)
+                    nn.GRU(int(self.out_dim), int(num_classes), num_layers=1, batch_first=True)
                 )
         self.ans_decoder = nn.ModuleList(ans_decoder)
 
