@@ -161,7 +161,7 @@ def train(args, dataloader, im_backbone):
 
                 print("\n *************what is o causing bug:", o)
 
-                op_a = np.array([x.cpu().numpy() for x in o])
+                op_a = o.cpu().numpy()
 
                 out = model(im, q, puzzle_ids=pids)
                 val_loss = criterion(out, av, pids)
