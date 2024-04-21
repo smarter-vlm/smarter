@@ -471,7 +471,7 @@ class Puzzle_Net(nn.Module):
         """run the LSTM decoder sequentially for k steps"""
         out = [None] * gv.MAX_DECODE_STEPS
         hx = None
-        for k in range(gv.MAX_DECODE_STEPS):
+        for k in range(int(gv.MAX_DECODE_STEPS)):
             try:
                 out[k], hx = decoder(repr, hx)
             except:
