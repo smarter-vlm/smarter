@@ -257,7 +257,7 @@ def train(args, dataloader, im_backbone):
     best_model = None
     best_acc = 0
     no_improvement = 0
-    num_thresh_epochs = 5
+    num_thresh_epochs = 2
 
     # stop training if there is no improvement after this.
     print("starting training...")
