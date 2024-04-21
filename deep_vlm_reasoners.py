@@ -106,7 +106,7 @@ class Smarter_VL(nn.Module):
                 )
             else:
                 ans_decoder.append(
-                    nn.LSTM(
+                    nn.GRU(
                         int(self.out_dim),
                         int(num_classes),
                         num_layers=1,
@@ -392,7 +392,7 @@ class Puzzle_Net(nn.Module):
                 )
             else:
                 ans_decoder.append(
-                    nn.LSTM(
+                    nn.GRU(
                         int(self.out_dim), int(num_classes), num_layers=1, batch_first=True
                     )
                 )
