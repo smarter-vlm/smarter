@@ -190,7 +190,7 @@ class SMART_TrainData(SMART_Data):
         return (
             im,
             torch.tensor(qa),
-            torch.tensor(opts),
+            opts,
             torch.tensor(lbl),
             torch.tensor(answer),
             torch.tensor(int(pid)),
@@ -253,6 +253,7 @@ class SMART_ValData(SMART_Data):
             answer[0] = answer_value
         else:
             answer[: len(answer_value)] = answer_value
+
         return (
             im,
             torch.tensor(qa),
@@ -275,4 +276,5 @@ def SMART_collate_fn(data):
     lbl = concat(lbl)
     answer = concat(answer)
     puzzle_ids = concat(puzzle_ids)
+    # print("what is opts in collate", opts)
     return im, qa, opts, lbl, answer, puzzle_ids
