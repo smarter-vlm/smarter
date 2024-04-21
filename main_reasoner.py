@@ -326,7 +326,7 @@ def train(args, dataloader, im_backbone):
 
         acc, err, puz_acc, val_tot_loss = val_loop(test_loader, model)
         print(
-            "puzzles %s: eval on test loader at end of ep: s_acc/var = %f/%f/%f (%d)"
+            "puzzles %s: eval on test loader at end of ep: s_acc/var = %f/%f (%d)"
             % (args.puzzles, acc * 100, err, best_epoch)
         )
 
