@@ -282,8 +282,8 @@ class Puzzle_Net(nn.Module):
             if args.word_embed == "standard":
                 self.q_emb = nn.Embedding(len(self.vocab), self.h_sz, max_norm=1)
                 self.q_lstm = nn.LSTM(
-                    self.h_sz,
-                    self.h_sz,
+                    int(self.h_sz),
+                    int(self.h_sz),
                     num_layers=2,
                     batch_first=True,
                     bidirectional=True,
@@ -292,8 +292,8 @@ class Puzzle_Net(nn.Module):
                 word_dim = gv.word_dim
                 self.q_emb = nn.Identity()
                 self.q_lstm = nn.GRU(
-                    word_dim,
-                    self.h_sz,
+                    int(word_dim),
+                    int(self.h_sz),
                     num_layers=1,
                     batch_first=True,
                     bidirectional=True,
@@ -387,7 +387,7 @@ class Puzzle_Net(nn.Module):
                 )
             else:
                 ans_decoder.append(
-                    nn.GRU(self.h_sz, torch.int(num_classes), num_layers=1, batch_first=True)
+                    nn.GRU(int(self.h_sz), int(num_classes), num_layers=1, batch_first=True)
                 )
         self.ans_decoder = nn.ModuleList(ans_decoder)
 
