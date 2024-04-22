@@ -20,14 +20,15 @@ class QFLayer(nn.Module):
         self.mha = QFAttentionMH()
 
     def forward(self, im_repr, q_repr):
-        print("What is im repr shape: ", im_repr.shape)
+        # print("What is im repr shape: ", im_repr.shape)
         q_attn = self.mha(q_repr)
 
         # for now concat all heads together
-        print("self attn output shape ", q_attn.shape)
-       
+        # print("self attn output shape ", q_attn.shape)
 
-        x = torch.cat([im_repr, q_attn.view((im_repr.shape[0], -1))], dim=1) # STOP GAP DR; TODO here is cross attn
+        x = torch.cat(
+            [im_repr, q_attn.view((im_repr.shape[0], -1))], dim=1
+        )  # STOP GAP DR; TODO here is cross attn
 
         x = self.intermediate(x)
         return x
@@ -57,7 +58,7 @@ class QFAttentionMH(nn.Module):
     def __init__(
         self,
         num_attention_heads=1,
-        hidden_size=768, # this needs to match what gets out of siglip unless I want to project it down first
+        hidden_size=768,  # this needs to match what gets out of siglip unless I want to project it down first
         encoder_hidden_size=768,
         max_position_embeddings=110,
         is_cross_attention=False,
@@ -85,13 +86,13 @@ class QFAttentionMH(nn.Module):
         )
 
     def transpose_for_scores(self, x):
-        print("what is shape of x in transpose", x.shape)
+        # print("what is shape of x in transpose", x.shape)
         new_x_shape = x.size()[:-1] + (
             self.num_attention_heads,
             self.attention_head_size,
         )
         # new_x_shape = x.size() + (self.num_attention_heads, self.attention_head_size)
-        print("what is the new shape", new_x_shape)
+        # print("what is the new shape", new_x_shape)
         x = x.view(*new_x_shape)
         return x.permute(
             0, 2, 1, 3
@@ -117,7 +118,7 @@ class QFAttentionMH(nn.Module):
 
         # "relative_key" type of pos embed
 
-        print("hidden states size", hidden_states.size())
+        # print("hidden states size", hidden_states.size())
 
         seq_length = hidden_states.size()[1]
         position_ids_l = torch.arange(
@@ -133,7 +134,7 @@ class QFAttentionMH(nn.Module):
         positional_embedding = positional_embedding.to(
             dtype=query_layer.dtype
         )  # fp16 compatibility
-        print("pos embed shape: ", positional_embedding.shape)
+        # print("pos embed shape: ", positional_embedding.shape)
 
         relative_position_scores = torch.einsum(
             "bhld,lrd->bhlr", query_layer, positional_embedding
