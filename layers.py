@@ -72,7 +72,9 @@ class QFAttentionMH(nn.Module):
         new_x_shape = x.size()[:-1] + (self.num_attention_heads, self.attention_head_size)
         print("what is the new shape", new_x_shape)
         x = x.view(*new_x_shape)
-        return x.permute(0, 2, 1, 3)
+        # return x.permute(0, 2, 1, 3) # I don't have 4 dims
+        return x.permute(0, 2, 1)
+
     
     def forward(self, hidden_states, encoder_hidden_states=None):
         # in cross_attention - keys values come from encoder so don't want to attend to encoded padding
