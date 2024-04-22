@@ -20,7 +20,7 @@ class QFLayer(nn.Module):
 
     def forward(self, im_repr, q_repr):
         q_attn = self.mha(q_repr)
-        
+
         x = torch.cat([im_repr, q_attn], dim=1)
 
         x = self.intermediate(x)
@@ -46,7 +46,7 @@ class QFIntermediate(nn.Module):
         return x
 
 class QFAttentionMH(nn.Module):
-    def __init__(self, num_attention_heads=1, hidden_size=256, encoder_hidden_size=256, max_position_embeddings=64, is_cross_attention=False):
+    def __init__(self, num_attention_heads=1, hidden_size=128, encoder_hidden_size=128, max_position_embeddings=64, is_cross_attention=False):
         super().__init__()
         self.num_attention_heads = num_attention_heads
         # hidden size must be multiple of num heads
