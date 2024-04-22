@@ -22,7 +22,8 @@ class QFLayer(nn.Module):
     def forward(self, im_repr, q_repr):
         q_attn = self.mha(q_repr)
 
-        x = torch.cat([im_repr, q_attn], dim=1)
+        # for now concat all heads together
+        x = torch.cat([im_repr, q_attn.view((im_repr.shape[0], -1))], dim=1) # STOP GAP DR; TODO here is cross attn
 
         x = self.intermediate(x)
         return x
