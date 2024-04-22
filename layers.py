@@ -94,12 +94,16 @@ class QFAttentionMH(nn.Module):
 
         #"relative_key" type of pos embed
 
+        print("hidden states size", hidden_states.size())
+
         seq_length = hidden_states.size()[1]
         position_ids_l = torch.arange(seq_length, dtype=torch.long, device=hidden_states.device).view(-1, 1)
         position_ids_r = torch.arange(seq_length, dtype=torch.long, device=hidden_states.device).view(1, -1)
         distance = position_ids_l - position_ids_r
         positional_embedding = self.distance_embedding(distance + self.max_position_embeddings - 1)
         positional_embedding = positional_embedding.to(dtype=query_layer.dtype)  # fp16 compatibility
+        print("pos embed shape: ", positional_embedding.shape)
+        
         relative_position_scores = torch.einsum("bhld,lrd->bhlr", query_layer, positional_embedding)
         attention_scores = attention_scores + relative_position_scores
 
