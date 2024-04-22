@@ -77,7 +77,11 @@ def train(args, dataloader, im_backbone):
 
     # Make sure im backbone is frozen
     for name, param in model.named_parameters():
-        if name.startswith("dinov2") or name.startswith("siglip") or name.startswith("fused"):
+        if (
+            name.startswith("dinov2")
+            or name.startswith("siglip")
+            or name.startswith("fused")
+        ):
             param.requires_grad = False
 
     print(
@@ -126,21 +130,19 @@ def train(args, dataloader, im_backbone):
         tot_loss = 0.0
 
         for i, (im, q, _, a, av, pids) in tqdm(enumerate(train_loader)):
-            
+
             im = im.float().to(device)
             q = q.to(device)
             a = a.to(device)
             av = av.to(device)
-            
+
             # the model is puzzlenet
             out = model(im, q, puzzle_ids=pids)
-
-            print("what's out*************", out)
-
             loss = criterion(out, av, pids)
             optimizer.zero_grad()
             loss.backward()
 
+            # bc we have some rnns
             torch.nn.utils.clip_grad_norm_(model.parameters(), 0.5)
 
             optimizer.step()
@@ -167,7 +169,6 @@ def train(args, dataloader, im_backbone):
                 im = im.float()
                 im = im.to(device)
                 av = av.cuda()
-
 
                 out = model(im, q, puzzle_ids=pids)
                 val_loss = criterion(out, av, pids)

@@ -10,6 +10,7 @@ from torch.cuda.amp import autocast as autocast
 import torch.nn as nn
 
 import transformers
-# not working with lavis or vicuna. 
+
+# not working with lavis or vicuna.
 # go to the from scratch; a small version for proof of concept.
 # Q-former inspired layer, but small.

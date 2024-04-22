@@ -279,7 +279,9 @@ class Puzzle_Net(nn.Module):
                 "facebook/dinov2-base"
             )
             self.preprocess = None
-            self.im_cnn = lambda x: self.process_fused(x, image_processor_siglip, image_processor_dino)
+            self.im_cnn = lambda x: self.process_fused(
+                x, image_processor_siglip, image_processor_dino
+            )
             self.im_backbone = im_backbone
             self.im_repr_size = 768 + 768
 
@@ -348,22 +350,22 @@ class Puzzle_Net(nn.Module):
         )
         outputs = self.im_backbone(**inputs)
         return outputs.last_hidden_state.mean(1)
-    
 
     def process_fused(self, x, image_processor_siglip, image_processor_dino):
         device = torch.device("cuda")
         x = self.decode_image(x)
 
-        inputs_din = image_processor_dino(images=x, do_rescale=True, return_tensors="pt").to(device)
-        inputs_sig = image_processor_siglip(images=x, do_rescale=True, return_tensors="pt").to(device)
+        inputs_din = image_processor_dino(
+            images=x, do_rescale=True, return_tensors="pt"
+        ).to(device)
+        inputs_sig = image_processor_siglip(
+            images=x, do_rescale=True, return_tensors="pt"
+        ).to(device)
 
         im_backbone_din, im_backbone_sig = self.im_backbone
 
-        im_backbone_din=im_backbone_din.to(device)
-        im_backbone_sig=im_backbone_sig.to(device)
-
-        print("\n im_backbone_din*******************", im_backbone_din)
-        print("\n inputs_din*******************", inputs_din)
+        im_backbone_din = im_backbone_din.to(device)
+        im_backbone_sig = im_backbone_sig.to(device)
 
         outputs_din = im_backbone_din(**inputs_din)
         outputs_sig = im_backbone_sig(**inputs_sig)
@@ -454,7 +456,7 @@ class Puzzle_Net(nn.Module):
         return fwd_hook
 
     def encode_image(self, im, pids=None):
-       
+
         with torch.no_grad():
             x = self.im_cnn(im).squeeze()
 
