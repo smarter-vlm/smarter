@@ -480,7 +480,7 @@ class Puzzle_Net(nn.Module):
         return text
 
     def encode_text(self, text):
-        if self.word_embed == "mbert":
+        if self.word_embed in["mbert"]:
             text = self.decode_text(text)
             q_enc = torch.zeros(len(text), gv.max_qlen, gv.word_dim).cuda()
             for ii, tt in enumerate(text):
@@ -488,11 +488,13 @@ class Puzzle_Net(nn.Module):
                 q_enc[ii, : min(gv.max_qlen, len(q_repr)), :] = q_repr
             x, (h, _) = self.q_lstm(q_enc.float())
             x = F.relu(self.q_MLP(x.mean(1)))
-        else:
-            # just use siglip without the rnn
-            print("what's text", text)
+
+        elif self.word_embed in ["siglip"]:
             text = self.decode_text(text)
             x = gv.word_embed(text)
+
+            # TODO (DR) change this block
+            x = F.relu(self.q_MLP(x))
 
         return x
 
