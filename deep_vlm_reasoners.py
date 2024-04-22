@@ -353,11 +353,13 @@ class Puzzle_Net(nn.Module):
     def process_fused(self, x, image_processor_siglip, image_processor_dino):
         device = torch.device("cuda")
         x = self.decode_image(x)
-        print("What's x before processor*************", x)
         inputs_din = image_processor_dino(images=x, do_rescale=True, return_tensors="pt").to(device)
         inputs_sig = image_processor_siglip(images=x, do_rescale=True, return_tensors="pt").to(device)
         im_backbone_din, im_backbone_sig = self.im_backbone
 
+        im_backbone_din.to(device)
+        im_backbone_sig.to(device)
+        
         outputs_din = im_backbone_din(**inputs_din)
         outputs_sig = im_backbone_sig(**inputs_sig)
 

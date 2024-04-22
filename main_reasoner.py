@@ -124,14 +124,13 @@ def train(args, dataloader, im_backbone):
     def train_loop(epoch, train_loader, optimizer):
         model.train()
         tot_loss = 0.0
-        device = torch.device("cuda")
+
         for i, (im, q, _, a, av, pids) in tqdm(enumerate(train_loader)):
             
             im = im.float().to(device)
-            print("Im now*************:", im)
-            q = q.cuda()
-            a = a.cuda()
-            av = av.cuda()
+            q = q.to(device)
+            a = a.to(device)
+            av = av.to(device)
             
             # the model is puzzlenet
             out = model(im, q, puzzle_ids=pids)
