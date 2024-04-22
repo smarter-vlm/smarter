@@ -140,17 +140,17 @@ class Smarter_VL(nn.Module):
                 idx = pids == int(self.puzzle_ids[t])
                 idx = idx.cuda()
                 if idx.sum() > 0:
-                    y[idx] = F.relu(
+                    y[idx] = F.gelu(
                         self.im_encoder[int(self.puzzle_ids[t])](im_repr[idx])
                     )
         return y
 
     def encode_image_and_text(self, qv_repr):
-        x = F.relu(self.qv_MLP(qv_repr))
+        x = F.gelu(self.qv_MLP(qv_repr))
         return x
 
     def encode_text(self, q_repr):
-        x = F.relu(self.q_MLP(q_repr))
+        x = F.gelu(self.q_MLP(q_repr))
         return x
 
     def decode_image(self, im_list):
@@ -470,7 +470,7 @@ class Puzzle_Net(nn.Module):
                 idx = pids == int(self.puzzle_ids[t])
                 idx = idx.cuda()
                 if idx.sum() > 0:
-                    y[idx] = F.relu(self.im_encoder[int(self.puzzle_ids[t])](x[idx]))
+                    y[idx] = F.gelu(self.im_encoder[int(self.puzzle_ids[t])](x[idx]))
 
         return y
 
@@ -496,14 +496,14 @@ class Puzzle_Net(nn.Module):
                 q_repr = gv.word_embed(tt)
                 q_enc[ii, : min(gv.max_qlen, len(q_repr)), :] = q_repr
             x, (h, _) = self.q_lstm(q_enc.float())
-            x = F.relu(self.q_MLP(x.mean(1)))
+            x = F.gelu(self.q_MLP(x.mean(1)))
 
         elif self.word_embed in ["siglip"]:
             text = self.decode_text(text)
             x = gv.word_embed(text)
 
             # TODO (DR) change this block
-            x = F.relu(self.q_MLP(x))
+            x = F.gelu(self.q_MLP(x))
 
         return x
 
