@@ -22,7 +22,7 @@ class QFLayer(nn.Module):
         return x
 
 class QFIntermediate(nn.Module):
-    def __init__(self, config):
+    def __init__(self):
         super().__init__()
         self.dense = nn.Linear(3*768, 768) # TODO DR shapes/hidden sizes
         self.intermediate_act_fn = nn.GELU()
