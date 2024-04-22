@@ -24,10 +24,17 @@ class QFLayer(nn.Module):
 class QFIntermediate(nn.Module):
     def __init__(self):
         super().__init__()
-        self.dense = nn.Linear(3*768, 768) # TODO DR shapes/hidden sizes
+        self.dense = nn.Linear(256, 768) # TODO DR shapes/hidden sizes
         self.intermediate_act_fn = nn.GELU()
+        self.layer_norm = nn.LayerNorm(768, eps=1e-12)
+        self.dropout = nn.Dropout(0.1)
+        self.dense_final = nn.Linear(768, 768)
 
     def forward(self, hidden_states: torch.Tensor) -> torch.Tensor:
-        hidden_states = self.dense(hidden_states)
-        hidden_states = self.intermediate_act_fn(hidden_states)
-        return hidden_states
+        x = self.dense(hidden_states)
+        x = self.intermediate_act_fn(x)
+
+        x = self.dense_final(x)
+        x = self.dropout(x)
+        x = self.layer_norm(hidden_states + x)
+        return x
