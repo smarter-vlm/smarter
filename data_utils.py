@@ -37,7 +37,6 @@ class SMART_Data(Dataset):
                     Resize(
                         224
                     ),  # if the images are of higher resolution. we work with pre-resized 224x224 images.
-                    # RandomCrop(224),
                     ToTensor(),
                     Normalize(torch.Tensor([0.5]), torch.Tensor([0.5])),
                 ]
@@ -46,10 +45,11 @@ class SMART_Data(Dataset):
             "mae",
             "dinov2",
             "siglip",
+            "fused_dinov2_siglip",
         ]:  # this will do feature extractin later.
             self.transform = Compose(
                 [
-                    Resize(300),
+                    Resize(224),
                     ToTensor(),
                 ]
             )
@@ -57,16 +57,12 @@ class SMART_Data(Dataset):
             self.transform = args.preprocess
 
     def apply_transform(self, im_path):
-        # if self.no_image:  # create a dummy image.
-        #     im = Image.fromarray((np.random.rand(self.im_side, self.im_side, 3) * 255).astype("uint8"))
-        # else:
         im = Image.open(im_path).convert("RGB")
         return self.transform(im)
 
     def quest_encode(self, question):
         tokens = nltk.tokenize.word_tokenize(question.lower())
         q_enc = np.zeros((self.max_qlen,), dtype="long")
-        # if not self.no_question:
         enc_tokens = (
             [self.vocab("<start>")]
             + [self.vocab(tokens[t]) for t in range(len(tokens))]

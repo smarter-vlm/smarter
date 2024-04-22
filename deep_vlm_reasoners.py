@@ -153,7 +153,6 @@ class Smarter_VL(nn.Module):
         return x
 
     def decode_image(self, im_list):
-        """convert torch tensor images back to Image bcos VL FLAVA model works with images."""
         im_list = (im_list.permute(0, 2, 3, 1) * 255).cpu().numpy().astype("uint8")
         im_list = [
             Image.fromarray(im_list[ii]) for ii in range(len(im_list))
@@ -265,9 +264,26 @@ class Puzzle_Net(nn.Module):
 
         elif args.model_name in ["siglip"]:
             self.preprocess = args.preprocess
-            self.im_cnn = lambda x: self.process_siglip(x)
+            self.im_cnn = lambda x: self.process_dinov2(x)
             self.im_backbone = im_backbone
             self.im_repr_size = 768
+
+        # Reference adsformers and prismatic
+        elif args.model_name in ["fused_dinov2_siglip"]:
+            from transformers import AutoImageProcessor
+
+            image_processor_siglip = AutoImageProcessor.from_pretrained(
+                "google/siglip-base-patch16-224"
+            )
+            image_processor_dino = AutoImageProcessor.from_pretrained(
+                "facebook/dinov2-base"
+            )
+            self.preprocess = None
+            self.im_cnn = lambda x: self.process_fused(
+                x, image_processor_siglip, image_processor_dino
+            )
+            self.im_backbone = im_backbone
+            self.im_repr_size = 768 + 768
 
         else:
             raise "unknown model_name %s" % (args.model_name)
@@ -283,27 +299,24 @@ class Puzzle_Net(nn.Module):
                 nn.GELU(),
                 nn.Linear(self.h_sz, self.out_dim),
             )
+        elif args.word_embed in ["siglip"]:
+            self.siglip_dim = 768
+            self.q_MLP = nn.Sequential(
+                nn.Linear(self.siglip_dim, self.h_sz),
+                nn.GELU(),
+                nn.Linear(self.h_sz, self.out_dim),
+            )
         else:
-            if args.word_embed == "standard":
-                self.q_emb = nn.Embedding(len(self.vocab), self.h_sz, max_norm=1)
-                self.q_lstm = nn.LSTM(
-                    int(self.h_sz),
-                    int(self.h_sz),
-                    num_layers=2,
-                    batch_first=True,
-                    bidirectional=True,
-                )
-            else:
-                word_dim = gv.word_dim
-                self.q_emb = nn.Identity()
-                self.q_lstm = nn.GRU(
-                    int(word_dim),
-                    int(self.h_sz),
-                    num_layers=1,
-                    batch_first=True,
-                    bidirectional=True,
-                    bias=False,
-                )
+            word_dim = gv.word_dim
+            self.q_emb = nn.Identity()
+            self.q_lstm = nn.GRU(
+                int(word_dim),
+                int(self.h_sz),
+                num_layers=1,
+                batch_first=True,
+                bidirectional=True,
+                bias=False,
+            )
             self.q_MLP = nn.Linear(self.h_sz * 2, self.out_dim)
 
         self.o_encoder = nn.Sequential(
@@ -335,15 +348,32 @@ class Puzzle_Net(nn.Module):
         outputs = self.im_backbone(**inputs)
         return outputs.last_hidden_state.mean(1)
 
-    def process_siglip(self, x):
+    def process_fused(self, x, image_processor_siglip, image_processor_dino):
         device = torch.device("cuda")
-        # print("what is x", x)
         x = self.decode_image(x)
-        inputs = self.preprocess(images=x, do_rescale=True, return_tensors="pt").to(
-            device
+
+        inputs_din = image_processor_dino(
+            images=x, do_rescale=True, return_tensors="pt"
+        ).to(device)
+        inputs_sig = image_processor_siglip(
+            images=x, do_rescale=True, return_tensors="pt"
+        ).to(device)
+
+        im_backbone_din, im_backbone_sig = self.im_backbone
+
+        im_backbone_din = im_backbone_din.to(device)
+        im_backbone_sig = im_backbone_sig.to(device)
+
+        outputs_din = im_backbone_din(**inputs_din)
+        outputs_sig = im_backbone_sig(**inputs_sig)
+
+        return torch.cat(
+            [
+                outputs_din.last_hidden_state.mean(1),
+                outputs_sig.last_hidden_state.mean(1),
+            ],
+            dim=1,
         )
-        outputs = self.im_backbone(**inputs)
-        return outputs.last_hidden_state.mean(1)
 
     def create_puzzle_head(self, args):
         if args.use_single_image_head:
@@ -398,7 +428,7 @@ class Puzzle_Net(nn.Module):
         self.ans_decoder = nn.ModuleList(ans_decoder)
 
     def decode_image(self, im_list):
-        """convert torch tensor images back to Image bcos VL FLAVA model works with images."""
+        """convert torch tensor images back to Image."""
         #        im_list = (im_list +1)/2. # this is in range [0, 1].
         im_list = (im_list.permute(0, 2, 3, 1) * 255).cpu().numpy().astype("uint8")
         im_list = [
@@ -423,6 +453,7 @@ class Puzzle_Net(nn.Module):
         return fwd_hook
 
     def encode_image(self, im, pids=None):
+
         with torch.no_grad():
             x = self.im_cnn(im).squeeze()
 
@@ -456,11 +487,7 @@ class Puzzle_Net(nn.Module):
         return text
 
     def encode_text(self, text):
-        if self.word_embed == "standard":
-            x = self.q_emb(text)
-            x, (h, _) = self.q_lstm(x.float())
-            x = F.relu(self.q_MLP(x.mean(1)))
-        elif self.word_embed == "bert":
+        if self.word_embed in ["mbert"]:
             text = self.decode_text(text)
             q_enc = torch.zeros(len(text), gv.max_qlen, gv.word_dim).cuda()
             for ii, tt in enumerate(text):
@@ -468,8 +495,13 @@ class Puzzle_Net(nn.Module):
                 q_enc[ii, : min(gv.max_qlen, len(q_repr)), :] = q_repr
             x, (h, _) = self.q_lstm(q_enc.float())
             x = F.relu(self.q_MLP(x.mean(1)))
-        else:
+
+        elif self.word_embed in ["siglip"]:
+            text = self.decode_text(text)
             x = gv.word_embed(text)
+
+            # TODO (DR) change this block
+            x = F.relu(self.q_MLP(x))
 
         return x
 
@@ -555,29 +587,21 @@ def load_pretrained_models(args, model_name, model=None):
             SiglipVisionModel,
         )
 
-        # There is a bug of some kind in HF model.
         image_processor = AutoImageProcessor.from_pretrained(
             "google/siglip-base-patch16-224"
         )
         model = SiglipVisionModel.from_pretrained("google/siglip-base-patch16-224")
         preprocess = image_processor
 
-    elif args.model_name == "dinov2+siglip":
+    elif args.model_name == "fused_dinov2_siglip":
+        from transformers import AutoImageProcessor, SiglipVisionModel, Dinov2Model
 
-        from transformers import AutoProcessor, SiglipVisionModel, Dinov2Model
-
-        image_processor_siglip = AutoProcessor.from_pretrained(
-            "google/siglip-base-patch16-224"
-        )
         model_siglip = SiglipVisionModel.from_pretrained(
             "google/siglip-base-patch16-224"
         )
-        image_processor_dino = AutoProcessor.from_pretrained("facebook/dinov2-base")
         model_dino = Dinov2Model.from_pretrained("facebook/dinov2-base")
-        preprocess = (image_processor_siglip, image_processor_dino)
-
-        # TODO: DR new functiionality needed to be able to pass down preprocess as tuple
-
+        model = (model_dino, model_siglip)
+        preprocess = None
     else:
         print("model name is %s: not loading pre-trained model." % (args.model_name))
 

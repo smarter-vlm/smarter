@@ -65,7 +65,9 @@ def train(args, dataloader, im_backbone):
     if args.model_name == "clip":
         import smart_clip
 
-        model = smart_clip.Smarter_VL_CLIP(args, VL_backbone=im_backbone)
+        model = smart_clip.Smarter_VL_CLIP(
+            args, VL_backbone=im_backbone
+        )  # for baseline
     else:
         model = deep_vlm_reasoners.Puzzle_Net(args, im_backbone=im_backbone)
 
@@ -75,7 +77,11 @@ def train(args, dataloader, im_backbone):
 
     # Make sure im backbone is frozen
     for name, param in model.named_parameters():
-        if name.startswith("dinov2") or name.startswith("siglip"):
+        if (
+            name.startswith("dinov2")
+            or name.startswith("siglip")
+            or name.startswith("fused")
+        ):
             param.requires_grad = False
 
     print(
@@ -122,18 +128,23 @@ def train(args, dataloader, im_backbone):
     def train_loop(epoch, train_loader, optimizer):
         model.train()
         tot_loss = 0.0
-        for i, (im, q, _, a, av, pids) in tqdm(enumerate(train_loader)):
-            im = im.float()
-            im = im.to(device)
-            q = q.cuda()
-            a = a.cuda()
-            av = av.cuda()
 
+        for i, (im, q, _, a, av, pids) in tqdm(enumerate(train_loader)):
+
+            im = im.float().to(device)
+            q = q.to(device)
+            a = a.to(device)
+            av = av.to(device)
+
+            # the model is puzzlenet
             out = model(im, q, puzzle_ids=pids)
             loss = criterion(out, av, pids)
             optimizer.zero_grad()
             loss.backward()
+
+            # bc we have some rnns
             torch.nn.utils.clip_grad_norm_(model.parameters(), 0.5)
+
             optimizer.step()
 
             tot_loss += loss.item()
@@ -158,10 +169,6 @@ def train(args, dataloader, im_backbone):
                 im = im.float()
                 im = im.to(device)
                 av = av.cuda()
-
-                # print("what was o when working in prev version", o)
-                # op_a = np.array(o)
-                # print("what was op_a when working in prev version", op_a)
 
                 out = model(im, q, puzzle_ids=pids)
                 val_loss = criterion(out, av, pids)
@@ -382,7 +389,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--split_ratio",
         type=str,
-        default="85:10:5",
+        default="65:30:5",
         help="how to split train and val, when both use the same instance list.",
     )
     parser.add_argument(
@@ -403,7 +410,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "--model_name",
         type=str,
-        help="model to use dinov2/siglip/dinov2+siglip/resnet50/mae/clip",
+        help="model to use dinov2/siglip/fused_dinov2_siglip/resnet50/mae/clip",
+        default="fused_dinov2_siglip",
     )
     parser.add_argument("--seed", type=int, default=0, help="seed to use")
     parser.add_argument(
@@ -420,9 +428,7 @@ if __name__ == "__main__":
         "--log", action="store_true", help="should print detailed log of accuracy?"
     )
 
-    parser.add_argument(
-        "--word_embed", type=str, default="bert", help="standard/gpt/glove"
-    )
+    parser.add_argument("--word_embed", type=str, default="siglip", help="siglip/mbert")
     parser.add_argument(
         "--use_single_image_head",
         action="store_true",
@@ -468,6 +474,7 @@ if __name__ == "__main__":
     )
 
     args.preprocess = preprocess
+    print("preprocess now is **********************************", preprocess)
 
     train_loader = get_data_loader(
         args,
