@@ -8,10 +8,10 @@ import torch
 import utils
 
 
-class BERT:
+class mBERT:
     # https://huggingface.co/docs/transformers/model_doc/bert
     def __init__(self):
-        super(BERT, self).__init__()
+        super(mBERT, self).__init__()
         from transformers import BertModel, BertTokenizer
 
         self.model = BertModel.from_pretrained("bert-base-multilingual-cased").to(
@@ -32,6 +32,28 @@ class BERT:
             word_reprs = outputs.last_hidden_state
         return torch.tensor(word_reprs.squeeze()).cuda()
 
+class Siglip:
+    
+    def __init__(self):
+        super(Siglip, self).__init__()
+        from transformers import SiglipTextModel, AutoTokenizer
+
+        self.model = SiglipTextModel.from_pretrained("google/siglip-base-patch16-224").to(
+            "cuda"
+        )
+        self.tokenizer = AutoTokenizer.from_pretrained("google/siglip-base-patch16-224")
+        self.word_dim = 768
+
+    def get_word_dim(self):
+        return self.word_dim
+
+    def word_embed(self, sentence):
+        with torch.no_grad():
+            inputs = self.tokenizer(sentence, padding="max_length", return_tensors="pt").to("cuda")
+            outputs = self.model(**inputs)
+            word_reprs = outputs.last_hidden_state.mean(1)
+        return torch.tensor(word_reprs.squeeze()).cuda()
+    
 
 def globals_init(args):
     global puzzle_diff, puzzle_diff_str, osp, rand, MAX_VAL, MAX_DECODE_STEPS, max_qlen
@@ -87,8 +109,12 @@ def globals_init(args):
     if not os.path.exists(args.save_root):
         os.makedirs(args.save_root)
 
-    if args.word_embed == "bert":
-        Embed = BERT()
+    if args.word_embed == "mbert":
+        Embed = mBERT()
+        word_dim = Embed.get_word_dim()
+        word_embed = Embed.word_embed
+    elif args.word_embed == "siglip":
+        Embed = Siglip()
         word_dim = Embed.get_word_dim()
         word_embed = Embed.word_embed
     else:

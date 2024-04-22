@@ -490,11 +490,11 @@ class Puzzle_Net(nn.Module):
         return text
 
     def encode_text(self, text):
-        if self.word_embed == "standard":
-            x = self.q_emb(text)
-            x, (h, _) = self.q_lstm(x.float())
-            x = F.relu(self.q_MLP(x.mean(1)))
-        elif self.word_embed == "bert":
+        # if self.word_embed == "standard":
+        #     x = self.q_emb(text)
+        #     x, (h, _) = self.q_lstm(x.float())
+        #     x = F.relu(self.q_MLP(x.mean(1)))
+        if self.word_embed == "mbert":
             text = self.decode_text(text)
             q_enc = torch.zeros(len(text), gv.max_qlen, gv.word_dim).cuda()
             for ii, tt in enumerate(text):
@@ -503,6 +503,7 @@ class Puzzle_Net(nn.Module):
             x, (h, _) = self.q_lstm(q_enc.float())
             x = F.relu(self.q_MLP(x.mean(1)))
         else:
+            # just use siglip without the rnn
             x = gv.word_embed(text)
 
         return x
@@ -596,22 +597,13 @@ def load_pretrained_models(args, model_name, model=None):
         preprocess = image_processor
 
     elif args.model_name == "fused_dinov2_siglip":
-
         from transformers import AutoImageProcessor, SiglipVisionModel, Dinov2Model
 
-        # image_processor_siglip = AutoImageProcessor.from_pretrained(
-        #     "google/siglip-base-patch16-224"
-        # )
         model_siglip = SiglipVisionModel.from_pretrained(
             "google/siglip-base-patch16-224"
         )
-        # image_processor_dino = AutoImageProcessor.from_pretrained(
-        #     "facebook/dinov2-base"
-        # )
         model_dino = Dinov2Model.from_pretrained("facebook/dinov2-base")
-
         model = (model_dino, model_siglip)
-
         preprocess = None
     else:
         print("model name is %s: not loading pre-trained model." % (args.model_name))
