@@ -68,7 +68,9 @@ class QFAttentionMH(nn.Module):
         self.distance_embedding = nn.Embedding(2 * max_position_embeddings - 1, self.attention_head_size)
     
     def transpose_for_scores(self, x):
+        print("what is shape of x in transpose", x.shape)
         new_x_shape = x.size()[:-1] + (self.num_attention_heads, self.attention_head_size)
+        print("what is the new shape", new_x_shape)
         x = x.view(*new_x_shape)
         return x.permute(0, 2, 1, 3)
     
