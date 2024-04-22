@@ -411,7 +411,7 @@ if __name__ == "__main__":
         "--model_name",
         type=str,
         help="model to use dinov2/siglip/fused_dinov2_siglip/resnet50/mae/clip",
-        default="fused_dinov2_siglip"
+        default="fused_dinov2_siglip",
     )
     parser.add_argument("--seed", type=int, default=0, help="seed to use")
     parser.add_argument(
@@ -428,9 +428,7 @@ if __name__ == "__main__":
         "--log", action="store_true", help="should print detailed log of accuracy?"
     )
 
-    parser.add_argument(
-        "--word_embed", type=str, default="siglip", help="siglip/mbert"
-    )
+    parser.add_argument("--word_embed", type=str, default="siglip", help="siglip/mbert")
     parser.add_argument(
         "--use_single_image_head",
         action="store_true",

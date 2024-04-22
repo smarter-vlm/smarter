@@ -32,15 +32,16 @@ class mBERT:
             word_reprs = outputs.last_hidden_state
         return torch.tensor(word_reprs.squeeze()).cuda()
 
+
 class Siglip:
-    
+
     def __init__(self):
         super(Siglip, self).__init__()
         from transformers import SiglipTextModel, AutoTokenizer
 
-        self.model = SiglipTextModel.from_pretrained("google/siglip-base-patch16-224").to(
-            "cuda"
-        )
+        self.model = SiglipTextModel.from_pretrained(
+            "google/siglip-base-patch16-224"
+        ).to("cuda")
         self.tokenizer = AutoTokenizer.from_pretrained("google/siglip-base-patch16-224")
         self.word_dim = 768
 
@@ -49,11 +50,13 @@ class Siglip:
 
     def word_embed(self, sentence):
         with torch.no_grad():
-            inputs = self.tokenizer(sentence, padding="max_length", return_tensors="pt").to("cuda")
+            inputs = self.tokenizer(
+                sentence, padding="max_length", return_tensors="pt"
+            ).to("cuda")
             outputs = self.model(**inputs)
             word_reprs = outputs.last_hidden_state.mean(1)
         return torch.tensor(word_reprs.squeeze()).cuda()
-    
+
 
 def globals_init(args):
     global puzzle_diff, puzzle_diff_str, osp, rand, MAX_VAL, MAX_DECODE_STEPS, max_qlen

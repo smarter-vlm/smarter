@@ -35,9 +35,7 @@ print("frozen vision output", pooled_output.shape, last_hidden_state.shape)
 model = SiglipTextModel.from_pretrained("google/siglip-base-patch16-224")
 tokenizer = AutoTokenizer.from_pretrained("google/siglip-base-patch16-224")
 
-inputs = tokenizer(
-    ["a photo of a dog"], padding="max_length", return_tensors="pt"
-)
+inputs = tokenizer(["a photo of a dog"], padding="max_length", return_tensors="pt")
 
 outputs = model(**inputs)
 last_hidden_state = outputs.last_hidden_state.mean(1)

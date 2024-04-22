@@ -300,26 +300,16 @@ class Puzzle_Net(nn.Module):
                 nn.Linear(self.h_sz, self.out_dim),
             )
         else:
-            if args.word_embed == "standard":
-                self.q_emb = nn.Embedding(len(self.vocab), self.h_sz, max_norm=1)
-                self.q_lstm = nn.LSTM(
-                    int(self.h_sz),
-                    int(self.h_sz),
-                    num_layers=2,
-                    batch_first=True,
-                    bidirectional=True,
-                )
-            else:
-                word_dim = gv.word_dim
-                self.q_emb = nn.Identity()
-                self.q_lstm = nn.GRU(
-                    int(word_dim),
-                    int(self.h_sz),
-                    num_layers=1,
-                    batch_first=True,
-                    bidirectional=True,
-                    bias=False,
-                )
+            word_dim = gv.word_dim
+            self.q_emb = nn.Identity()
+            self.q_lstm = nn.GRU(
+                int(word_dim),
+                int(self.h_sz),
+                num_layers=1,
+                batch_first=True,
+                bidirectional=True,
+                bias=False,
+            )
             self.q_MLP = nn.Linear(self.h_sz * 2, self.out_dim)
 
         self.o_encoder = nn.Sequential(
@@ -490,10 +480,6 @@ class Puzzle_Net(nn.Module):
         return text
 
     def encode_text(self, text):
-        # if self.word_embed == "standard":
-        #     x = self.q_emb(text)
-        #     x, (h, _) = self.q_lstm(x.float())
-        #     x = F.relu(self.q_MLP(x.mean(1)))
         if self.word_embed == "mbert":
             text = self.decode_text(text)
             q_enc = torch.zeros(len(text), gv.max_qlen, gv.word_dim).cuda()
