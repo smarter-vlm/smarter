@@ -32,16 +32,25 @@ class SMART_Data(Dataset):
             print("vocabulary size = %d" % (len(self.vocab)))
 
         if args.preprocess is None:  # VL models, will do preprocess later.
-            self.transform = Compose(
+            if args.model_name in ["fused_dinov2_siglip"]:
+                self.transform = Compose(
                 [
                     Resize(
                         224
                     ),  # if the images are of higher resolution. we work with pre-resized 224x224 images.
-                    # RandomCrop(224),
-                    ToTensor(),
-                    Normalize(torch.Tensor([0.5]), torch.Tensor([0.5])),
+                    ToTensor(), # hf will do their own preprocess
                 ]
             )
+            else:
+                self.transform = Compose(
+                    [
+                        Resize(
+                            224
+                        ),  # if the images are of higher resolution. we work with pre-resized 224x224 images.
+                        ToTensor(),
+                        Normalize(torch.Tensor([0.5]), torch.Tensor([0.5])),
+                    ]
+                )
         elif args.model_name in [
             "mae",
             "dinov2",

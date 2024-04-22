@@ -268,8 +268,10 @@ class Puzzle_Net(nn.Module):
             self.im_backbone = im_backbone
             self.im_repr_size = 768
 
+        # Reference adsformers and prismatic
         elif args.model_name in ["fused_dinov2_siglip"]:
-            self.preprocess = args.preprocess
+            # do preprocess later
+            self.preprocess = None
             self.im_cnn = lambda x: self.process_fused(x)
             self.im_backbone = im_backbone
             self.im_repr_size = 768 + 768
@@ -344,14 +346,22 @@ class Puzzle_Net(nn.Module):
     def process_fused(self, x):
         device = torch.device("cuda")
         x = self.decode_image(x)
-        proc1 = self.preprocess
+        from transformers import AutoImageProcessor
 
-        inputs_din = proc1(images=x, do_rescale=True, return_tensors="pt").to(device)
-        # inputs_sig = proc2(images=x, do_rescale=True, return_tensors="pt").to(device)
+        image_processor_siglip = AutoImageProcessor.from_pretrained(
+            "google/siglip-base-patch16-224"
+        )
+        image_processor_dino = AutoImageProcessor.from_pretrained(
+            "facebook/dinov2-base"
+        )
+
+        inputs_din = image_processor_dino(images=x, do_rescale=True, return_tensors="pt").to(device)
+        inputs_sig = image_processor_siglip(images=x, do_rescale=True, return_tensors="pt").to(device)
         im_backbone_din, im_backbone_sig = self.im_backbone
 
         outputs_din = im_backbone_din(**inputs_din)
-        outputs_sig = im_backbone_sig(**inputs_din)
+        outputs_sig = im_backbone_sig(**inputs_sig)
+        
         return torch.cat(
             [
                 outputs_din.last_hidden_state.mean(1),
@@ -440,7 +450,7 @@ class Puzzle_Net(nn.Module):
     def encode_image(self, im, pids=None):
 
         with torch.no_grad():
-            x = self.im_cnn(im).squeeze() #Should be concat here
+            x = self.im_cnn(im).squeeze() 
 
         if len(x.shape) == 1:
             x = x.unsqueeze(0)
@@ -581,21 +591,20 @@ def load_pretrained_models(args, model_name, model=None):
 
         from transformers import AutoImageProcessor, SiglipVisionModel, Dinov2Model
 
-        image_processor_siglip = AutoImageProcessor.from_pretrained(
-            "google/siglip-base-patch16-224"
-        )
+        # image_processor_siglip = AutoImageProcessor.from_pretrained(
+        #     "google/siglip-base-patch16-224"
+        # )
         model_siglip = SiglipVisionModel.from_pretrained(
             "google/siglip-base-patch16-224"
         )
-        image_processor_dino = AutoImageProcessor.from_pretrained(
-            "facebook/dinov2-base"
-        )
+        # image_processor_dino = AutoImageProcessor.from_pretrained(
+        #     "facebook/dinov2-base"
+        # )
         model_dino = Dinov2Model.from_pretrained("facebook/dinov2-base")
 
         model = (model_dino, model_siglip)
 
-        # preprocess = (image_processor_dino, image_processor_siglip)
-        preprocess = image_processor_dino
+        preprocess = None
     else:
         print("model name is %s: not loading pre-trained model." % (args.model_name))
 
