@@ -270,9 +270,16 @@ class Puzzle_Net(nn.Module):
 
         # Reference adsformers and prismatic
         elif args.model_name in ["fused_dinov2_siglip"]:
-            # do preprocess later
+            from transformers import AutoImageProcessor
+
+            image_processor_siglip = AutoImageProcessor.from_pretrained(
+                "google/siglip-base-patch16-224"
+            )
+            image_processor_dino = AutoImageProcessor.from_pretrained(
+                "facebook/dinov2-base"
+            )
             self.preprocess = None
-            self.im_cnn = lambda x: self.process_fused(x)
+            self.im_cnn = lambda x: self.process_fused(x, image_processor_siglip, image_processor_dino)
             self.im_backbone = im_backbone
             self.im_repr_size = 768 + 768
 
@@ -343,25 +350,17 @@ class Puzzle_Net(nn.Module):
         return outputs.last_hidden_state.mean(1)
     
 
-    def process_fused(self, x):
+    def process_fused(self, x, image_processor_siglip, image_processor_dino):
         device = torch.device("cuda")
         x = self.decode_image(x)
-        from transformers import AutoImageProcessor
-
-        image_processor_siglip = AutoImageProcessor.from_pretrained(
-            "google/siglip-base-patch16-224"
-        )
-        image_processor_dino = AutoImageProcessor.from_pretrained(
-            "facebook/dinov2-base"
-        )
-
+        print("What's x before processor*************", x)
         inputs_din = image_processor_dino(images=x, do_rescale=True, return_tensors="pt").to(device)
         inputs_sig = image_processor_siglip(images=x, do_rescale=True, return_tensors="pt").to(device)
         im_backbone_din, im_backbone_sig = self.im_backbone
 
         outputs_din = im_backbone_din(**inputs_din)
         outputs_sig = im_backbone_sig(**inputs_sig)
-        
+
         return torch.cat(
             [
                 outputs_din.last_hidden_state.mean(1),
@@ -423,7 +422,7 @@ class Puzzle_Net(nn.Module):
         self.ans_decoder = nn.ModuleList(ans_decoder)
 
     def decode_image(self, im_list):
-        """convert torch tensor images back to Image bcos VL FLAVA model works with images."""
+        """convert torch tensor images back to Image."""
         #        im_list = (im_list +1)/2. # this is in range [0, 1].
         im_list = (im_list.permute(0, 2, 3, 1) * 255).cpu().numpy().astype("uint8")
         im_list = [

@@ -127,7 +127,8 @@ def train(args, dataloader, im_backbone):
         for i, (im, q, _, a, av, pids) in tqdm(enumerate(train_loader)):
 
             print("Im now*************:", im)
-            im = im.float().to(device)
+            im = im.float()
+            im = im.to(device)
             q = q.cuda()
             a = a.cuda()
             av = av.cuda()
