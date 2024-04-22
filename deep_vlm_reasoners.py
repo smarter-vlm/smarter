@@ -331,7 +331,11 @@ class Puzzle_Net(nn.Module):
             nn.Linear(self.out_dim, self.out_dim),
             nn.GELU(),
         )
-        self.c = CLayer()
+
+        if args.qf_layer:
+            self.c = QFLayer()
+        else:
+            self.c = CLayer()
 
         self.create_puzzle_tail(args)
 

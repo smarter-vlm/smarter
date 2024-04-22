@@ -434,6 +434,11 @@ if __name__ == "__main__":
         action="store_true",
         help="use a single image head for all the puzzles?",
     )
+    parser.add_argument(
+        "--qf_layer",
+        action="store_true",
+        help="add a q-former inspired layer, the QFlayer otw do concat for cross-modalities representations",
+    )
 
     parser.add_argument("--log_freq", type=int, default=1, help="log frequency?")
     parser.add_argument("--test", action="store_true", help="evaluate a model?")
@@ -444,7 +449,7 @@ if __name__ == "__main__":
         default=128,
         help="intermediate representation size for image and language encoders?",
     )
-
+     
     args = parser.parse_args()
 
     if args.test:
