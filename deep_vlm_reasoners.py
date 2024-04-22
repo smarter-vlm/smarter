@@ -299,6 +299,13 @@ class Puzzle_Net(nn.Module):
                 nn.GELU(),
                 nn.Linear(self.h_sz, self.out_dim),
             )
+        elif args.word_embed in ["siglip"]:
+            self.siglip_dim = 768
+            self.q_MLP = nn.Sequential(
+                nn.Linear(self.siglip_dim, self.h_sz),
+                nn.GELU(),
+                nn.Linear(self.h_sz, self.out_dim),
+            )
         else:
             word_dim = gv.word_dim
             self.q_emb = nn.Identity()
