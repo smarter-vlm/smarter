@@ -515,7 +515,7 @@ class Puzzle_Net(nn.Module):
 
             # TODO (DR) change this block
             # x = F.gelu(self.q_MLP(x)) #try remove for qf layer
-            print("embeded text shape without mlp", q_enc.shape )
+            print("embeded text shape without mlp", q_enc.shape)
 
         return q_enc.float()
 
