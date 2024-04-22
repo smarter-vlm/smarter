@@ -48,7 +48,8 @@ class QFIntermediate(nn.Module):
 
         x = self.dense_final(x)
         x = self.dropout(x)
-        x = self.layer_norm(hidden_states + x)
+        # x = self.layer_norm(hidden_states + x) # TODO skip the residual for now
+        x = self.layer_norm(x)
         return x
 
 
