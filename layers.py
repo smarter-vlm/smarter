@@ -20,12 +20,13 @@ class QFLayer(nn.Module):
         self.mha = QFAttentionMH()
 
     def forward(self, im_repr, q_repr):
+        print("What is im repr shape: ", im_repr.shape)
         q_attn = self.mha(q_repr)
 
         # for now concat all heads together
         print("self attn output shape ", q_attn.shape)
-        print("What is im repr shape: ", im_repr.shape)
-        
+       
+
         x = torch.cat([im_repr, q_attn.view((im_repr.shape[0], -1))], dim=1) # STOP GAP DR; TODO here is cross attn
 
         x = self.intermediate(x)
@@ -55,7 +56,7 @@ class QFAttentionMH(nn.Module):
     def __init__(
         self,
         num_attention_heads=1,
-        hidden_size=16,
+        hidden_size=768, # this needs to match what gets out of siglip unless I want to project it down first
         encoder_hidden_size=768,
         max_position_embeddings=110,
         is_cross_attention=False,

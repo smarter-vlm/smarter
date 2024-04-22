@@ -503,7 +503,7 @@ class Puzzle_Net(nn.Module):
             x = F.gelu(self.q_MLP(x.mean(1)))
 
         elif self.word_embed in ["siglip"]:
-            # text = self.decode_text(text)
+            # text = self.decode_text(text) #TODO DR make sthis cofnig based on if arg is qf
             # x = gv.word_embed(text)
 
             # Change to be a seq for mha

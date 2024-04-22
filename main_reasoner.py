@@ -75,22 +75,22 @@ def train(args, dataloader, im_backbone):
         f"\n Number trainable params before explicit freezing of image backb {sum(p.numel() for p in model.parameters() if p.requires_grad)}"
     )
 
-    # Make sure im backbone is frozen
-    for name, param in model.named_parameters():
-        if (
-            name.startswith("dinov2")
-            or name.startswith("siglip")
-            or name.startswith("fused")
-        ):
-            param.requires_grad = False
+    # # Make sure im backbone is frozen
+    # for name, param in model.named_parameters():
+    #     if (
+    #         name.startswith("dinov2")
+    #         or name.startswith("siglip")
+    #         or name.startswith("fused")
+    #     ):
+    #         param.requires_grad = False
 
-    print(
-        f"\n Number trainable params after explicit freezing of image backb  {sum(p.numel() for p in model.parameters() if p.requires_grad)}"
-    )
+    # print(
+    #     f"\n Number trainable params after explicit freezing of image backb  {sum(p.numel() for p in model.parameters() if p.requires_grad)}"
+    # )
 
     device = torch.device("cuda")
     model.to(device)
-    print("\n Model architecture: \n", model)
+    # print("\n Model architecture: \n", model)
 
     log_model(experiment, model, model_name="Puzzle_Net")
 
@@ -479,7 +479,7 @@ if __name__ == "__main__":
     )
 
     args.preprocess = preprocess
-    print("preprocess now is **********************************", preprocess)
+    # print("preprocess now is **********************************", preprocess)
 
     train_loader = get_data_loader(
         args,
