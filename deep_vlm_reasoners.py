@@ -15,6 +15,7 @@ from PIL import Image
 from torchvision import models
 
 import text_encoder as gv
+from layers import QFLayer
 
 
 class Smarter_VL(nn.Module):
@@ -330,6 +331,7 @@ class Puzzle_Net(nn.Module):
             nn.Linear(self.out_dim, self.out_dim),
             nn.GELU(),
         )
+        self.qf = QFLayer()
 
         self.create_puzzle_tail(args)
 
@@ -537,7 +539,8 @@ class Puzzle_Net(nn.Module):
         q_repr = self.encode_text(q)
         im_repr = self.encode_image(im.float(), puzzle_ids).float()
 
-        qv_repr = self.qv_fusion(torch.cat([im_repr, q_repr], dim=1))
+        # qv_repr = self.qv_fusion(torch.cat([im_repr, q_repr], dim=1))
+        qv_repr = self.qv_fusion(self.qf(im_repr, q_repr))
 
         qvo_repr = self.decode_individual_puzzles(qv_repr, puzzle_ids)
         return qvo_repr
