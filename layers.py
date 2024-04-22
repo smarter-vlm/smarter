@@ -53,7 +53,7 @@ class QFAttentionMH(nn.Module):
         self.hidden_size=hidden_size
         self.attention_head_size = int(self.hidden_size / self.num_attention_heads)
         self.all_head_size = self.num_attention_heads * self.attention_head_size
-
+        self.max_position_embeddings = max_position_embeddings
         self.query = nn.Linear(hidden_size, self.all_head_size)
 
         if is_cross_attention:
