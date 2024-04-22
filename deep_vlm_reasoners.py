@@ -490,6 +490,8 @@ class Puzzle_Net(nn.Module):
             x = F.relu(self.q_MLP(x.mean(1)))
         else:
             # just use siglip without the rnn
+            print("what's text", text)
+            text = self.decode_text(text)
             x = gv.word_embed(text)
 
         return x
