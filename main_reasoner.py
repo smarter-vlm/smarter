@@ -449,7 +449,7 @@ if __name__ == "__main__":
         default=128,
         help="intermediate representation size for image and language encoders?",
     )
-     
+
     args = parser.parse_args()
 
     if args.test:
