@@ -397,6 +397,7 @@ class Puzzle_Net(nn.Module):
                         nn.Linear(self.im_repr_size, self.out_dim),
                         nn.GELU(),
                         nn.Linear(self.out_dim, self.out_dim),
+                        # TODO: DR Add a LayerNorm somewhere here
                     )
                 )
             self.im_encoder = nn.ModuleList(im_encoder)
@@ -420,7 +421,7 @@ class Puzzle_Net(nn.Module):
                         nn.Linear(self.out_dim, self.out_dim),
                         nn.GELU(),
                         nn.Linear(self.out_dim, num_classes),
-                    )
+                    ) # TODO DR see SIGLIP Decoder mlp
                 )
             else:
                 ans_decoder.append(
