@@ -69,8 +69,8 @@ class QFAttentionMH(nn.Module):
     
     def transpose_for_scores(self, x):
         print("what is shape of x in transpose", x.shape)
-        # new_x_shape = x.size()[:-1] + (self.num_attention_heads, self.attention_head_size)
-        new_x_shape = x.size() + (self.num_attention_heads, self.attention_head_size)
+        new_x_shape = x.size()[:-1] + (self.num_attention_heads, self.attention_head_size)
+        # new_x_shape = x.size() + (self.num_attention_heads, self.attention_head_size)
         print("what is the new shape", new_x_shape)
         x = x.view(*new_x_shape)
         return x.permute(0, 2, 1, 3) # I don't have 4 dims # TODO - this is not fully debuged here
