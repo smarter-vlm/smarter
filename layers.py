@@ -46,7 +46,7 @@ class QFIntermediate(nn.Module):
         return x
 
 class QFAttentionMH(nn.Module):
-    def __init__(self, num_attention_heads=2, hidden_size=128, encoder_hidden_size=128, max_position_embeddings=64, is_cross_attention=False):
+    def __init__(self, num_attention_heads=2, hidden_size=768, encoder_hidden_size=768, max_position_embeddings=64, is_cross_attention=False):
         super().__init__()
         self.num_attention_heads = num_attention_heads
         # hidden size must be multiple of num heads
@@ -103,7 +103,7 @@ class QFAttentionMH(nn.Module):
         positional_embedding = self.distance_embedding(distance + self.max_position_embeddings - 1)
         positional_embedding = positional_embedding.to(dtype=query_layer.dtype)  # fp16 compatibility
         print("pos embed shape: ", positional_embedding.shape)
-        
+
         relative_position_scores = torch.einsum("bhld,lrd->bhlr", query_layer, positional_embedding)
         attention_scores = attention_scores + relative_position_scores
 
