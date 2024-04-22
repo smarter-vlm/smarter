@@ -124,11 +124,11 @@ def train(args, dataloader, im_backbone):
     def train_loop(epoch, train_loader, optimizer):
         model.train()
         tot_loss = 0.0
+        device = torch.device("cuda")
         for i, (im, q, _, a, av, pids) in tqdm(enumerate(train_loader)):
-
+            
+            im = im.float().to(device)
             print("Im now*************:", im)
-            im = im.float()
-            im = im.to(device)
             q = q.cuda()
             a = a.cuda()
             av = av.cuda()
