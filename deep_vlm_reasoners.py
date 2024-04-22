@@ -353,13 +353,16 @@ class Puzzle_Net(nn.Module):
     def process_fused(self, x, image_processor_siglip, image_processor_dino):
         device = torch.device("cuda")
         x = self.decode_image(x)
+
+        x = x.to(device)
+
         inputs_din = image_processor_dino(images=x, do_rescale=True, return_tensors="pt").to(device)
         inputs_sig = image_processor_siglip(images=x, do_rescale=True, return_tensors="pt").to(device)
         im_backbone_din, im_backbone_sig = self.im_backbone
 
         im_backbone_din.to(device)
         im_backbone_sig.to(device)
-        
+
         outputs_din = im_backbone_din(**inputs_din)
         outputs_sig = im_backbone_sig(**inputs_sig)
 
@@ -449,9 +452,9 @@ class Puzzle_Net(nn.Module):
         return fwd_hook
 
     def encode_image(self, im, pids=None):
-
+       
         with torch.no_grad():
-            x = self.im_cnn(im).squeeze() 
+            x = self.im_cnn(im).squeeze()
 
         if len(x.shape) == 1:
             x = x.unsqueeze(0)
