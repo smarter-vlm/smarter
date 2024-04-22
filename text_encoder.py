@@ -43,7 +43,7 @@ class Siglip:
             "google/siglip-base-patch16-224"
         ).to("cuda")
         self.tokenizer = AutoTokenizer.from_pretrained("google/siglip-base-patch16-224")
-        self.tokenizer.model_max_length=64
+        self.tokenizer.model_max_length = 64
         self.word_dim = 768
 
     def get_word_dim(self):

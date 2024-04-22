@@ -389,7 +389,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--split_ratio",
         type=str,
-        default="85:10:5",
+        default="65:30:5",
         help="how to split train and val, when both use the same instance list.",
     )
     parser.add_argument(

@@ -487,7 +487,7 @@ class Puzzle_Net(nn.Module):
         return text
 
     def encode_text(self, text):
-        if self.word_embed in["mbert"]:
+        if self.word_embed in ["mbert"]:
             text = self.decode_text(text)
             q_enc = torch.zeros(len(text), gv.max_qlen, gv.word_dim).cuda()
             for ii, tt in enumerate(text):
