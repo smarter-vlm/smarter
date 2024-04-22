@@ -126,9 +126,8 @@ def train(args, dataloader, im_backbone):
         tot_loss = 0.0
         for i, (im, q, _, a, av, pids) in tqdm(enumerate(train_loader)):
 
-            # im = im.float()
             print("Im now*************:", im)
-            im = im['pixel_values'].to(device)
+            im = im.float().to(device)
             q = q.cuda()
             a = a.cuda()
             av = av.cuda()
