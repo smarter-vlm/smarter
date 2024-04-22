@@ -503,14 +503,21 @@ class Puzzle_Net(nn.Module):
             x = F.gelu(self.q_MLP(x.mean(1)))
 
         elif self.word_embed in ["siglip"]:
+            # text = self.decode_text(text)
+            # x = gv.word_embed(text)
+
+            # Change to be a seq for mha
             text = self.decode_text(text)
-            x = gv.word_embed(text)
+            q_enc = torch.zeros(len(text), gv.max_qlen, gv.word_dim).cuda()
+            for ii, tt in enumerate(text):
+                q_repr = gv.word_embed(tt)
+                q_enc[ii, : min(gv.max_qlen, len(q_repr)), :] = q_repr
 
             # TODO (DR) change this block
             # x = F.gelu(self.q_MLP(x)) #try remove for qf layer
-            print("embeded text shape without mlp", x.shape )
+            print("embeded text shape without mlp", q_enc.shape )
 
-        return x
+        return q_enc.float()
 
     def seq_decoder(self, decoder, repr):
         """run the LSTM decoder sequentially for k steps"""
