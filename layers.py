@@ -46,7 +46,7 @@ class QFIntermediate(nn.Module):
         return x
 
 class QFAttentionMH(nn.Module):
-    def __init__(self, num_attention_heads=2, hidden_size=768, encoder_hidden_size=768, max_position_embeddings=64, is_cross_attention=False):
+    def __init__(self, num_attention_heads=2, hidden_size=768, encoder_hidden_size=768, max_position_embeddings=110, is_cross_attention=False):
         super().__init__()
         self.num_attention_heads = num_attention_heads
         # hidden size must be multiple of num heads
