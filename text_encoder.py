@@ -43,6 +43,7 @@ class Siglip:
             "google/siglip-base-patch16-224"
         ).to("cuda")
         self.tokenizer = AutoTokenizer.from_pretrained("google/siglip-base-patch16-224")
+        self.tokenizer.model_max_length=72
         self.word_dim = 768
 
     def get_word_dim(self):
@@ -51,7 +52,7 @@ class Siglip:
     def word_embed(self, sentence):
         with torch.no_grad():
             inputs = self.tokenizer(
-                sentence, padding="max_length", model_max_length=72, return_tensors="pt"
+                sentence, padding="max_length", return_tensors="pt"
             ).to("cuda")
             outputs = self.model(**inputs)
             word_reprs = outputs.last_hidden_state.mean(1)
