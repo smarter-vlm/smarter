@@ -51,7 +51,7 @@ class Siglip:
     def word_embed(self, sentence):
         with torch.no_grad():
             inputs = self.tokenizer(
-                sentence, padding="max_length", return_tensors="pt"
+                sentence, padding="max_length", model_max_length=72, return_tensors="pt"
             ).to("cuda")
             outputs = self.model(**inputs)
             word_reprs = outputs.last_hidden_state.mean(1)
