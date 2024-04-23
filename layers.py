@@ -7,12 +7,12 @@ import torch.nn.functional as F
 
 
 class CLayer(nn.Module):
-    def __init__(self):
+    def __init__(self, dim):
         super().__init__()
-        pass
+        self.ln = nn.LayerNorm(dim, eps=1e-6)
 
     def forward(self, inputs):
-        return torch.cat(inputs, dim=1)
+        return self.ln(torch.cat(inputs, dim=1))
 
 
 class QFLayer(nn.Module):
@@ -47,7 +47,7 @@ class QFIntermediate(nn.Module):
         super().__init__()
         self.dense = nn.Linear(768, 256)
         self.intermediate_act_fn = nn.GELU()
-        self.layer_norm = nn.LayerNorm(768, eps=1e-12)
+        self.layer_norm = nn.LayerNorm(768, eps=1e-6)
         self.dropout = nn.Dropout(0.2)
         self.dense_final = nn.Linear(256, 768)
 
@@ -162,10 +162,14 @@ class QV_Fusion(nn.Module):
         super().__init__()
         self.ln1 = nn.Linear(in_dim, out_dim)
         self.ln2 = nn.Linear(out_dim, out_dim)
+        self.layer_norm = nn.LayerNorm(out_dim, eps=1e-6)
 
     def forward(self, x):
         x = self.ln1(x)
         x = F.gelu(x)
         x = self.ln2(x)
         x = F.gelu(x)
+        x = self.layer_norm(x)
         return x
+
+class PuzzleVisionMLP(nn.Module):

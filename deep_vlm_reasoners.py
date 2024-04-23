@@ -106,14 +106,15 @@ class Puzzle_Net(nn.Module):
 
         if args.qf_layer:
             self.qv_fusion = QV_Fusion(1664, self.out_dim)
+            self.c = CLayer(dim=1664)
+
         else:
             self.qv_fusion = QV_Fusion(2 * self.out_dim, self.out_dim)
-
+            self.c = CLayer(dim=2 * self.out_dim)
         if args.qf_layer:
             self.qf = QFLayer(num_heads=args.num_heads)
 
-        self.c = CLayer()
-
+        
         self.create_puzzle_tail(args)
 
     def process_dinov2(self, x):
