@@ -47,7 +47,7 @@ class mBERT:
 class BERT:
     # https://huggingface.co/docs/transformers/model_doc/bert
     def __init__(self):
-        super(mBERT, self).__init__()
+        super(BERT, self).__init__()
         from transformers import BertModel, BertTokenizer
 
         self.model = BertModel.from_pretrained("bert-base-uncased").to("cuda")
