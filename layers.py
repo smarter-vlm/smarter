@@ -172,6 +172,7 @@ class QV_Fusion(nn.Module):
         x = self.layer_norm(x)
         return x
 
+
 class PuzzleMLPDecoder(nn.Module):
     def __init__(self, out_dim, num_classes):
         super().__init__()
@@ -187,13 +188,3 @@ class PuzzleMLPDecoder(nn.Module):
         x = self.ln3(x)
         return x
 
-
-
-
-
-    # nn.Sequential(
-    #                     nn.Linear(self.out_dim, self.out_dim),
-    #                     nn.GELU(),
-    #                     nn.Linear(self.out_dim, self.out_dim),
-    #                     nn.GELU(),
-    #                     nn.Linear(self.out_dim, num_classes),

@@ -114,7 +114,6 @@ class Puzzle_Net(nn.Module):
         if args.qf_layer:
             self.qf = QFLayer(num_heads=args.num_heads)
 
-        
         self.create_puzzle_tail(args)
 
     def process_dinov2(self, x):
@@ -184,9 +183,7 @@ class Puzzle_Net(nn.Module):
             num_classes = gv.NUM_CLASSES_PER_PUZZLE[str(pid)]
             if int(pid) not in gv.SEQ_PUZZLES:
                 dec = PuzzleMLPDecoder(self.out_dim, num_classes)
-                ans_decoder.append(
-                    dec
-                )
+                ans_decoder.append(dec)
             else:
                 ans_decoder.append(
                     nn.GRU(

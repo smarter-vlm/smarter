@@ -122,13 +122,11 @@ def train(args, dataloader, im_backbone):
             loss = criterion(out, av, pids)
             loss.backward()
 
-            
             torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
 
             optimizer.step()
             scheduler.step()
             optimizer.zero_grad()
-            
 
             tot_loss += loss.item()
 
@@ -217,7 +215,11 @@ def train(args, dataloader, im_backbone):
         return
 
     optimizer = torch.optim.AdamW(
-        model.parameters(), lr=args.lr, betas=(0.9, 0.98), eps=1e-8, weight_decay=args.wd
+        model.parameters(),
+        lr=args.lr,
+        betas=(0.9, 0.98),
+        eps=1e-8,
+        weight_decay=args.wd,
     )
 
     train_loader = dataloader["train"]
@@ -226,8 +228,7 @@ def train(args, dataloader, im_backbone):
 
     num_steps = args.num_epochs * len(train_loader)
 
-    
-    num_warmup_steps=10
+    num_warmup_steps = 10
     scheduler = get_cosine_schedule_with_warmup(optimizer, num_warmup_steps, num_steps)
 
     # training loop
@@ -246,7 +247,6 @@ def train(args, dataloader, im_backbone):
         optimizer.zero_grad()
 
         loss = train_loop(epoch, train_loader, optimizer)
-        
 
         experiment.log_metrics({"epoch_train_loss": loss}, epoch=epoch)
 

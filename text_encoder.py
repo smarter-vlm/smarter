@@ -8,6 +8,7 @@ import torch
 import utils
 from main_reasoner import device
 
+
 class mBERT:
     # https://huggingface.co/docs/transformers/model_doc/bert
     def __init__(self):
