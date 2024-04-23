@@ -23,8 +23,8 @@ class QFLayer(nn.Module):
 
     def forward(self, im_repr, q_repr):
         # q_repr is siglip encoding of the text sequence with max len 110
-        q_attn = self.mha(q_repr).mean(1) # TODO DR -this can also be concat of all seq token repr
-
+        # q_attn = self.mha(q_repr).mean(1) # TODO DR -this can also be concat of all seq token repr
+        q_attn = self.mha(q_repr)
         # for now concat all heads together
         print("self attn text output shape ", q_attn.shape) #B, 896
         print("what is the project fused vision rep shape ", im_repr.shape) # B, 128; this is projected fused
@@ -32,8 +32,9 @@ class QFLayer(nn.Module):
         # x = torch.cat(
         #     [im_repr, q_attn], dim=1
         # )  # STOP GAP DR; TODO here is cross attn
-
-        x = self.crossattention(q_attn, im_repr)
+        batch, proj_dim = im_repr.shape
+        vision_encoder = im_repr.expand(batch, 1, proj_dim)
+        x = self.crossattention(q_attn, vision_encoder)
 
         print("\nWhat is the output shape after cross attn with mh self attn on siglip encoded text queries and projected fused vision encoded key and vals", x)
 
@@ -111,6 +112,7 @@ class QFAttentionMH(nn.Module):
         is_cross_attention = encoder_hidden_states is not None
 
         if is_cross_attention:
+            # encoder is vision; key is text
             key_layer = self.transpose_for_scores(self.key(encoder_hidden_states))
             value_layer = self.transpose_for_scores(self.value(encoder_hidden_states))
         else:  # self attn
