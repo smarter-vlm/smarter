@@ -51,7 +51,7 @@ class QFIntermediate(nn.Module):
         super().__init__()
         self.dense = nn.Linear(768, 256)  # TODO DR shapes/hidden sizes
         self.intermediate_act_fn = nn.GELU()
-        self.layer_norm = nn.LayerNorm(256, eps=1e-12)
+        self.layer_norm = nn.LayerNorm(768, eps=1e-12)
         self.dropout = nn.Dropout(0.1)
         self.dense_final = nn.Linear(256, 768)
 
