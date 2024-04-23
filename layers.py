@@ -37,7 +37,7 @@ class QFLayer(nn.Module):
         vision_encoder= torch.unsqueeze(im_repr, 1)
         print("expanded dim vision encoder shape",vision_encoder.shape)
         vision_encoder = vision_encoder.expand(-1, 110, -1)
-        print("expanded vision encoder shape",vision_encoder.shape)
+        print("expanded vision encoder ",vision_encoder)
         # x = self.crossattention(q_attn, vision_encoder)
 
         print("\nWhat is the output shape after cross attn with mh self attn on siglip encoded text queries and projected fused vision encoded key and vals", x.shape)
