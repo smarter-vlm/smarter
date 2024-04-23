@@ -31,6 +31,29 @@ class mBERT:
         self.tokenizer = BertTokenizer.from_pretrained("bert-base-multilingual-cased")
         self.word_dim = 768
 
+class BERT:
+    # https://huggingface.co/docs/transformers/model_doc/bert
+    def __init__(self):
+        super(mBERT, self).__init__()
+        from transformers import BertModel, BertTokenizer
+
+        self.model = BertModel.from_pretrained("bert-base-uncased").to(
+            "cuda"
+        )
+        print(
+            f"\n Number trainable params before explicit freezing of text backb  {sum(p.numel() for p in self.model.parameters() if p.requires_grad)}"
+        )
+        for param in self.model.parameters():
+            
+            param.requires_grad = False
+
+        print(
+            f"\n Number trainable params after explicit freezing of text backb  {sum(p.numel() for p in self.model.parameters() if p.requires_grad)}"
+        )
+        
+        self.tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
+        self.word_dim = 768
+
     def get_word_dim(self):
         return self.word_dim
 
@@ -141,6 +164,10 @@ def globals_init(args):
         word_embed = Embed.word_embed
     elif args.word_embed == "siglip":
         Embed = Siglip()
+        word_dim = Embed.get_word_dim()
+        word_embed = Embed.word_embed
+    elif args.word_embed == "bert":
+        Embed = BERT()
         word_dim = Embed.get_word_dim()
         word_embed = Embed.word_embed
     else:

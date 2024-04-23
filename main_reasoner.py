@@ -396,7 +396,7 @@ if __name__ == "__main__":
         "--log", action="store_true", help="should print detailed log of accuracy?"
     )
 
-    parser.add_argument("--word_embed", type=str, default="siglip", help="siglip/mbert")
+    parser.add_argument("--word_embed", type=str, default="siglip", help="siglip/mbert/bert")
 
     parser.add_argument(
         "--use_single_image_head",
