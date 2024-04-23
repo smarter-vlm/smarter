@@ -122,8 +122,8 @@ def train(args, dataloader, im_backbone):
             loss = criterion(out, av, pids)
             loss.backward()
 
-            # bc we have some rnns
-            torch.nn.utils.clip_grad_norm_(model.parameters(), 0.5)
+            
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
 
             optimizer.step()
             scheduler.step()
@@ -226,9 +226,8 @@ def train(args, dataloader, im_backbone):
 
     num_steps = args.num_epochs * len(train_loader)
 
-    # TODO: don't think the scheduler is working
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-        optimizer, eta_min=0, T_max=num_steps
+        optimizer, eta_min=0, T_max=100
     )
 
     # training loop
