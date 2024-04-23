@@ -72,6 +72,7 @@ def train(args, dataloader, im_backbone):
 
     # Make sure image backbone is frozen
     for name, param in model.named_parameters():
+        print("name of param", name)
         if (
             name.startswith("dino")
             or name.startswith("siglip")
