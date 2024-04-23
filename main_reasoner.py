@@ -241,6 +241,10 @@ def train(args, dataloader, im_backbone):
     for epoch in range(args.num_epochs):
         tt = time.time()
         model.train()
+
+        # jsut in case
+        optimizer.zero_grad()
+
         loss = train_loop(epoch, train_loader, optimizer)
         
 
