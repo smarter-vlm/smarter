@@ -230,7 +230,8 @@ def train(args, dataloader, im_backbone):
     # scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
     #     optimizer, eta_min=0, T_max=num_steps
     # )
-    num_warmup_steps = int(0.01 * num_steps)
+    # num_warmup_steps = int(0.01 * num_steps)
+    num_warmup_steps=0
     scheduler = get_cosine_schedule_with_warmup(optimizer, num_warmup_steps, num_steps)
 
     # training loop
