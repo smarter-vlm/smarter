@@ -8,11 +8,11 @@ warnings.filterwarnings("ignore")
 import pdb
 import pickle
 
-import clip
+# import clip
 import numpy as np
 import torch.nn.functional as F
 from PIL import Image
-from torchvision import models
+# from torchvision import models
 
 import text_encoder as gv
 from layers import QFLayer, CLayer, QV_Fusion
@@ -33,7 +33,7 @@ class Puzzle_Net(nn.Module):
         self.h_sz = 256
         self.dummy_question = None
         self.model_name = args.model_name
-        self.use_clip_text = args.use_clip_text
+        # self.use_clip_text = args.use_clip_text
         self.use_single_image_head = args.use_single_image_head
         self.word_embed = args.word_embed
         self.sorted_puzzle_ids = np.sort(np.array([int(ii) for ii in args.puzzle_ids]))
@@ -46,11 +46,11 @@ class Puzzle_Net(nn.Module):
             modules = list(im_backbone.children())[:-1]
             self.im_cnn = nn.Sequential(*modules)
 
-        elif args.model_name in ["mae"]:
-            self.preprocess = args.preprocess
-            self.im_cnn = lambda x: self.process_MAE(x)
-            self.im_backbone = im_backbone
-            self.im_repr_size = 768
+        # elif args.model_name in ["mae"]:
+        #     self.preprocess = args.preprocess
+        #     self.im_cnn = lambda x: self.process_MAE(x)
+        #     self.im_backbone = im_backbone
+        #     self.im_repr_size = 768
 
         elif args.model_name in ["dinov2"]:
             self.preprocess = args.preprocess
@@ -75,7 +75,7 @@ class Puzzle_Net(nn.Module):
                 "facebook/dinov2-base"
             )
             self.preprocess = None
-            self.im_cnn = lambda x: self.process_fused(
+            self.im_cnn = lambda x: self.process_fused_vision(
                 x, image_processor_siglip, image_processor_dino
             )
             self.im_backbone = im_backbone
@@ -87,15 +87,15 @@ class Puzzle_Net(nn.Module):
         self.create_puzzle_head(args)
 
         # language backbones
-        if self.use_clip_text:
-            self.q_encoder, _ = clip.load("ViT-B/32", device="cuda")
-            self.clip_dim = 512
-            self.q_MLP = nn.Sequential(
-                nn.Linear(self.clip_dim, self.h_sz),
-                nn.GELU(),
-                nn.Linear(self.h_sz, self.out_dim),
-            )
-        elif args.word_embed in ["siglip"]:
+        # if self.use_clip_text:
+        #     self.q_encoder, _ = clip.load("ViT-B/32", device="cuda")
+        #     self.clip_dim = 512
+        #     self.q_MLP = nn.Sequential(
+        #         nn.Linear(self.clip_dim, self.h_sz),
+        #         nn.GELU(),
+        #         nn.Linear(self.h_sz, self.out_dim),
+        #     )
+        if args.word_embed in ["siglip"]:
             self.siglip_dim = 768
             self.q_MLP = nn.Sequential(
                 nn.Linear(self.siglip_dim, self.h_sz),
@@ -120,29 +120,24 @@ class Puzzle_Net(nn.Module):
             nn.Linear(self.out_dim, self.out_dim),
             nn.GELU(),
         )
-        # self.qv_fusion = nn.Sequential(
-        #     nn.Linear(self.out_dim * 2, self.out_dim),
-        #     nn.GELU(),
-        #     nn.Linear(self.out_dim, self.out_dim),
-        #     nn.GELU(),
-        # )
+      
         if args.qf_layer:
             self.qv_fusion = QV_Fusion(1664, self.out_dim)
         else:
             self.qv_fusion = QV_Fusion(2*self.out_dim, self.out_dim)
 
         if args.qf_layer:
-            self.qf = QFLayer()
+            self.qf = QFLayer(num_heads=args.num_heads)
             
         self.c = CLayer()
 
         self.create_puzzle_tail(args)
 
-    def process_MAE(self, x):
-        x = self.decode_image(x)  # get from tensor to PIL images
-        inputs = self.preprocess(images=x, return_tensors="pt").to("cuda")
-        outputs = self.im_backbone(**inputs)
-        return outputs.last_hidden_state.mean(1)
+    # def process_MAE(self, x):
+    #     x = self.decode_image(x)  # get from tensor to PIL images
+    #     inputs = self.preprocess(images=x, return_tensors="pt").to("cuda")
+    #     outputs = self.im_backbone(**inputs)
+    #     return outputs.last_hidden_state.mean(1)
 
     def process_dinov2(self, x):
         device = torch.device("cuda")
@@ -153,7 +148,7 @@ class Puzzle_Net(nn.Module):
         outputs = self.im_backbone(**inputs)
         return outputs.last_hidden_state.mean(1)
 
-    def process_fused(self, x, image_processor_siglip, image_processor_dino):
+    def process_fused_vision(self, x, image_processor_siglip, image_processor_dino):
         device = torch.device("cuda")
         x = self.decode_image(x)
 
@@ -383,15 +378,15 @@ def load_pretrained_models(args, model_name, model=None):
         model = resnet50(weights=weights)
         preprocess = weights.transforms()
 
-    elif args.model_name == "clip":
-        model, preprocess = clip.load("ViT-B/32", device="cuda")
+    # elif args.model_name == "clip":
+    #     model, preprocess = clip.load("ViT-B/32", device="cuda")
 
-    elif args.model_name == "mae":
-        from transformers import AutoFeatureExtractor, ViTMAEModel
+    # elif args.model_name == "mae":
+    #     from transformers import AutoFeatureExtractor, ViTMAEModel
 
-        repr_extractor = AutoFeatureExtractor.from_pretrained("facebook/vit-mae-base")
-        model = ViTMAEModel.from_pretrained("facebook/vit-mae-base")
-        preprocess = repr_extractor
+    #     repr_extractor = AutoFeatureExtractor.from_pretrained("facebook/vit-mae-base")
+    #     model = ViTMAEModel.from_pretrained("facebook/vit-mae-base")
+    #     preprocess = repr_extractor
 
     elif args.model_name == "dinov2":
         from transformers import AutoImageProcessor, Dinov2Model

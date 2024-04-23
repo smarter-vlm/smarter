@@ -125,4 +125,3 @@ vit-pytorch==1.2.0
 wcwidth==0.2.6
 zipp==3.15.0
 comet-ml==3.40.0
-git+https://github.com/openai/CLIP.git

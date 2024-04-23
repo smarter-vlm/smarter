@@ -62,14 +62,14 @@ def reset_state(args):
 def train(args, dataloader, im_backbone):
     criterion = losses.Criterion(args)
 
-    if args.model_name == "clip":
-        import smart_clip
+    # if args.model_name == "clip":
+    #     import smart_clip
 
-        model = smart_clip.Smarter_VL_CLIP(
-            args, VL_backbone=im_backbone
-        )  # for baseline
-    else:
-        model = deep_vlm_reasoners.Puzzle_Net(args, im_backbone=im_backbone)
+    #     model = smart_clip.Smarter_VL_CLIP(
+    #         args, VL_backbone=im_backbone
+    #     )  # for baseline
+    # else:
+    model = deep_vlm_reasoners.Puzzle_Net(args, im_backbone=im_backbone)
 
     print(
         f"\n Number trainable params before explicit freezing of image backb {sum(p.numel() for p in model.parameters() if p.requires_grad)}"
@@ -94,7 +94,7 @@ def train(args, dataloader, im_backbone):
 
     log_model(experiment, model, model_name="Puzzle_Net")
 
-    parameters = model.parameters()
+    # parameters = model.parameters()
 
     def normalize(err, pids):
         """this function divides the error by the gt number of classes for each puzzle."""
@@ -370,8 +370,8 @@ if __name__ == "__main__":
         type=str,
         help="comma separated / all / puzzle groups (counting,math etc.)",
     )
-    parser.add_argument("--batch_size", default=64, type=int, help="batch size (16)")
-    parser.add_argument("--num_epochs", default=10, type=int, help="epoch")
+    parser.add_argument("--batch_size", default=128, type=int, help="batch size (128)")
+    parser.add_argument("--num_epochs", default=3, type=int, help="epoch")
     parser.add_argument("--lr", default=0.001, type=float, help="learning rate (0.001)")
 
     parser.add_argument(
@@ -389,7 +389,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--split_ratio",
         type=str,
-        default="65:30:5",
+        default="60:20:20",
         help="how to split train and val, when both use the same instance list.",
     )
     parser.add_argument(
@@ -410,7 +410,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--model_name",
         type=str,
-        help="model to use dinov2/siglip/fused_dinov2_siglip/resnet50/mae/clip",
+        help="model to use dinov2/siglip/fused_dinov2_siglip/resnet50",
         default="fused_dinov2_siglip",
     )
     parser.add_argument("--seed", type=int, default=0, help="seed to use")
@@ -421,14 +421,15 @@ if __name__ == "__main__":
         help="how many instances to use for train+val+test",
     )
 
-    parser.add_argument(
-        "--use_clip_text", action="store_true", help="should use clip text embeddings?"
-    )
+    # parser.add_argument(
+    #     "--use_clip_text", action="store_true", help="should use clip text embeddings?"
+    # )
     parser.add_argument(
         "--log", action="store_true", help="should print detailed log of accuracy?"
     )
 
     parser.add_argument("--word_embed", type=str, default="siglip", help="siglip/mbert")
+
     parser.add_argument(
         "--use_single_image_head",
         action="store_true",
@@ -437,8 +438,10 @@ if __name__ == "__main__":
     parser.add_argument(
         "--qf_layer",
         action="store_true",
-        help="add a q-former inspired layer, the QFlayer otw do concat for cross-modalities representations",
+        help="add a q-former inspired layer to get a composite vision-language representation",
     )
+
+    parser.add_argument("--num_heads", type=int, default=1, help="number attention heads in QFlayer self and cross attention?")
 
     parser.add_argument("--log_freq", type=int, default=1, help="log frequency?")
     parser.add_argument("--test", action="store_true", help="evaluate a model?")
