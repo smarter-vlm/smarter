@@ -38,7 +38,7 @@ class QFLayer(nn.Module):
         # print("expanded dim vision encoder shape",vision_encoder.shape)
         vision_encoder = vision_encoder.expand(-1, q_repr.shape[1], -1) #seq len
         # print("expanded vision encoder ",vision_encoder[:,0,:]==vision_encoder[:,1,:])
-        x = self.crossattention(q_attn, vision_encoder)
+        x = self.crossattention(q_attn, vision_encoder).mean(1)
 
         print("\nWhat is the output shape after cross attn with mh self attn on siglip encoded text queries and projected fused vision encoded key and vals", x.shape)
         # TODO: add a residual back from vision and from mean text maybe
