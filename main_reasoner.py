@@ -120,13 +120,15 @@ def train(args, dataloader, im_backbone):
             # the model is puzzlenet
             out = model(im, q, puzzle_ids=pids)
             loss = criterion(out, av, pids)
-            optimizer.zero_grad()
             loss.backward()
 
             # bc we have some rnns
             torch.nn.utils.clip_grad_norm_(model.parameters(), 0.5)
 
             optimizer.step()
+            scheduler.step()
+            optimizer.zero_grad()
+            
 
             tot_loss += loss.item()
 
@@ -241,7 +243,7 @@ def train(args, dataloader, im_backbone):
         tt = time.time()
         model.train()
         loss = train_loop(epoch, train_loader, optimizer)
-        scheduler.step(loss)
+        
 
         experiment.log_metrics({"epoch_train_loss": loss}, epoch=epoch)
 
