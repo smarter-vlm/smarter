@@ -441,7 +441,12 @@ if __name__ == "__main__":
         help="add a q-former inspired layer to get a composite vision-language representation",
     )
 
-    parser.add_argument("--num_heads", type=int, default=1, help="number attention heads in QFlayer self and cross attention?")
+    parser.add_argument(
+        "--num_heads",
+        type=int,
+        default=1,
+        help="number attention heads in QFlayer self and cross attention?",
+    )
 
     parser.add_argument("--log_freq", type=int, default=1, help="log frequency?")
     parser.add_argument("--test", action="store_true", help="evaluate a model?")

@@ -3,6 +3,7 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 
+
 class CLayer(nn.Module):
     def __init__(self):
         super().__init__()
@@ -19,28 +20,34 @@ class QFLayer(nn.Module):
         self.intermediate = QFIntermediate()
         self.mha = QFAttentionMH()
         # TODO DR add a num heads arg
-        self.crossattention = QFAttentionMH(num_attention_heads=num_heads, hidden_size=768, encoder_hidden_size=128, max_position_embeddings=110, is_cross_attention=True)
+        self.crossattention = QFAttentionMH(
+            num_attention_heads=num_heads,
+            hidden_size=768,
+            encoder_hidden_size=128,
+            max_position_embeddings=110,
+            is_cross_attention=True,
+        )
 
     def forward(self, im_repr, q_repr):
         # q_repr is siglip encoding of the text sequence with max len 110
         # q_attn = self.mha(q_repr).mean(1) # TODO DR -this can also be concat of all seq token repr
         q_attn = self.mha(q_repr)
         # for now concat all heads together
-        print("self attn text output shape ", q_attn.shape) #B, 896
-        print("what is the project fused vision rep shape ", im_repr.shape) # B, 128; this is projected fused
+        # print("self attn text output shape ", q_attn.shape) #B, 896
+        # print("what is the project fused vision rep shape ", im_repr.shape) # B, 128; this is projected fused
 
         # x = torch.cat(
         #     [im_repr, q_attn], dim=1
         # )  # STOP GAP DR; TODO here is cross attn
 
         # batch, proj_dim = im_repr.shape
-        vision_encoder= torch.unsqueeze(im_repr, 1)
+        vision_encoder = torch.unsqueeze(im_repr, 1)
         # print("expanded dim vision encoder shape",vision_encoder.shape)
-        vision_encoder = vision_encoder.expand(-1, q_repr.shape[1], -1) #seq len
+        vision_encoder = vision_encoder.expand(-1, q_repr.shape[1], -1)  # seq len
         # print("expanded vision encoder ",vision_encoder[:,0,:]==vision_encoder[:,1,:])
         x = self.crossattention(q_attn, vision_encoder).mean(1)
 
-        print("\nWhat is the output shape after cross attn with mh self attn on siglip encoded text queries and projected fused vision encoded key and vals", x.shape)
+        # print("\nWhat is the output shape after cross attn with mh self attn on siglip encoded text queries and projected fused vision encoded key and vals", x.shape)
         # TODO: add a residual back from vision and from mean text maybe
         x = self.intermediate(x)
         return x
@@ -61,7 +68,7 @@ class QFIntermediate(nn.Module):
 
         x = self.dense_final(x)
         x = self.dropout(x)
-        x = self.layer_norm(hidden_states + x) 
+        x = self.layer_norm(hidden_states + x)
         # x = self.layer_norm(x)
         return x
 
@@ -124,7 +131,7 @@ class QFAttentionMH(nn.Module):
             value_layer = self.transpose_for_scores(self.value(hidden_states))
 
         mixed_query_layer = self.query(hidden_states)
-        print("mixed query layer size", mixed_query_layer.shape)
+        # print("mixed query layer size", mixed_query_layer.shape)
         query_layer = self.transpose_for_scores(mixed_query_layer)
         # Take the dot product between "query" and "key" to get the raw attention scores.
         attention_scores = torch.matmul(query_layer, key_layer.transpose(-1, -2))
@@ -159,7 +166,7 @@ class QFAttentionMH(nn.Module):
         attention_probs = nn.Softmax(dim=-1)(attention_scores)
 
         attention_probs_dropped = self.dropout(attention_probs)
-        print("attention probs dropped and value l shapes",attention_probs_dropped.shape, value_layer.shape )
+        # print("attention probs dropped and value l shapes",attention_probs_dropped.shape, value_layer.shape )
         context_layer = torch.matmul(attention_probs_dropped, value_layer)
 
         context_layer = context_layer.permute(0, 2, 1, 3).contiguous()
@@ -169,6 +176,7 @@ class QFAttentionMH(nn.Module):
         context_layer = context_layer.view(*new_context_layer_shape)
 
         return context_layer
+
 
 class QV_Fusion(nn.Module):
     def __init__(self, in_dim, out_dim):

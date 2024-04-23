@@ -12,11 +12,11 @@ import pickle
 import numpy as np
 import torch.nn.functional as F
 from PIL import Image
+
 # from torchvision import models
 
 import text_encoder as gv
 from layers import QFLayer, CLayer, QV_Fusion
-
 
 
 class Puzzle_Net(nn.Module):
@@ -120,15 +120,15 @@ class Puzzle_Net(nn.Module):
             nn.Linear(self.out_dim, self.out_dim),
             nn.GELU(),
         )
-      
+
         if args.qf_layer:
             self.qv_fusion = QV_Fusion(1664, self.out_dim)
         else:
-            self.qv_fusion = QV_Fusion(2*self.out_dim, self.out_dim)
+            self.qv_fusion = QV_Fusion(2 * self.out_dim, self.out_dim)
 
         if args.qf_layer:
             self.qf = QFLayer(num_heads=args.num_heads)
-            
+
         self.c = CLayer()
 
         self.create_puzzle_tail(args)
@@ -215,7 +215,7 @@ class Puzzle_Net(nn.Module):
                         nn.Linear(self.out_dim, self.out_dim),
                         nn.GELU(),
                         nn.Linear(self.out_dim, num_classes),
-                    ) # TODO DR see SIGLIP Decoder mlp
+                    )  # TODO DR see SIGLIP Decoder mlp
                 )
             else:
                 ans_decoder.append(
