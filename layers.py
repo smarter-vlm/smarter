@@ -14,12 +14,12 @@ class CLayer(nn.Module):
 
 # Inspired from https://github.com/huggingface/transformers/blob/main/src/transformers/models/blip_2/modeling_blip_2.py
 class QFLayer(nn.Module):
-    def __init__(self):
+    def __init__(self, num_heads=1):
         super().__init__()
         self.intermediate = QFIntermediate()
         self.mha = QFAttentionMH()
         # TODO DR add a num heads arg
-        self.crossattention = QFAttentionMH(num_attention_heads=1, hidden_size=768, encoder_hidden_size=128, max_position_embeddings=110, is_cross_attention=True)
+        self.crossattention = QFAttentionMH(num_attention_heads=num_heads, hidden_size=768, encoder_hidden_size=128, max_position_embeddings=110, is_cross_attention=True)
 
     def forward(self, im_repr, q_repr):
         # q_repr is siglip encoding of the text sequence with max len 110
