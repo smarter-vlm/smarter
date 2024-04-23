@@ -67,24 +67,9 @@ def train(args, dataloader, im_backbone):
     model = deep_vlm_reasoners.Puzzle_Net(args, im_backbone=im_backbone)
 
     print(
-        f"\n Number trainable params before explicit freezing of image backb {sum(p.numel() for p in model.parameters() if p.requires_grad)}"
+        f"\n Number trainable params {sum(p.numel() for p in model.parameters() if p.requires_grad)}"
     )
 
-    # Make sure image backbone is frozen
-    for name, param in model.named_parameters():
-        print("name of param", name)
-        if (
-            name.startswith("dino")
-            or name.startswith("siglip")
-            or name.startswith("fused")
-            or name.startswith("resnet")
-        ):
-            print("name of param", name)
-            param.requires_grad = False
-
-    print(
-        f"\n Number trainable params after explicit freezing of image backb  {sum(p.numel() for p in model.parameters() if p.requires_grad)}"
-    )
 
 
     device = torch.device("cuda")

@@ -231,6 +231,25 @@ class Puzzle_Net(nn.Module):
 
     def encode_image(self, im, pids=None):
 
+        # Make sure image backbone is frozen
+        print(
+            f"\n Number trainable params after explicit freezing of image backb  {sum(p.numel() for p in self.im_cnn.parameters() if p.requires_grad)}"
+        )
+        for name, param in self.im_cnn.named_parameters():
+            print("name of param", name)
+            if (
+                name.startswith("dino")
+                or name.startswith("siglip")
+                or name.startswith("fused")
+                or name.startswith("resnet")
+            ):
+                print("name of param", name)
+                param.requires_grad = False
+
+        print(
+            f"\n Number trainable params after explicit freezing of image backb  {sum(p.numel() for p in self.im_cnn.parameters() if p.requires_grad)}"
+        )
+
         with torch.no_grad():
             x = self.im_cnn(im).squeeze()
 
