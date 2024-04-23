@@ -35,7 +35,8 @@ class QFLayer(nn.Module):
 
         batch, proj_dim = im_repr.shape
         vision_encoder= torch.unsqueeze(im_repr, 1)
-        vision_encoder = im_repr.expand(-1, 110, -1)
+        print("expanded dim vision encoder shape",vision_encoder.shape)
+        vision_encoder = vision_encoder.expand(-1, 110, -1)
         print("expanded vision encoder shape",vision_encoder.shape)
         # x = self.crossattention(q_attn, vision_encoder)
 
