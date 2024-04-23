@@ -85,7 +85,7 @@ def print_puzz_acc(args, puzz_acc, log=True):
                 "pattern",
             ]
 
-            print("Class acc: ")
+            print("Class accuracy: ")
             print(classes)
             for kk in classes:
                 idx_list = puzzles[kk]
