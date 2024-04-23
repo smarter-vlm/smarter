@@ -289,7 +289,7 @@ class Puzzle_Net(nn.Module):
               x = gv.word_embed(text)
               x = F.gelu(self.q_MLP(x)) 
 
-            return q_enc.float() if self.args.qf_layer else x
+        return q_enc.float() if self.args.qf_layer else x
 
     def seq_decoder(self, decoder, repr):
         """run the LSTM decoder sequentially for k steps"""

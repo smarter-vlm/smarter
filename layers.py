@@ -33,7 +33,7 @@ class QFLayer(nn.Module):
         # q_repr is siglip encoding of the text sequence with max len 110
         q_attn = self.mha(q_repr)
 
-        # this is the fused vision hidden projected
+        # this is the vision encoder hidden projected
         vision_encoder = torch.unsqueeze(im_repr, 1)
         vision_encoder = vision_encoder.expand(-1, q_repr.shape[1], -1)  # seq len
         x = self.crossattention(q_attn, vision_encoder).mean(1)
@@ -48,7 +48,7 @@ class QFIntermediate(nn.Module):
         self.dense = nn.Linear(768, 256)
         self.intermediate_act_fn = nn.GELU()
         self.layer_norm = nn.LayerNorm(768, eps=1e-12)
-        self.dropout = nn.Dropout(0.1)
+        self.dropout = nn.Dropout(0.2)
         self.dense_final = nn.Linear(256, 768)
 
     def forward(self, hidden_states: torch.Tensor) -> torch.Tensor:
@@ -89,7 +89,7 @@ class QFAttentionMH(nn.Module):
             self.key = nn.Linear(hidden_size, self.all_head_size)
             self.value = nn.Linear(hidden_size, self.all_head_size)
 
-        self.dropout = nn.Dropout(0.1)
+        self.dropout = nn.Dropout(0.2)
         self.distance_embedding = nn.Embedding(
             2 * max_position_embeddings - 1, self.attention_head_size
         )

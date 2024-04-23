@@ -29,11 +29,12 @@ import losses
 import deep_vlm_reasoners
 import utils
 
-
 from torch.optim import AdamW
 
 AVAIL_GPUS = min(1, torch.cuda.device_count())
+device = "cuda" if torch.cuda.is_available() else "cpu"
 
+print(f"Available GPUs {AVAIL_GPUS} and current device {device}")
 
 API_KEY = Path(".comet_token").read_text().strip()
 workspace = Path(".comet_workspace").read_text().strip()
