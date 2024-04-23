@@ -352,7 +352,7 @@ class Puzzle_Net(nn.Module):
         im_repr = self.encode_image(im.float(), puzzle_ids).float()
 
         # qv_repr = self.qv_fusion(torch.cat([im_repr, q_repr], dim=1))
-        if args.qf_layer:
+        if self.args.qf_layer:
             qf_out = self.qf(im_repr, q_repr)
             qv_repr = self.qv_fusion(self.c(im_repr, q_repr, qf_out))
         else:
