@@ -66,7 +66,7 @@ def reset_state(args):
 def train(args, dataloader, im_backbone):
     criterion = losses.Criterion(args)
 
-    model = deep_vlm_reasoners.Puzzle_Net(args, im_backbone=im_backbone)
+    model = deep_vlm_reasoners.Puzzle_Net(args, im_backbone=im_backbone, device=device)
 
     print(
         f"\n Number trainable params {sum(p.numel() for p in model.parameters() if p.requires_grad)}"

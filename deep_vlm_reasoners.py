@@ -18,18 +18,19 @@ from layers import QFLayer, CLayer, QV_Fusion
 
 
 class Puzzle_Net(nn.Module):
-    def __init__(self, args, im_backbone=None):
+    def __init__(self, args, im_backbone, device):
         super(Puzzle_Net, self).__init__()
         vocab_path = args.vocab_path
         with open(vocab_path, "rb") as f:
             self.vocab = pickle.load(f)
 
         self.args = args
+        self.device = device
 
         self.num_opts = 5
         self.out_dim = args.repr_size
         self.h_sz = 256
-        self.dummy_question = None
+        # self.dummy_question = None
         self.model_name = args.model_name
         self.use_single_image_head = args.use_single_image_head
         self.word_embed = args.word_embed
@@ -117,29 +118,29 @@ class Puzzle_Net(nn.Module):
         self.create_puzzle_tail(args)
 
     def process_dinov2(self, x):
-        device = torch.device("cuda")
+        # device = torch.device("cuda")
         x = self.decode_image(x)
         inputs = self.preprocess(images=x, do_rescale=True, return_tensors="pt").to(
-            device
+            self.device
         )
         outputs = self.im_backbone(**inputs)
         return outputs.last_hidden_state.mean(1)
 
     def process_fused_vision(self, x, image_processor_siglip, image_processor_dino):
-        device = torch.device("cuda")
+        # device = torch.device("cuda")
         x = self.decode_image(x)
 
         inputs_din = image_processor_dino(
             images=x, do_rescale=True, return_tensors="pt"
-        ).to(device)
+        ).to(self.device)
         inputs_sig = image_processor_siglip(
             images=x, do_rescale=True, return_tensors="pt"
-        ).to(device)
+        ).to(self.device)
 
         im_backbone_din, im_backbone_sig = self.im_backbone
 
-        im_backbone_din = im_backbone_din.to(device)
-        im_backbone_sig = im_backbone_sig.to(device)
+        im_backbone_din = im_backbone_din.to(self.device)
+        im_backbone_sig = im_backbone_sig.to(self.device)
 
         outputs_din = im_backbone_din(**inputs_din)
         outputs_sig = im_backbone_sig(**inputs_sig)
@@ -240,10 +241,12 @@ class Puzzle_Net(nn.Module):
         if self.use_single_image_head:
             y = self.im_encoder(x)
         else:
-            y = torch.zeros(len(im), self.out_dim).cuda()
+            # y = torch.zeros(len(im), self.out_dim).cuda()
+            y = torch.zeros(len(im), self.out_dim).to(self.device)
             for t in range(len(self.puzzle_ids)):
                 idx = pids == int(self.puzzle_ids[t])
-                idx = idx.cuda()
+                # idx = idx.cuda()
+                idx = idx.to(self.device)
                 if idx.sum() > 0:
                     y[idx] = F.gelu(self.im_encoder[int(self.puzzle_ids[t])](x[idx]))
 
@@ -266,7 +269,8 @@ class Puzzle_Net(nn.Module):
     def encode_text(self, text):
         if self.word_embed in ["mbert", "bert"]:
             text = self.decode_text(text)
-            q_enc = torch.zeros(len(text), gv.max_qlen, gv.word_dim).cuda()
+            # q_enc = torch.zeros(len(text), gv.max_qlen, gv.word_dim).cuda()
+            q_enc = torch.zeros(len(text), gv.max_qlen, gv.word_dim).to(self.device)
             for ii, tt in enumerate(text):
                 q_repr = gv.word_embed(tt)
                 q_enc[ii, : min(gv.max_qlen, len(q_repr)), :] = q_repr
@@ -278,7 +282,8 @@ class Puzzle_Net(nn.Module):
             text = self.decode_text(text)
             # An encoded seq of tokens for mha in qf layer
             if self.args.qf_layer:
-                q_enc = torch.zeros(len(text), gv.max_qlen, gv.word_dim).cuda()
+                # q_enc = torch.zeros(len(text), gv.max_qlen, gv.word_dim).cuda()
+                q_enc = torch.zeros(len(text), gv.max_qlen, gv.word_dim).to(self.device)
                 for ii, tt in enumerate(text):
                     q_repr = gv.word_embed(tt)
                     q_enc[ii, : min(gv.max_qlen, len(q_repr)), :] = q_repr
