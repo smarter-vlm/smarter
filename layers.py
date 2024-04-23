@@ -21,15 +21,15 @@ class QFLayer(nn.Module):
         # TODO DR add a num heads arg
 
     def forward(self, im_repr, q_repr):
-        # print("What is im repr shape: ", im_repr.shape)
-        q_attn = self.mha(q_repr)
+        
+        q_attn = self.mha(q_repr).mean(1)
 
         # for now concat all heads together
         print("self attn output shape ", q_attn.shape)
         print("what is the fused vision rep shape ", im_repr.shape)
 
         x = torch.cat(
-            [im_repr, q_attn.view((im_repr.shape[0], -1))], dim=1
+            [im_repr, q_attn], dim=1
         )  # STOP GAP DR; TODO here is cross attn
 
         x = self.intermediate(x)
