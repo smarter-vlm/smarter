@@ -334,6 +334,7 @@ class Puzzle_Net(nn.Module):
 
         if args.qf_layer:
             self.c = QFLayer()
+            print(self.c)
         else:
             self.c = CLayer()
 
