@@ -274,21 +274,19 @@ class Puzzle_Net(nn.Module):
             x = F.gelu(self.q_MLP(x.mean(1)))
 
         elif self.word_embed in ["siglip"]:
-            # text = self.decode_text(text) #TODO DR make sthis cofnig based on if arg is qf
-            # x = gv.word_embed(text)
-
-            # Change to be a seq for mha
+            # Change to be a seq for mha in qf layer
             text = self.decode_text(text)
-            q_enc = torch.zeros(len(text), gv.max_qlen, gv.word_dim).cuda()
-            for ii, tt in enumerate(text):
-                q_repr = gv.word_embed(tt)
-                q_enc[ii, : min(gv.max_qlen, len(q_repr)), :] = q_repr
+            if self.args.qf_layer:
+                q_enc = torch.zeros(len(text), gv.max_qlen, gv.word_dim).cuda()
+                for ii, tt in enumerate(text):
+                    q_repr = gv.word_embed(tt)
+                    q_enc[ii, : min(gv.max_qlen, len(q_repr)), :] = q_repr
 
-            # TODO (DR) change this block
-            # x = F.gelu(self.q_MLP(x)) #try remove for qf layer
-            # print("embeded text shape without mlp", q_enc.shape)
+            else:
+              x = gv.word_embed(text)
+              x = F.gelu(self.q_MLP(x)) 
 
-        return q_enc.float()
+            return q_enc.float() if self.args.qf_layer else x
 
     def seq_decoder(self, decoder, repr):
         """run the LSTM decoder sequentially for k steps"""
