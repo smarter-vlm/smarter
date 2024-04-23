@@ -8,8 +8,8 @@ class CLayer(nn.Module):
         super().__init__()
         pass
 
-    def forward(self, im_repr, q_repr):
-        return torch.cat([im_repr, q_repr], dim=1)
+    def forward(self, inputs):
+        return torch.cat(inputs, dim=1)
 
 
 # Inspired from https://github.com/huggingface/transformers/blob/main/src/transformers/models/blip_2/modeling_blip_2.py
