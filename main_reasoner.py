@@ -218,7 +218,7 @@ def train(args, dataloader, im_backbone):
         return
 
     optimizer = torch.optim.AdamW(
-        model.parameters(), lr=args.lr, betas=(0.9, 0.98), eps=1e-8, weight_decay=0.05
+        model.parameters(), lr=args.lr, betas=(0.9, 0.98), eps=1e-8, weight_decay=args.wd
     )
 
     train_loader = dataloader["train"]
@@ -227,11 +227,8 @@ def train(args, dataloader, im_backbone):
 
     num_steps = args.num_epochs * len(train_loader)
 
-    # scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-    #     optimizer, eta_min=0, T_max=num_steps
-    # )
-    # num_warmup_steps = int(0.01 * num_steps)
-    num_warmup_steps=0
+    
+    num_warmup_steps=10
     scheduler = get_cosine_schedule_with_warmup(optimizer, num_warmup_steps, num_steps)
 
     # training loop
@@ -421,7 +418,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--num_heads",
         type=int,
-        default=1,
+        default=2,
         help="number attention heads in QFlayer self and cross attention?",
     )
 
@@ -433,6 +430,12 @@ if __name__ == "__main__":
         type=int,
         default=128,
         help="intermediate representation size for image and language encoders?",
+    )
+    parser.add_argument(
+        "--wd",
+        type=float,
+        default=0.0,
+        help="weight decay for AdamW?",
     )
 
     args = parser.parse_args()
