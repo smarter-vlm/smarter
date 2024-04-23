@@ -72,7 +72,7 @@ def train(args, dataloader, im_backbone):
         f"\n Number trainable params {sum(p.numel() for p in model.parameters() if p.requires_grad)}"
     )
 
-    device = torch.device("cuda")
+    # device = torch.device("cuda")
     model.to(device)
     # print("\n Model architecture: \n", model)
 
@@ -148,10 +148,10 @@ def train(args, dataloader, im_backbone):
         with torch.no_grad():
             for i, (im, q, _, a, av, pids) in enumerate(val_loader):
 
-                q = q.cuda()
+                q = q.to(device)
                 im = im.float()
                 im = im.to(device)
-                av = av.cuda()
+                av = av.to(device)
 
                 out = model(im, q, puzzle_ids=pids)
                 val_loss = criterion(out, av, pids)
@@ -336,7 +336,7 @@ def get_data_loader(
 
 
 if __name__ == "__main__":
-    device = torch.device("cuda")
+    # device = torch.device("cuda")
 
     parser = argparse.ArgumentParser(description="SMART puzzles")
     parser.add_argument(
