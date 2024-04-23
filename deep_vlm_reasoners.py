@@ -14,7 +14,7 @@ from PIL import Image
 
 
 import text_encoder as gv
-from layers import QFLayer, CLayer, QV_Fusion
+from layers import QFLayer, CLayer, QV_Fusion, PuzzleMLPDecoder
 
 
 class Puzzle_Net(nn.Module):
@@ -183,14 +183,9 @@ class Puzzle_Net(nn.Module):
         for pid in puzzles:
             num_classes = gv.NUM_CLASSES_PER_PUZZLE[str(pid)]
             if int(pid) not in gv.SEQ_PUZZLES:
+                dec = PuzzleMLPDecoder(self.out_dim, num_classes)
                 ans_decoder.append(
-                    nn.Sequential(
-                        nn.Linear(self.out_dim, self.out_dim),
-                        nn.GELU(),
-                        nn.Linear(self.out_dim, self.out_dim),
-                        nn.GELU(),
-                        nn.Linear(self.out_dim, num_classes),
-                    )
+                    dec
                 )
             else:
                 ans_decoder.append(

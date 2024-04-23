@@ -172,4 +172,28 @@ class QV_Fusion(nn.Module):
         x = self.layer_norm(x)
         return x
 
-class PuzzleVisionMLP(nn.Module):
+class PuzzleMLPDecoder(nn.Module):
+    def __init__(self, out_dim, num_classes):
+        super().__init__()
+        self.ln1 = nn.Linear(out_dim, out_dim)
+        self.ln2 = nn.Linear(out_dim, out_dim)
+        self.ln3 = nn.Linear(out_dim, num_classes)
+
+    def forward(self, hidden_repr):
+        x = self.ln1(hidden_repr)
+        x = F.gelu(x)
+        x = self.ln2(x)
+        x = F.gelu(x)
+        x = self.ln3(x)
+        return x
+
+
+
+
+
+    # nn.Sequential(
+    #                     nn.Linear(self.out_dim, self.out_dim),
+    #                     nn.GELU(),
+    #                     nn.Linear(self.out_dim, self.out_dim),
+    #                     nn.GELU(),
+    #                     nn.Linear(self.out_dim, num_classes),
