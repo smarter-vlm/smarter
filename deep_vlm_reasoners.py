@@ -356,17 +356,14 @@ def load_pretrained_models(args, model_name, model=None):
         preprocess = weights.transforms()
          # Make sure image backbone is frozen
         print(
-            f"\n Number trainable params before explicit freezing of image backb  {sum(p.numel() for p in self.im_cnn.parameters() if p.requires_grad)}"
+            f"\n Number trainable params before explicit freezing of image backb  {sum(p.numel() for p in model.parameters() if p.requires_grad)}"
         )
-        n = 0
-        for param in model:
-            n += param.requires_grad == True
-            # print("n ", n)
+        for param in model.parameters():
             
             param.requires_grad = False
 
         print(
-            f"\n Number trainable params after explicit freezing of image backb  {sum(p.numel() for p in self.im_cnn.parameters() if p.requires_grad)}"
+            f"\n Number trainable params after explicit freezing of image backb  {sum(p.numel() for p in model.parameters() if p.requires_grad)}"
         )
 
     elif args.model_name == "dinov2":
