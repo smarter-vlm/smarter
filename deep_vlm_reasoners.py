@@ -127,7 +127,7 @@ class Puzzle_Net(nn.Module):
         #     nn.GELU(),
         # )
         if args.qf_layer:
-            self.qv_fusion = QV_Fusion(768, self.out_dim)
+            self.qv_fusion = QV_Fusion(1664, self.out_dim)
         else:
             self.qv_fusion = QV_Fusion(2*self.out_dim, self.out_dim)
 
