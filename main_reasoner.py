@@ -30,6 +30,7 @@ import deep_vlm_reasoners
 import utils
 
 from torch.optim import AdamW
+from transformers.optimization import get_cosine_schedule_with_warmup
 
 AVAIL_GPUS = min(1, torch.cuda.device_count())
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -226,9 +227,11 @@ def train(args, dataloader, im_backbone):
 
     num_steps = args.num_epochs * len(train_loader)
 
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-        optimizer, eta_min=0, T_max=100
-    )
+    # scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+    #     optimizer, eta_min=0, T_max=num_steps
+    # )
+    num_warmup_steps = int(0.01 * num_steps)
+    scheduler = get_cosine_schedule_with_warmup(optimizer, num_warmup_steps, num_steps)
 
     # training loop
     best_model = None
@@ -243,7 +246,7 @@ def train(args, dataloader, im_backbone):
         model.train()
 
         # jsut in case
-        # optimizer.zero_grad()
+        optimizer.zero_grad()
 
         loss = train_loop(epoch, train_loader, optimizer)
         
