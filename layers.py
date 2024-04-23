@@ -22,15 +22,16 @@ class QFLayer(nn.Module):
 
     def forward(self, im_repr, q_repr):
         # q_repr is siglip encoding of the text sequence with max len 110
-        q_attn = self.mha(q_repr).mean(1)
+        q_attn = self.mha(q_repr).mean(1) # TODO DR -this can also be concat of all seq token repr
 
         # for now concat all heads together
-        print("self attn output shape ", q_attn.shape)
-        print("what is the fused vision rep shape ", im_repr.shape)
+        print("self attn output shape ", q_attn.shape) #B, 896
+        print("what is the fused vision rep shape ", im_repr.shape) # B, 128; this is projected fused
 
-        x = torch.cat(
-            [im_repr, q_attn], dim=1
-        )  # STOP GAP DR; TODO here is cross attn
+        # x = torch.cat(
+        #     [im_repr, q_attn], dim=1
+        # )  # STOP GAP DR; TODO here is cross attn
+
 
         x = self.intermediate(x)
         return x
@@ -39,7 +40,7 @@ class QFLayer(nn.Module):
 class QFIntermediate(nn.Module):
     def __init__(self):
         super().__init__()
-        self.dense = nn.Linear(84608, 256)  # TODO DR shapes/hidden sizes
+        self.dense = nn.Linear(896, 256)  # TODO DR shapes/hidden sizes
         self.intermediate_act_fn = nn.GELU()
         self.layer_norm = nn.LayerNorm(256, eps=1e-12)
         self.dropout = nn.Dropout(0.1)
