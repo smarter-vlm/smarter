@@ -231,20 +231,6 @@ class Puzzle_Net(nn.Module):
 
     def encode_image(self, im, pids=None):
 
-        # Make sure image backbone is frozen
-        print(
-            f"\n Number trainable params before explicit freezing of image backb  {sum(p.numel() for p in self.im_cnn.parameters() if p.requires_grad)}"
-        )
-        n = 0
-        for param in self.im_cnn.parameters():
-            n += param.requires_grad == True
-            print("n ", n)
-            
-            param.requires_grad = False
-
-        print(
-            f"\n Number trainable params after explicit freezing of image backb  {sum(p.numel() for p in self.im_cnn.parameters() if p.requires_grad)}"
-        )
 
         with torch.no_grad():
             x = self.im_cnn(im).squeeze()
@@ -368,6 +354,20 @@ def load_pretrained_models(args, model_name, model=None):
         weights = ResNet50_Weights.DEFAULT
         model = resnet50(weights=weights)
         preprocess = weights.transforms()
+         # Make sure image backbone is frozen
+        print(
+            f"\n Number trainable params before explicit freezing of image backb  {sum(p.numel() for p in self.im_cnn.parameters() if p.requires_grad)}"
+        )
+        n = 0
+        for param in model:
+            n += param.requires_grad == True
+            # print("n ", n)
+            
+            param.requires_grad = False
+
+        print(
+            f"\n Number trainable params after explicit freezing of image backb  {sum(p.numel() for p in self.im_cnn.parameters() if p.requires_grad)}"
+        )
 
     elif args.model_name == "dinov2":
         from transformers import AutoImageProcessor, Dinov2Model
