@@ -1,7 +1,7 @@
 import math
 import torch
 from torch import nn
-
+import torch.nn.functional as F
 
 class CLayer(nn.Module):
     def __init__(self):
@@ -169,3 +169,16 @@ class QFAttentionMH(nn.Module):
         context_layer = context_layer.view(*new_context_layer_shape)
 
         return context_layer
+
+class QV_Fusion(nn.Module):
+    def __init__(self, in_dim, out_dim):
+        super().__init__()
+        self.ln1 = nn.Linear(in_dim, out_dim)
+        self.ln2 = nn.Linear(out_dim, out_dim)
+
+    def forward(self, x):
+        x = self.ln1(x)
+        x = F.gelu(x)
+        x = self.ln2(x)
+        x = F.gelu(x)
+        return x

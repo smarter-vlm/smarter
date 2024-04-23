@@ -15,215 +15,8 @@ from PIL import Image
 from torchvision import models
 
 import text_encoder as gv
-from layers import QFLayer, CLayer
+from layers import QFLayer, CLayer, QV_Fusion
 
-
-class Smarter_VL(nn.Module):
-    def __init__(self, args, VL_backbone):
-        super(Smarter_VL, self).__init__()
-        vocab_path = args.vocab_path
-        with open(vocab_path, "rb") as f:
-            self.vocab = pickle.load(f)
-
-        self.num_opts = 5
-        self.out_dim = args.repr_size
-        self.h_sz = 256
-        self.repr_size = 768
-        self.dummy_question = None
-        self.model_name = args.model_name
-        self.use_clip_text = args.use_clip_text
-        self.use_single_image_head = args.use_single_image_head
-        self.sorted_puzzle_ids = np.sort(np.array([int(ii) for ii in args.puzzle_ids]))
-
-        self.max_val = gv.MAX_VAL + 1
-
-        self.processor = args.preprocess
-        self.VL_backbone = VL_backbone
-        self.create_puzzle_head(args)
-
-        self.q_MLP = nn.Sequential(
-            nn.Linear(self.repr_size, self.h_sz),
-            nn.GELU(),
-            nn.Linear(self.h_sz, self.out_dim),
-            nn.GELU(),
-        )
-
-        self.qv_MLP = nn.Sequential(
-            nn.Linear(self.repr_size, self.h_sz),
-            nn.GELU(),
-            nn.Linear(self.h_sz, self.out_dim),
-            nn.GELU(),
-        )
-
-        self.qv_fusion = nn.Sequential(
-            nn.Linear(self.out_dim * 2, self.out_dim),
-            nn.GELU(),
-            nn.Linear(self.out_dim, self.out_dim),
-            nn.GELU(),
-        )
-
-        self.create_puzzle_tail(args)
-
-    def create_puzzle_head(self, args):
-        if args.use_single_image_head:
-            self.im_encoder = nn.Sequential(
-                nn.Linear(self.repr_size, self.out_dim),
-                nn.GELU(),
-                nn.Linear(self.out_dim, self.out_dim),
-            )
-        else:
-            self.puzzle_ids = args.puzzle_ids
-            im_encoder = [nn.Sequential(nn.Linear(self.out_dim, 1))]
-            for i in range(1, gv.num_puzzles + 1):
-                im_encoder.append(
-                    nn.Sequential(
-                        nn.Linear(self.repr_size, self.out_dim),
-                        nn.GELU(),
-                        nn.Linear(self.out_dim, self.out_dim),
-                    )
-                )
-            self.im_encoder = nn.ModuleList(im_encoder)
-
-    def create_puzzle_tail(self, args):
-        self.puzzle_ids = args.puzzle_ids
-        ans_decoder = [
-            nn.Sequential(nn.Linear(self.out_dim, 1))
-        ]  # start with a dummy as we are 1-indexed wrt puzzle ids.
-        if args.puzzles == "all":
-            puzzles = range(1, gv.num_puzzles + 1)
-        else:
-            puzzles = self.puzzle_ids
-        for pid in puzzles:
-            num_classes = gv.NUM_CLASSES_PER_PUZZLE[str(pid)]
-            if int(pid) not in gv.SEQ_PUZZLES:
-                ans_decoder.append(
-                    nn.Sequential(
-                        nn.Linear(self.out_dim, self.out_dim),
-                        nn.GELU(),
-                        nn.Linear(self.out_dim, self.out_dim),
-                        nn.GELU(),
-                        nn.Linear(self.out_dim, num_classes),
-                    )
-                )
-            else:
-                ans_decoder.append(
-                    nn.GRU(
-                        int(self.out_dim),
-                        int(num_classes),
-                        num_layers=1,
-                        batch_first=True,
-                    )
-                )
-        self.ans_decoder = nn.ModuleList(ans_decoder)
-
-    def process(self, images, text):
-        inputs = self.processor(
-            text=text,
-            images=images,
-            return_tensors="pt",
-            max_length=77,
-            padding=True,
-            return_codebook_pixels=True,
-            return_image_mask=True,
-        )
-        inputs["input_ids_masked"] = inputs["input_ids"].detach().clone()
-        inputs["bool_masked_pos"] = torch.zeros_like(inputs["bool_masked_pos"])
-        inputs = inputs.to("cuda")
-        return inputs
-
-    def encode_image(self, im_repr, pids=None):
-        if self.use_single_image_head:
-            y = self.im_encoder(im_repr)
-        else:
-            y = torch.zeros(len(im_repr), im_repr.shape[1], self.out_dim).cuda()
-            for t in range(len(self.puzzle_ids)):
-                idx = pids == int(self.puzzle_ids[t])
-                idx = idx.cuda()
-                if idx.sum() > 0:
-                    y[idx] = F.gelu(
-                        self.im_encoder[int(self.puzzle_ids[t])](im_repr[idx])
-                    )
-        return y
-
-    def encode_image_and_text(self, qv_repr):
-        x = F.gelu(self.qv_MLP(qv_repr))
-        return x
-
-    def encode_text(self, q_repr):
-        x = F.gelu(self.q_MLP(q_repr))
-        return x
-
-    def decode_image(self, im_list):
-        im_list = (im_list.permute(0, 2, 3, 1) * 255).cpu().numpy().astype("uint8")
-        im_list = [
-            Image.fromarray(im_list[ii]) for ii in range(len(im_list))
-        ]  # convert im
-        return im_list
-
-    def decode_text(self, text):
-        tt = text.cpu()
-        text = [
-            " ".join(
-                [
-                    self.vocab.idx2word[int(j)]
-                    for j in tt[i][1 : torch.nonzero(tt[i])[-1]]
-                ]
-            )
-            for i in range(len(tt))
-        ]
-        return text
-
-    def seq_decoder(self, decoder, repr):
-        """run the LSTM decoder sequentially for k steps"""
-        out = [None] * gv.MAX_DECODE_STEPS
-        hx = None
-        for k in range(gv.MAX_DECODE_STEPS):
-            try:
-                out[k], hx = decoder(repr, hx)
-            except:
-                pdb.set_trace()
-        return out
-
-    def decode_individual_puzzles(self, repr, pids):
-        upids = torch.unique(pids)
-        out_reprs = {}
-        for t in range(len(upids)):
-            idx = pids == upids[t]
-            key = str(upids[t].item())
-            key_idx = (
-                np.where(int(key) == np.array(self.sorted_puzzle_ids))[0][0] + 1
-            )  # +1 because we use 1-indexed.
-            if upids[t] not in gv.SEQ_PUZZLES:
-                out_reprs[int(key)] = self.ans_decoder[key_idx](repr[idx])
-            else:
-                out_reprs[int(key)] = self.seq_decoder(
-                    self.ans_decoder[key_idx], repr[idx]
-                )
-        return out_reprs
-
-    def forward(self, im, q=None, puzzle_ids=None):
-        im = self.decode_image(im)
-        q_text = self.decode_text(q)
-        inputs = self.process(im, q_text)
-
-        with torch.no_grad():
-            outputs = self.VL_backbone(**inputs)
-
-        im_repr = (
-            outputs.image_embeddings
-        )  # Batch size X (Number of image patches + 1) x Hidden size => 2 X 197 X 768
-        q_repr = (
-            outputs.text_embeddings
-        )  # Batch size X (Text sequence length + 1) X Hidden size => 2 X 77 X 768
-
-        im_repr = self.encode_image(im_repr.float(), puzzle_ids)
-        q_repr = self.encode_text(q_repr)
-
-        qv_repr = self.qv_fusion(torch.cat([im_repr.mean(1), q_repr.mean(1)], dim=1))
-
-        qvo_repr = self.decode_individual_puzzles(qv_repr, puzzle_ids)
-
-        return qvo_repr
 
 
 class Puzzle_Net(nn.Module):
@@ -325,18 +118,21 @@ class Puzzle_Net(nn.Module):
             nn.Linear(self.out_dim, self.out_dim),
             nn.GELU(),
         )
-        self.qv_fusion = nn.Sequential(
-            nn.Linear(self.out_dim * 2, self.out_dim),
-            nn.GELU(),
-            nn.Linear(self.out_dim, self.out_dim),
-            nn.GELU(),
-        )
+        # self.qv_fusion = nn.Sequential(
+        #     nn.Linear(self.out_dim * 2, self.out_dim),
+        #     nn.GELU(),
+        #     nn.Linear(self.out_dim, self.out_dim),
+        #     nn.GELU(),
+        # )
+        if args.qf_layer:
+            self.qv_fusion = QV_Fusion(768, self.out_dim)
+        else:
+            self.qv_fusion = QV_Fusion(2*self.out_dim, self.out_dim)
 
         if args.qf_layer:
-            self.c = QFLayer()
-            print(self.c)
-        else:
-            self.c = CLayer()
+            self.qf = QFLayer()
+            
+        self.c = CLayer()
 
         self.create_puzzle_tail(args)
 
@@ -554,7 +350,11 @@ class Puzzle_Net(nn.Module):
         im_repr = self.encode_image(im.float(), puzzle_ids).float()
 
         # qv_repr = self.qv_fusion(torch.cat([im_repr, q_repr], dim=1))
-        qv_repr = self.qv_fusion(self.c(im_repr, q_repr))
+        if self.args.qf_layer:
+            qf_out = self.qf(im_repr, q_repr)
+            qv_repr = self.qv_fusion(self.c(im_repr, q_repr, qf_out))
+        else:
+            qv_repr = self.qv_fusion(self.c(im_repr, q_repr))
 
         qvo_repr = self.decode_individual_puzzles(qv_repr, puzzle_ids)
         return qvo_repr
