@@ -19,7 +19,7 @@ class Criterion(nn.Module):
             else:
                 seq_loss = 0
                 for i in range(len(a[key])):
-                    seq_loss += self.criterion(a[key][i], b[idx, i])  # .long()
+                    seq_loss += self.criterion(a[key][i], b[idx, i])
                 seq_loss /= len(a[key])
                 loss += seq_loss
         loss = loss / len(a.keys())
