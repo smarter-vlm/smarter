@@ -29,11 +29,13 @@ import losses
 import deep_vlm_reasoners
 import utils
 
-
 from torch.optim import AdamW
+from transformers.optimization import get_cosine_schedule_with_warmup
 
 AVAIL_GPUS = min(1, torch.cuda.device_count())
+device = "cuda" if torch.cuda.is_available() else "cpu"
 
+print(f"Available GPUs {AVAIL_GPUS} and current device {device}")
 
 API_KEY = Path(".comet_token").read_text().strip()
 workspace = Path(".comet_workspace").read_text().strip()
@@ -64,13 +66,12 @@ def reset_state(args):
 def train(args, dataloader, im_backbone):
     criterion = losses.Criterion(args)
 
-    model = deep_vlm_reasoners.Puzzle_Net(args, im_backbone=im_backbone)
+    model = deep_vlm_reasoners.Puzzle_Net(args, im_backbone=im_backbone, device=device)
 
     print(
-        f"\n Number trainable params: {sum(p.numel() for p in model.parameters() if p.requires_grad)}"
+        f"\n Number trainable params {sum(p.numel() for p in model.parameters() if p.requires_grad)}"
     )
 
-    device = torch.device("cuda")
     model.to(device)
     # print("\n Model architecture: \n", model)
 
@@ -119,13 +120,13 @@ def train(args, dataloader, im_backbone):
             # the model is puzzlenet
             out = model(im, q, puzzle_ids=pids)
             loss = criterion(out, av, pids)
-            optimizer.zero_grad()
             loss.backward()
 
-            # bc we have some rnns
-            torch.nn.utils.clip_grad_norm_(model.parameters(), 0.5)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
 
             optimizer.step()
+            scheduler.step()
+            optimizer.zero_grad()
 
             tot_loss += loss.item()
 
@@ -144,10 +145,10 @@ def train(args, dataloader, im_backbone):
         with torch.no_grad():
             for i, (im, q, _, a, av, pids) in enumerate(val_loader):
 
-                q = q.cuda()
+                q = q.to(device)
                 im = im.float()
                 im = im.to(device)
-                av = av.cuda()
+                av = av.to(device)
 
                 out = model(im, q, puzzle_ids=pids)
                 val_loss = criterion(out, av, pids)
@@ -214,7 +215,11 @@ def train(args, dataloader, im_backbone):
         return
 
     optimizer = torch.optim.AdamW(
-        model.parameters(), lr=args.lr, betas=(0.9, 0.98), eps=1e-8, weight_decay=0.05
+        model.parameters(),
+        lr=args.lr,
+        betas=(0.9, 0.98),
+        eps=1e-8,
+        weight_decay=args.wd,
     )
 
     train_loader = dataloader["train"]
@@ -223,10 +228,8 @@ def train(args, dataloader, im_backbone):
 
     num_steps = args.num_epochs * len(train_loader)
 
-    # TODO: don't think the scheduler is working
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-        optimizer, eta_min=0, T_max=num_steps
-    )
+    num_warmup_steps = 10
+    scheduler = get_cosine_schedule_with_warmup(optimizer, num_warmup_steps, num_steps)
 
     # training loop
     best_model = None
@@ -239,8 +242,11 @@ def train(args, dataloader, im_backbone):
     for epoch in range(args.num_epochs):
         tt = time.time()
         model.train()
+
+        # jsut in case
+        optimizer.zero_grad()
+
         loss = train_loop(epoch, train_loader, optimizer)
-        scheduler.step(loss)
 
         experiment.log_metrics({"epoch_train_loss": loss}, epoch=epoch)
 
@@ -329,7 +335,6 @@ def get_data_loader(
 
 
 if __name__ == "__main__":
-    device = torch.device("cuda")
 
     parser = argparse.ArgumentParser(description="SMART puzzles")
     parser.add_argument(
@@ -385,18 +390,17 @@ if __name__ == "__main__":
     parser.add_argument(
         "--data_tot",
         type=int,
-        default=2000,
+        default=1000,
         help="how many instances to use for train+val+test",
     )
 
-    # parser.add_argument(
-    #     "--use_clip_text", action="store_true", help="should use clip text embeddings?"
-    # )
     parser.add_argument(
         "--log", action="store_true", help="should print detailed log of accuracy?"
     )
 
-    parser.add_argument("--word_embed", type=str, default="siglip", help="siglip/mbert")
+    parser.add_argument(
+        "--word_embed", type=str, default="siglip", help="siglip/mbert/bert"
+    )
 
     parser.add_argument(
         "--use_single_image_head",
@@ -412,7 +416,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--num_heads",
         type=int,
-        default=1,
+        default=2,
         help="number attention heads in QFlayer self and cross attention?",
     )
 
@@ -424,6 +428,12 @@ if __name__ == "__main__":
         type=int,
         default=128,
         help="intermediate representation size for image and language encoders?",
+    )
+    parser.add_argument(
+        "--wd",
+        type=float,
+        default=0.0,
+        help="weight decay for AdamW?",
     )
 
     args = parser.parse_args()

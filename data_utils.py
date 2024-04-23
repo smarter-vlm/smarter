@@ -42,7 +42,6 @@ class SMART_Data(Dataset):
                 ]
             )
         elif args.model_name in [
-            "mae",
             "dinov2",
             "siglip",
             "fused_dinov2_siglip",

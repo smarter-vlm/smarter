@@ -14,22 +14,22 @@ from PIL import Image
 
 
 import text_encoder as gv
-from layers import QFLayer, CLayer, QV_Fusion
+from layers import QFLayer, CLayer, QV_Fusion, PuzzleMLPDecoder
 
 
 class Puzzle_Net(nn.Module):
-    def __init__(self, args, im_backbone=None):
+    def __init__(self, args, im_backbone, device):
         super(Puzzle_Net, self).__init__()
         vocab_path = args.vocab_path
         with open(vocab_path, "rb") as f:
             self.vocab = pickle.load(f)
 
         self.args = args
+        self.device = device
 
         self.num_opts = 5
         self.out_dim = args.repr_size
         self.h_sz = 256
-        self.dummy_question = None
         self.model_name = args.model_name
         self.use_single_image_head = args.use_single_image_head
         self.word_embed = args.word_embed
@@ -106,40 +106,38 @@ class Puzzle_Net(nn.Module):
 
         if args.qf_layer:
             self.qv_fusion = QV_Fusion(1664, self.out_dim)
+            self.c = CLayer(dim=1664)
+
         else:
             self.qv_fusion = QV_Fusion(2 * self.out_dim, self.out_dim)
-
+            self.c = CLayer(dim=2 * self.out_dim)
         if args.qf_layer:
             self.qf = QFLayer(num_heads=args.num_heads)
-
-        self.c = CLayer()
 
         self.create_puzzle_tail(args)
 
     def process_dinov2(self, x):
-        device = torch.device("cuda")
         x = self.decode_image(x)
         inputs = self.preprocess(images=x, do_rescale=True, return_tensors="pt").to(
-            device
+            self.device
         )
         outputs = self.im_backbone(**inputs)
         return outputs.last_hidden_state.mean(1)
 
     def process_fused_vision(self, x, image_processor_siglip, image_processor_dino):
-        device = torch.device("cuda")
         x = self.decode_image(x)
 
         inputs_din = image_processor_dino(
             images=x, do_rescale=True, return_tensors="pt"
-        ).to(device)
+        ).to(self.device)
         inputs_sig = image_processor_siglip(
             images=x, do_rescale=True, return_tensors="pt"
-        ).to(device)
+        ).to(self.device)
 
         im_backbone_din, im_backbone_sig = self.im_backbone
 
-        im_backbone_din = im_backbone_din.to(device)
-        im_backbone_sig = im_backbone_sig.to(device)
+        im_backbone_din = im_backbone_din.to(self.device)
+        im_backbone_sig = im_backbone_sig.to(self.device)
 
         outputs_din = im_backbone_din(**inputs_din)
         outputs_sig = im_backbone_sig(**inputs_sig)
@@ -184,15 +182,8 @@ class Puzzle_Net(nn.Module):
         for pid in puzzles:
             num_classes = gv.NUM_CLASSES_PER_PUZZLE[str(pid)]
             if int(pid) not in gv.SEQ_PUZZLES:
-                ans_decoder.append(
-                    nn.Sequential(
-                        nn.Linear(self.out_dim, self.out_dim),
-                        nn.GELU(),
-                        nn.Linear(self.out_dim, self.out_dim),
-                        nn.GELU(),
-                        nn.Linear(self.out_dim, num_classes),
-                    )
-                )
+                dec = PuzzleMLPDecoder(self.out_dim, num_classes)
+                ans_decoder.append(dec)
             else:
                 ans_decoder.append(
                     nn.GRU(
@@ -240,10 +231,10 @@ class Puzzle_Net(nn.Module):
         if self.use_single_image_head:
             y = self.im_encoder(x)
         else:
-            y = torch.zeros(len(im), self.out_dim).cuda()
+            y = torch.zeros(len(im), self.out_dim).to(self.device)
             for t in range(len(self.puzzle_ids)):
                 idx = pids == int(self.puzzle_ids[t])
-                idx = idx.cuda()
+                idx = idx.to(self.device)
                 if idx.sum() > 0:
                     y[idx] = F.gelu(self.im_encoder[int(self.puzzle_ids[t])](x[idx]))
 
@@ -264,9 +255,9 @@ class Puzzle_Net(nn.Module):
         return text
 
     def encode_text(self, text):
-        if self.word_embed in ["mbert"]:
+        if self.word_embed in ["mbert", "bert"]:
             text = self.decode_text(text)
-            q_enc = torch.zeros(len(text), gv.max_qlen, gv.word_dim).cuda()
+            q_enc = torch.zeros(len(text), gv.max_qlen, gv.word_dim).to(self.device)
             for ii, tt in enumerate(text):
                 q_repr = gv.word_embed(tt)
                 q_enc[ii, : min(gv.max_qlen, len(q_repr)), :] = q_repr
@@ -274,21 +265,21 @@ class Puzzle_Net(nn.Module):
             x = F.gelu(self.q_MLP(x.mean(1)))
 
         elif self.word_embed in ["siglip"]:
-            # text = self.decode_text(text) #TODO DR make sthis cofnig based on if arg is qf
-            # x = gv.word_embed(text)
 
-            # Change to be a seq for mha
             text = self.decode_text(text)
-            q_enc = torch.zeros(len(text), gv.max_qlen, gv.word_dim).cuda()
-            for ii, tt in enumerate(text):
-                q_repr = gv.word_embed(tt)
-                q_enc[ii, : min(gv.max_qlen, len(q_repr)), :] = q_repr
+            # An encoded seq of tokens for mha in qf layer
+            if self.args.qf_layer:
+                q_enc = torch.zeros(len(text), gv.max_qlen, gv.word_dim).to(self.device)
+                for ii, tt in enumerate(text):
+                    q_repr = gv.word_embed(tt)
+                    q_enc[ii, : min(gv.max_qlen, len(q_repr)), :] = q_repr
 
-            # TODO (DR) change this block
-            # x = F.gelu(self.q_MLP(x)) #try remove for qf layer
-            # print("embeded text shape without mlp", q_enc.shape)
+            else:
+                # as siglip encodes the sequence
+                x = gv.word_embed(text)
+                x = F.gelu(self.q_MLP(x))
 
-        return q_enc.float()
+        return q_enc.float() if self.args.qf_layer else x
 
     def seq_decoder(self, decoder, repr):
         """run the LSTM decoder sequentially for k steps"""
@@ -323,7 +314,6 @@ class Puzzle_Net(nn.Module):
         im_repr = self.encode_image(im.float(), puzzle_ids).float()
 
         if self.args.qf_layer:
-            print(self.qf)
             qf_out = self.qf(im_repr, q_repr)
             qv_repr = self.qv_fusion(self.c([im_repr, q_repr.mean(1), qf_out]))
         else:
@@ -353,6 +343,17 @@ def load_pretrained_models(args, model_name, model=None):
         weights = ResNet50_Weights.DEFAULT
         model = resnet50(weights=weights)
         preprocess = weights.transforms()
+        # Make sure image backbone is frozen
+        print(
+            f"\n Number trainable params before explicit freezing of image backb  {sum(p.numel() for p in model.parameters() if p.requires_grad)}"
+        )
+        for param in model.parameters():
+
+            param.requires_grad = False
+
+        print(
+            f"\n Number trainable params after explicit freezing of image backb  {sum(p.numel() for p in model.parameters() if p.requires_grad)}"
+        )
 
     elif args.model_name == "dinov2":
         from transformers import AutoImageProcessor, Dinov2Model
@@ -360,6 +361,16 @@ def load_pretrained_models(args, model_name, model=None):
         image_processor = AutoImageProcessor.from_pretrained("facebook/dinov2-base")
         model = Dinov2Model.from_pretrained("facebook/dinov2-base")
         preprocess = image_processor
+        print(
+            f"\n Number trainable params before explicit freezing of image backb  {sum(p.numel() for p in model.parameters() if p.requires_grad)}"
+        )
+        for param in model.parameters():
+
+            param.requires_grad = False
+
+        print(
+            f"\n Number trainable params after explicit freezing of image backb  {sum(p.numel() for p in model.parameters() if p.requires_grad)}"
+        )
 
     elif args.model_name == "siglip":
         from transformers import (
@@ -372,12 +383,32 @@ def load_pretrained_models(args, model_name, model=None):
         )
         model = SiglipVisionModel.from_pretrained("google/siglip-base-patch16-224")
         preprocess = image_processor
+        print(
+            f"\n Number trainable params before explicit freezing of image backb  {sum(p.numel() for p in model.parameters() if p.requires_grad)}"
+        )
+        for param in model.parameters():
+
+            param.requires_grad = False
+
+        print(
+            f"\n Number trainable params after explicit freezing of image backb  {sum(p.numel() for p in model.parameters() if p.requires_grad)}"
+        )
 
     elif args.model_name == "fused_dinov2_siglip":
         from transformers import AutoImageProcessor, SiglipVisionModel, Dinov2Model
 
         model_siglip = SiglipVisionModel.from_pretrained(
             "google/siglip-base-patch16-224"
+        )
+        print(
+            f"\n Number trainable params before explicit freezing of image backb  {sum(p.numel() for p in model_siglip.parameters() if p.requires_grad)}"
+        )
+        for param in model_siglip.parameters():
+
+            param.requires_grad = False
+
+        print(
+            f"\n Number trainable params after explicit freezing of image backb  {sum(p.numel() for p in model_siglip.parameters() if p.requires_grad)}"
         )
         model_dino = Dinov2Model.from_pretrained("facebook/dinov2-base")
         model = (model_dino, model_siglip)

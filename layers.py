@@ -7,19 +7,19 @@ import torch.nn.functional as F
 
 
 class CLayer(nn.Module):
-    def __init__(self):
+    def __init__(self, dim):
         super().__init__()
-        pass
+        self.ln = nn.LayerNorm(dim, eps=1e-6)
 
     def forward(self, inputs):
-        return torch.cat(inputs, dim=1)
+        return self.ln(torch.cat(inputs, dim=1))
 
 
 class QFLayer(nn.Module):
-    def __init__(self, num_heads=1):
+    def __init__(self, num_heads):
         super().__init__()
         self.intermediate = QFIntermediate()
-        self.mha = QFAttentionMH()
+        self.mha = QFAttentionMH(num_attention_heads=num_heads)
         self.crossattention = QFAttentionMH(
             num_attention_heads=num_heads,
             hidden_size=768,
@@ -33,7 +33,7 @@ class QFLayer(nn.Module):
         # q_repr is siglip encoding of the text sequence with max len 110
         q_attn = self.mha(q_repr)
 
-        # this is the fused vision hidden projected
+        # this is the vision encoder hidden projected
         vision_encoder = torch.unsqueeze(im_repr, 1)
         vision_encoder = vision_encoder.expand(-1, q_repr.shape[1], -1)  # seq len
         x = self.crossattention(q_attn, vision_encoder).mean(1)
@@ -47,8 +47,8 @@ class QFIntermediate(nn.Module):
         super().__init__()
         self.dense = nn.Linear(768, 256)
         self.intermediate_act_fn = nn.GELU()
-        self.layer_norm = nn.LayerNorm(768, eps=1e-12)
-        self.dropout = nn.Dropout(0.1)
+        self.layer_norm = nn.LayerNorm(768, eps=1e-6)
+        self.dropout = nn.Dropout(0.2)
         self.dense_final = nn.Linear(256, 768)
 
     def forward(self, hidden_states: torch.Tensor) -> torch.Tensor:
@@ -65,7 +65,7 @@ class QFIntermediate(nn.Module):
 class QFAttentionMH(nn.Module):
     def __init__(
         self,
-        num_attention_heads=1,
+        num_attention_heads,
         hidden_size=768,  # TODO [DR] :this needs to match what gets out of siglip unless I want to project it down first
         encoder_hidden_size=768,
         max_position_embeddings=110,
@@ -76,6 +76,7 @@ class QFAttentionMH(nn.Module):
         # hidden size must be multiple of num heads
         self.hidden_size = hidden_size
         self.attention_head_size = int(self.hidden_size / self.num_attention_heads)
+
         self.all_head_size = self.num_attention_heads * self.attention_head_size
         self.max_position_embeddings = max_position_embeddings
         self.query = nn.Linear(hidden_size, self.all_head_size)
@@ -88,7 +89,7 @@ class QFAttentionMH(nn.Module):
             self.key = nn.Linear(hidden_size, self.all_head_size)
             self.value = nn.Linear(hidden_size, self.all_head_size)
 
-        self.dropout = nn.Dropout(0.1)
+        self.dropout = nn.Dropout(0.2)
         self.distance_embedding = nn.Embedding(
             2 * max_position_embeddings - 1, self.attention_head_size
         )
@@ -161,10 +162,29 @@ class QV_Fusion(nn.Module):
         super().__init__()
         self.ln1 = nn.Linear(in_dim, out_dim)
         self.ln2 = nn.Linear(out_dim, out_dim)
+        self.layer_norm = nn.LayerNorm(out_dim, eps=1e-6)
 
     def forward(self, x):
         x = self.ln1(x)
         x = F.gelu(x)
         x = self.ln2(x)
         x = F.gelu(x)
+        x = self.layer_norm(x)
         return x
+
+
+class PuzzleMLPDecoder(nn.Module):
+    def __init__(self, out_dim, num_classes):
+        super().__init__()
+        self.ln1 = nn.Linear(out_dim, out_dim)
+        self.ln2 = nn.Linear(out_dim, out_dim)
+        self.ln3 = nn.Linear(out_dim, num_classes)
+
+    def forward(self, hidden_repr):
+        x = self.ln1(hidden_repr)
+        x = F.gelu(x)
+        x = self.ln2(x)
+        x = F.gelu(x)
+        x = self.ln3(x)
+        return x
+

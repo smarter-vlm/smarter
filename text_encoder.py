@@ -6,6 +6,7 @@ import numpy as np
 import torch
 
 import utils
+from main_reasoner import device
 
 
 class mBERT:
@@ -15,8 +16,19 @@ class mBERT:
         from transformers import BertModel, BertTokenizer
 
         self.model = BertModel.from_pretrained("bert-base-multilingual-cased").to(
-            "cuda"
+            device
         )
+        print(
+            f"\n Number trainable params before explicit freezing of text backb  {sum(p.numel() for p in self.model.parameters() if p.requires_grad)}"
+        )
+        for param in self.model.parameters():
+
+            param.requires_grad = False
+
+        print(
+            f"\n Number trainable params after explicit freezing of text backb  {sum(p.numel() for p in self.model.parameters() if p.requires_grad)}"
+        )
+
         self.tokenizer = BertTokenizer.from_pretrained("bert-base-multilingual-cased")
         self.word_dim = 768
 
@@ -26,11 +38,45 @@ class mBERT:
     def word_embed(self, sentence):
         with torch.no_grad():
             inputs = self.tokenizer(sentence, return_tensors="pt", padding=True).to(
-                "cuda"
+                device
             )
             outputs = self.model(**inputs)
             word_reprs = outputs.last_hidden_state
-        return torch.tensor(word_reprs.squeeze()).cuda()
+        return torch.tensor(word_reprs.squeeze()).to(device)
+
+
+class BERT:
+    # https://huggingface.co/docs/transformers/model_doc/bert
+    def __init__(self):
+        super(BERT, self).__init__()
+        from transformers import BertModel, BertTokenizer
+
+        self.model = BertModel.from_pretrained("bert-base-uncased").to(device)
+        print(
+            f"\n Number trainable params before explicit freezing of text backb  {sum(p.numel() for p in self.model.parameters() if p.requires_grad)}"
+        )
+        for param in self.model.parameters():
+
+            param.requires_grad = False
+
+        print(
+            f"\n Number trainable params after explicit freezing of text backb  {sum(p.numel() for p in self.model.parameters() if p.requires_grad)}"
+        )
+
+        self.tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
+        self.word_dim = 768
+
+    def get_word_dim(self):
+        return self.word_dim
+
+    def word_embed(self, sentence):
+        with torch.no_grad():
+            inputs = self.tokenizer(sentence, return_tensors="pt", padding=True).to(
+                device
+            )
+            outputs = self.model(**inputs)
+            word_reprs = outputs.last_hidden_state
+        return torch.tensor(word_reprs.squeeze()).to(device)
 
 
 class Siglip:
@@ -41,7 +87,18 @@ class Siglip:
 
         self.model = SiglipTextModel.from_pretrained(
             "google/siglip-base-patch16-224"
-        ).to("cuda")
+        ).to(device)
+
+        print(
+            f"\n Number trainable params before explicit freezing of text backb  {sum(p.numel() for p in self.model.parameters() if p.requires_grad)}"
+        )
+        for param in self.model.parameters():
+
+            param.requires_grad = False
+
+        print(
+            f"\n Number trainable params after explicit freezing of text backb  {sum(p.numel() for p in self.model.parameters() if p.requires_grad)}"
+        )
         self.tokenizer = AutoTokenizer.from_pretrained("google/siglip-base-patch16-224")
         self.tokenizer.model_max_length = 64
         self.word_dim = 768
@@ -53,10 +110,10 @@ class Siglip:
         with torch.no_grad():
             inputs = self.tokenizer(
                 sentence, padding="max_length", truncation=True, return_tensors="pt"
-            ).to("cuda")
+            ).to(device)
             outputs = self.model(**inputs)
             word_reprs = outputs.last_hidden_state.mean(1)
-        return torch.tensor(word_reprs.squeeze()).cuda()
+        return torch.tensor(word_reprs.squeeze()).to(device)
 
 
 def globals_init(args):
@@ -67,7 +124,7 @@ def globals_init(args):
     global puzzles_not_included, num_actual_puzz
     global PS_VAL_IDX, PS_TEST_IDX
 
-    device = "cuda"
+    # device = "cuda"
     puzzle_diff = {"easy": ""}  # {'easy': 'e', 'medium': 'm', 'hard': 'h'}
     puzzle_diff_str = {"easy": ""}
     osp = os.path.join
@@ -119,6 +176,10 @@ def globals_init(args):
         word_embed = Embed.word_embed
     elif args.word_embed == "siglip":
         Embed = Siglip()
+        word_dim = Embed.get_word_dim()
+        word_embed = Embed.word_embed
+    elif args.word_embed == "bert":
+        Embed = BERT()
         word_dim = Embed.get_word_dim()
         word_embed = Embed.word_embed
     else:
