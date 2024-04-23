@@ -233,11 +233,12 @@ class Puzzle_Net(nn.Module):
 
         # Make sure image backbone is frozen
         print(
-            f"\n Number trainable params after explicit freezing of image backb  {sum(p.numel() for p in self.im_cnn.parameters() if p.requires_grad)}"
+            f"\n Number trainable params before explicit freezing of image backb  {sum(p.numel() for p in self.im_cnn.parameters() if p.requires_grad)}"
         )
         n = 0
         for param in self.im_cnn.parameters():
             n += param.requires_grad == True
+            print("n ", n)
             
             param.requires_grad = False
 
