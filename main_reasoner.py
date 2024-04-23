@@ -243,7 +243,7 @@ def train(args, dataloader, im_backbone):
         model.train()
 
         # jsut in case
-        optimizer.zero_grad()
+        # optimizer.zero_grad()
 
         loss = train_loop(epoch, train_loader, optimizer)
         
