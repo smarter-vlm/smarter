@@ -372,6 +372,16 @@ def load_pretrained_models(args, model_name, model=None):
         image_processor = AutoImageProcessor.from_pretrained("facebook/dinov2-base")
         model = Dinov2Model.from_pretrained("facebook/dinov2-base")
         preprocess = image_processor
+        print(
+            f"\n Number trainable params before explicit freezing of image backb  {sum(p.numel() for p in model.parameters() if p.requires_grad)}"
+        )
+        for param in model.parameters():
+            
+            param.requires_grad = False
+
+        print(
+            f"\n Number trainable params after explicit freezing of image backb  {sum(p.numel() for p in model.parameters() if p.requires_grad)}"
+        )
 
     elif args.model_name == "siglip":
         from transformers import (
@@ -384,12 +394,32 @@ def load_pretrained_models(args, model_name, model=None):
         )
         model = SiglipVisionModel.from_pretrained("google/siglip-base-patch16-224")
         preprocess = image_processor
+        print(
+            f"\n Number trainable params before explicit freezing of image backb  {sum(p.numel() for p in model.parameters() if p.requires_grad)}"
+        )
+        for param in model.parameters():
+            
+            param.requires_grad = False
+
+        print(
+            f"\n Number trainable params after explicit freezing of image backb  {sum(p.numel() for p in model.parameters() if p.requires_grad)}"
+        )
 
     elif args.model_name == "fused_dinov2_siglip":
         from transformers import AutoImageProcessor, SiglipVisionModel, Dinov2Model
 
         model_siglip = SiglipVisionModel.from_pretrained(
             "google/siglip-base-patch16-224"
+        )
+        print(
+            f"\n Number trainable params before explicit freezing of image backb  {sum(p.numel() for p in model_siglip.parameters() if p.requires_grad)}"
+        )
+        for param in model_siglip.parameters():
+            
+            param.requires_grad = False
+
+        print(
+            f"\n Number trainable params after explicit freezing of image backb  {sum(p.numel() for p in model_siglip.parameters() if p.requires_grad)}"
         )
         model_dino = Dinov2Model.from_pretrained("facebook/dinov2-base")
         model = (model_dino, model_siglip)

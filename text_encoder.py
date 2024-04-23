@@ -17,6 +17,7 @@ class mBERT:
         self.model = BertModel.from_pretrained("bert-base-multilingual-cased").to(
             "cuda"
         )
+        
         self.tokenizer = BertTokenizer.from_pretrained("bert-base-multilingual-cased")
         self.word_dim = 768
 
@@ -50,6 +51,16 @@ class Siglip:
         return self.word_dim
 
     def word_embed(self, sentence):
+        print(
+            f"\n Number trainable params before explicit freezing of text backb  {sum(p.numel() for p in self.model.parameters() if p.requires_grad)}"
+        )
+        for param in self.model.parameters():
+            
+            param.requires_grad = False
+
+        print(
+            f"\n Number trainable params after explicit freezing of text backb  {sum(p.numel() for p in self.model.parameters() if p.requires_grad)}"
+        )
         with torch.no_grad():
             inputs = self.tokenizer(
                 sentence, padding="max_length", truncation=True, return_tensors="pt"
