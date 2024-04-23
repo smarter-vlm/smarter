@@ -18,13 +18,15 @@ class QFLayer(nn.Module):
         super().__init__()
         self.intermediate = QFIntermediate()
         self.mha = QFAttentionMH()
+        # TODO DR add a num heads arg
 
     def forward(self, im_repr, q_repr):
         # print("What is im repr shape: ", im_repr.shape)
         q_attn = self.mha(q_repr)
 
         # for now concat all heads together
-        # print("self attn output shape ", q_attn.shape)
+        print("self attn output shape ", q_attn.shape)
+        print("what is the fused vision rep shape ", im_repr.shape)
 
         x = torch.cat(
             [im_repr, q_attn.view((im_repr.shape[0], -1))], dim=1
