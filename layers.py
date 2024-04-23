@@ -23,19 +23,19 @@ class QFLayer(nn.Module):
 
     def forward(self, im_repr, q_repr):
         # q_repr is siglip encoding of the text sequence with max len 110
-        # q_attn = self.mha(q_repr).mean(1) # TODO DR -this can also be concat of all seq token repr
-        q_attn = self.mha(q_repr)
+        q_attn = self.mha(q_repr).mean(1) # TODO DR -this can also be concat of all seq token repr
+        # q_attn = self.mha(q_repr)
         # for now concat all heads together
         print("self attn text output shape ", q_attn.shape) #B, 896
         print("what is the project fused vision rep shape ", im_repr.shape) # B, 128; this is projected fused
 
-        # x = torch.cat(
-        #     [im_repr, q_attn], dim=1
-        # )  # STOP GAP DR; TODO here is cross attn
-        batch, proj_dim = im_repr.shape
-        vision_encoder= torch.unsqueeze(im_repr, 1)
-        vision_encoder = im_repr.expand(batch, 1, proj_dim)
-        x = self.crossattention(q_attn, vision_encoder)
+        x = torch.cat(
+            [im_repr, q_attn], dim=1
+        )  # STOP GAP DR; TODO here is cross attn
+        # batch, proj_dim = im_repr.shape
+        # vision_encoder= torch.unsqueeze(im_repr, 1)
+        # vision_encoder = im_repr.expand(batch, 1, proj_dim)
+        # x = self.crossattention(q_attn, vision_encoder)
 
         print("\nWhat is the output shape after cross attn with mh self attn on siglip encoded text queries and projected fused vision encoded key and vals", x)
         # TODO: add a residual back from vision and from mean text maybe
