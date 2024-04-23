@@ -21,15 +21,28 @@ class mBERT:
             f"\n Number trainable params before explicit freezing of text backb  {sum(p.numel() for p in self.model.parameters() if p.requires_grad)}"
         )
         for param in self.model.parameters():
-            
+
             param.requires_grad = False
 
         print(
             f"\n Number trainable params after explicit freezing of text backb  {sum(p.numel() for p in self.model.parameters() if p.requires_grad)}"
         )
-        
+
         self.tokenizer = BertTokenizer.from_pretrained("bert-base-multilingual-cased")
         self.word_dim = 768
+
+    def get_word_dim(self):
+        return self.word_dim
+
+    def word_embed(self, sentence):
+        with torch.no_grad():
+            inputs = self.tokenizer(sentence, return_tensors="pt", padding=True).to(
+                "cuda"
+            )
+            outputs = self.model(**inputs)
+            word_reprs = outputs.last_hidden_state
+        return torch.tensor(word_reprs.squeeze()).cuda()
+
 
 class BERT:
     # https://huggingface.co/docs/transformers/model_doc/bert
@@ -37,20 +50,18 @@ class BERT:
         super(mBERT, self).__init__()
         from transformers import BertModel, BertTokenizer
 
-        self.model = BertModel.from_pretrained("bert-base-uncased").to(
-            "cuda"
-        )
+        self.model = BertModel.from_pretrained("bert-base-uncased").to("cuda")
         print(
             f"\n Number trainable params before explicit freezing of text backb  {sum(p.numel() for p in self.model.parameters() if p.requires_grad)}"
         )
         for param in self.model.parameters():
-            
+
             param.requires_grad = False
 
         print(
             f"\n Number trainable params after explicit freezing of text backb  {sum(p.numel() for p in self.model.parameters() if p.requires_grad)}"
         )
-        
+
         self.tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
         self.word_dim = 768
 
@@ -81,7 +92,7 @@ class Siglip:
             f"\n Number trainable params before explicit freezing of text backb  {sum(p.numel() for p in self.model.parameters() if p.requires_grad)}"
         )
         for param in self.model.parameters():
-            
+
             param.requires_grad = False
 
         print(

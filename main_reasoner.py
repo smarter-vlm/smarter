@@ -71,8 +71,6 @@ def train(args, dataloader, im_backbone):
         f"\n Number trainable params {sum(p.numel() for p in model.parameters() if p.requires_grad)}"
     )
 
-
-
     device = torch.device("cuda")
     model.to(device)
     # print("\n Model architecture: \n", model)
@@ -396,7 +394,9 @@ if __name__ == "__main__":
         "--log", action="store_true", help="should print detailed log of accuracy?"
     )
 
-    parser.add_argument("--word_embed", type=str, default="siglip", help="siglip/mbert/bert")
+    parser.add_argument(
+        "--word_embed", type=str, default="siglip", help="siglip/mbert/bert"
+    )
 
     parser.add_argument(
         "--use_single_image_head",

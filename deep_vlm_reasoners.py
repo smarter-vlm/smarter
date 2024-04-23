@@ -231,7 +231,6 @@ class Puzzle_Net(nn.Module):
 
     def encode_image(self, im, pids=None):
 
-
         with torch.no_grad():
             x = self.im_cnn(im).squeeze()
 
@@ -275,7 +274,7 @@ class Puzzle_Net(nn.Module):
             x = F.gelu(self.q_MLP(x.mean(1)))
 
         elif self.word_embed in ["siglip"]:
-            
+
             text = self.decode_text(text)
             # An encoded seq of tokens for mha in qf layer
             if self.args.qf_layer:
@@ -285,9 +284,9 @@ class Puzzle_Net(nn.Module):
                     q_enc[ii, : min(gv.max_qlen, len(q_repr)), :] = q_repr
 
             else:
-              # as siglip encodes the sequence
-              x = gv.word_embed(text)
-              x = F.gelu(self.q_MLP(x)) 
+                # as siglip encodes the sequence
+                x = gv.word_embed(text)
+                x = F.gelu(self.q_MLP(x))
 
         return q_enc.float() if self.args.qf_layer else x
 
@@ -354,12 +353,12 @@ def load_pretrained_models(args, model_name, model=None):
         weights = ResNet50_Weights.DEFAULT
         model = resnet50(weights=weights)
         preprocess = weights.transforms()
-         # Make sure image backbone is frozen
+        # Make sure image backbone is frozen
         print(
             f"\n Number trainable params before explicit freezing of image backb  {sum(p.numel() for p in model.parameters() if p.requires_grad)}"
         )
         for param in model.parameters():
-            
+
             param.requires_grad = False
 
         print(
@@ -376,7 +375,7 @@ def load_pretrained_models(args, model_name, model=None):
             f"\n Number trainable params before explicit freezing of image backb  {sum(p.numel() for p in model.parameters() if p.requires_grad)}"
         )
         for param in model.parameters():
-            
+
             param.requires_grad = False
 
         print(
@@ -398,7 +397,7 @@ def load_pretrained_models(args, model_name, model=None):
             f"\n Number trainable params before explicit freezing of image backb  {sum(p.numel() for p in model.parameters() if p.requires_grad)}"
         )
         for param in model.parameters():
-            
+
             param.requires_grad = False
 
         print(
@@ -415,7 +414,7 @@ def load_pretrained_models(args, model_name, model=None):
             f"\n Number trainable params before explicit freezing of image backb  {sum(p.numel() for p in model_siglip.parameters() if p.requires_grad)}"
         )
         for param in model_siglip.parameters():
-            
+
             param.requires_grad = False
 
         print(
