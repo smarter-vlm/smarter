@@ -19,7 +19,7 @@ class QFLayer(nn.Module):
     def __init__(self, num_heads):
         super().__init__()
         self.intermediate = QFIntermediate()
-        self.mha = QFAttentionMH(num_heads=num_heads)
+        self.mha = QFAttentionMH(num_attention_heads=num_heads)
         self.crossattention = QFAttentionMH(
             num_attention_heads=num_heads,
             hidden_size=768,
