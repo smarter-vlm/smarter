@@ -235,16 +235,10 @@ class Puzzle_Net(nn.Module):
         print(
             f"\n Number trainable params after explicit freezing of image backb  {sum(p.numel() for p in self.im_cnn.parameters() if p.requires_grad)}"
         )
-        for name, param in self.im_cnn.named_parameters():
+        for name, param in self.im_cnn.parameters():
             print("name of param", name)
-            if (
-                name.startswith("dino")
-                or name.startswith("siglip")
-                or name.startswith("fused")
-                or name.startswith("resnet")
-            ):
-                print("name of param", name)
-                param.requires_grad = False
+            
+            param.requires_grad = False
 
         print(
             f"\n Number trainable params after explicit freezing of image backb  {sum(p.numel() for p in self.im_cnn.parameters() if p.requires_grad)}"
