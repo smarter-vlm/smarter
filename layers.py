@@ -28,9 +28,9 @@ class QFLayer(nn.Module):
         print("self attn output shape ", q_attn.shape) #B, 896
         print("what is the fused vision rep shape ", im_repr.shape) # B, 128; this is projected fused
 
-        # x = torch.cat(
-        #     [im_repr, q_attn], dim=1
-        # )  # STOP GAP DR; TODO here is cross attn
+        x = torch.cat(
+            [im_repr, q_attn], dim=1
+        )  # STOP GAP DR; TODO here is cross attn
 
 
         x = self.intermediate(x)
