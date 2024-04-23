@@ -21,7 +21,7 @@ class QFLayer(nn.Module):
         # TODO DR add a num heads arg
 
     def forward(self, im_repr, q_repr):
-        
+        # q_repr is siglip encoding of the text sequence with max len 110
         q_attn = self.mha(q_repr).mean(1)
 
         # for now concat all heads together
