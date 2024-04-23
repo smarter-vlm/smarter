@@ -32,12 +32,14 @@ class QFLayer(nn.Module):
         x = torch.cat(
             [im_repr, q_attn], dim=1
         )  # STOP GAP DR; TODO here is cross attn
-        # batch, proj_dim = im_repr.shape
-        # vision_encoder= torch.unsqueeze(im_repr, 1)
-        # vision_encoder = im_repr.expand(batch, 1, proj_dim)
+
+        batch, proj_dim = im_repr.shape
+        vision_encoder= torch.unsqueeze(im_repr, 1)
+        vision_encoder = im_repr.expand(-1, 110, -1)
+        print("expanded vision encoder shape",vision_encoder.shape)
         # x = self.crossattention(q_attn, vision_encoder)
 
-        print("\nWhat is the output shape after cross attn with mh self attn on siglip encoded text queries and projected fused vision encoded key and vals", x)
+        print("\nWhat is the output shape after cross attn with mh self attn on siglip encoded text queries and projected fused vision encoded key and vals", x.shape)
         # TODO: add a residual back from vision and from mean text maybe
         x = self.intermediate(x)
         return x
