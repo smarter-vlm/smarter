@@ -385,13 +385,10 @@ if __name__ == "__main__":
     parser.add_argument(
         "--data_tot",
         type=int,
-        default=2000,
+        default=1000,
         help="how many instances to use for train+val+test",
     )
 
-    # parser.add_argument(
-    #     "--use_clip_text", action="store_true", help="should use clip text embeddings?"
-    # )
     parser.add_argument(
         "--log", action="store_true", help="should print detailed log of accuracy?"
     )

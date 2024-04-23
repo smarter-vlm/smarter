@@ -65,7 +65,7 @@ class QFIntermediate(nn.Module):
 class QFAttentionMH(nn.Module):
     def __init__(
         self,
-        num_attention_heads=1,
+        num_attention_heads,
         hidden_size=768,  # TODO [DR] :this needs to match what gets out of siglip unless I want to project it down first
         encoder_hidden_size=768,
         max_position_embeddings=110,
@@ -76,6 +76,7 @@ class QFAttentionMH(nn.Module):
         # hidden size must be multiple of num heads
         self.hidden_size = hidden_size
         self.attention_head_size = int(self.hidden_size / self.num_attention_heads)
+        print("num heads and each head repr size", self.attention_head_size, num_attention_heads)
         self.all_head_size = self.num_attention_heads * self.attention_head_size
         self.max_position_embeddings = max_position_embeddings
         self.query = nn.Linear(hidden_size, self.all_head_size)

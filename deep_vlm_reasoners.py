@@ -274,8 +274,9 @@ class Puzzle_Net(nn.Module):
             x = F.gelu(self.q_MLP(x.mean(1)))
 
         elif self.word_embed in ["siglip"]:
-            # Change to be a seq for mha in qf layer
+            
             text = self.decode_text(text)
+            # An encoded seq of tokens for mha in qf layer
             if self.args.qf_layer:
                 q_enc = torch.zeros(len(text), gv.max_qlen, gv.word_dim).cuda()
                 for ii, tt in enumerate(text):
@@ -283,6 +284,7 @@ class Puzzle_Net(nn.Module):
                     q_enc[ii, : min(gv.max_qlen, len(q_repr)), :] = q_repr
 
             else:
+              # as siglip encodes the sequence
               x = gv.word_embed(text)
               x = F.gelu(self.q_MLP(x)) 
 
