@@ -72,7 +72,6 @@ def train(args, dataloader, im_backbone):
         f"\n Number trainable params {sum(p.numel() for p in model.parameters() if p.requires_grad)}"
     )
 
-    # device = torch.device("cuda")
     model.to(device)
     # print("\n Model architecture: \n", model)
 
@@ -336,7 +335,6 @@ def get_data_loader(
 
 
 if __name__ == "__main__":
-    # device = torch.device("cuda")
 
     parser = argparse.ArgumentParser(description="SMART puzzles")
     parser.add_argument(

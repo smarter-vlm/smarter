@@ -30,7 +30,6 @@ class Puzzle_Net(nn.Module):
         self.num_opts = 5
         self.out_dim = args.repr_size
         self.h_sz = 256
-        # self.dummy_question = None
         self.model_name = args.model_name
         self.use_single_image_head = args.use_single_image_head
         self.word_embed = args.word_embed
@@ -118,7 +117,6 @@ class Puzzle_Net(nn.Module):
         self.create_puzzle_tail(args)
 
     def process_dinov2(self, x):
-        # device = torch.device("cuda")
         x = self.decode_image(x)
         inputs = self.preprocess(images=x, do_rescale=True, return_tensors="pt").to(
             self.device
@@ -127,7 +125,6 @@ class Puzzle_Net(nn.Module):
         return outputs.last_hidden_state.mean(1)
 
     def process_fused_vision(self, x, image_processor_siglip, image_processor_dino):
-        # device = torch.device("cuda")
         x = self.decode_image(x)
 
         inputs_din = image_processor_dino(
@@ -241,11 +238,9 @@ class Puzzle_Net(nn.Module):
         if self.use_single_image_head:
             y = self.im_encoder(x)
         else:
-            # y = torch.zeros(len(im), self.out_dim).cuda()
             y = torch.zeros(len(im), self.out_dim).to(self.device)
             for t in range(len(self.puzzle_ids)):
                 idx = pids == int(self.puzzle_ids[t])
-                # idx = idx.cuda()
                 idx = idx.to(self.device)
                 if idx.sum() > 0:
                     y[idx] = F.gelu(self.im_encoder[int(self.puzzle_ids[t])](x[idx]))
@@ -269,7 +264,6 @@ class Puzzle_Net(nn.Module):
     def encode_text(self, text):
         if self.word_embed in ["mbert", "bert"]:
             text = self.decode_text(text)
-            # q_enc = torch.zeros(len(text), gv.max_qlen, gv.word_dim).cuda()
             q_enc = torch.zeros(len(text), gv.max_qlen, gv.word_dim).to(self.device)
             for ii, tt in enumerate(text):
                 q_repr = gv.word_embed(tt)
@@ -282,7 +276,6 @@ class Puzzle_Net(nn.Module):
             text = self.decode_text(text)
             # An encoded seq of tokens for mha in qf layer
             if self.args.qf_layer:
-                # q_enc = torch.zeros(len(text), gv.max_qlen, gv.word_dim).cuda()
                 q_enc = torch.zeros(len(text), gv.max_qlen, gv.word_dim).to(self.device)
                 for ii, tt in enumerate(text):
                     q_repr = gv.word_embed(tt)
@@ -328,7 +321,6 @@ class Puzzle_Net(nn.Module):
         im_repr = self.encode_image(im.float(), puzzle_ids).float()
 
         if self.args.qf_layer:
-            # print(self.qf)
             qf_out = self.qf(im_repr, q_repr)
             qv_repr = self.qv_fusion(self.c([im_repr, q_repr.mean(1), qf_out]))
         else:
