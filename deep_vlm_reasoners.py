@@ -8,12 +8,10 @@ warnings.filterwarnings("ignore")
 import pdb
 import pickle
 
-# import clip
 import numpy as np
 import torch.nn.functional as F
 from PIL import Image
 
-# from torchvision import models
 
 import text_encoder as gv
 from layers import QFLayer, CLayer, QV_Fusion
@@ -33,24 +31,17 @@ class Puzzle_Net(nn.Module):
         self.h_sz = 256
         self.dummy_question = None
         self.model_name = args.model_name
-        # self.use_clip_text = args.use_clip_text
         self.use_single_image_head = args.use_single_image_head
         self.word_embed = args.word_embed
         self.sorted_puzzle_ids = np.sort(np.array([int(ii) for ii in args.puzzle_ids]))
 
         self.max_val = gv.MAX_VAL + 1
 
-        # image backbones.
+        # Image backbones - frozen
         if args.model_name[:6] == "resnet":
             self.im_repr_size = im_backbone.fc.weight.shape[1]
             modules = list(im_backbone.children())[:-1]
             self.im_cnn = nn.Sequential(*modules)
-
-        # elif args.model_name in ["mae"]:
-        #     self.preprocess = args.preprocess
-        #     self.im_cnn = lambda x: self.process_MAE(x)
-        #     self.im_backbone = im_backbone
-        #     self.im_repr_size = 768
 
         elif args.model_name in ["dinov2"]:
             self.preprocess = args.preprocess
@@ -86,15 +77,7 @@ class Puzzle_Net(nn.Module):
 
         self.create_puzzle_head(args)
 
-        # language backbones
-        # if self.use_clip_text:
-        #     self.q_encoder, _ = clip.load("ViT-B/32", device="cuda")
-        #     self.clip_dim = 512
-        #     self.q_MLP = nn.Sequential(
-        #         nn.Linear(self.clip_dim, self.h_sz),
-        #         nn.GELU(),
-        #         nn.Linear(self.h_sz, self.out_dim),
-        #     )
+        # Language backbones - frozen
         if args.word_embed in ["siglip"]:
             self.siglip_dim = 768
             self.q_MLP = nn.Sequential(
@@ -132,12 +115,6 @@ class Puzzle_Net(nn.Module):
         self.c = CLayer()
 
         self.create_puzzle_tail(args)
-
-    # def process_MAE(self, x):
-    #     x = self.decode_image(x)  # get from tensor to PIL images
-    #     inputs = self.preprocess(images=x, return_tensors="pt").to("cuda")
-    #     outputs = self.im_backbone(**inputs)
-    #     return outputs.last_hidden_state.mean(1)
 
     def process_dinov2(self, x):
         device = torch.device("cuda")
@@ -191,7 +168,6 @@ class Puzzle_Net(nn.Module):
                         nn.Linear(self.im_repr_size, self.out_dim),
                         nn.GELU(),
                         nn.Linear(self.out_dim, self.out_dim),
-                        # TODO: DR Add a LayerNorm somewhere here
                     )
                 )
             self.im_encoder = nn.ModuleList(im_encoder)
@@ -205,7 +181,7 @@ class Puzzle_Net(nn.Module):
             puzzles = range(1, gv.num_puzzles + 1)
         else:
             puzzles = self.puzzle_ids
-        for pid in puzzles:  # self.puzzle_ids:
+        for pid in puzzles:
             num_classes = gv.NUM_CLASSES_PER_PUZZLE[str(pid)]
             if int(pid) not in gv.SEQ_PUZZLES:
                 ans_decoder.append(
@@ -215,7 +191,7 @@ class Puzzle_Net(nn.Module):
                         nn.Linear(self.out_dim, self.out_dim),
                         nn.GELU(),
                         nn.Linear(self.out_dim, num_classes),
-                    )  # TODO DR see SIGLIP Decoder mlp
+                    )
                 )
             else:
                 ans_decoder.append(
@@ -346,8 +322,8 @@ class Puzzle_Net(nn.Module):
         q_repr = self.encode_text(q)
         im_repr = self.encode_image(im.float(), puzzle_ids).float()
 
-        # qv_repr = self.qv_fusion(torch.cat([im_repr, q_repr], dim=1))
         if self.args.qf_layer:
+            print(self.qf)
             qf_out = self.qf(im_repr, q_repr)
             qv_repr = self.qv_fusion(self.c([im_repr, q_repr.mean(1), qf_out]))
         else:
@@ -377,16 +353,6 @@ def load_pretrained_models(args, model_name, model=None):
         weights = ResNet50_Weights.DEFAULT
         model = resnet50(weights=weights)
         preprocess = weights.transforms()
-
-    # elif args.model_name == "clip":
-    #     model, preprocess = clip.load("ViT-B/32", device="cuda")
-
-    # elif args.model_name == "mae":
-    #     from transformers import AutoFeatureExtractor, ViTMAEModel
-
-    #     repr_extractor = AutoFeatureExtractor.from_pretrained("facebook/vit-mae-base")
-    #     model = ViTMAEModel.from_pretrained("facebook/vit-mae-base")
-    #     preprocess = repr_extractor
 
     elif args.model_name == "dinov2":
         from transformers import AutoImageProcessor, Dinov2Model

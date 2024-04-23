@@ -45,6 +45,8 @@ experiment = Experiment(
     auto_metric_logging=True,  # default
 )
 
+# For direct baselines runs: https://github.com/D-Roberts/SMART
+
 
 def reset_state(args):
     #    global seed
@@ -62,39 +64,17 @@ def reset_state(args):
 def train(args, dataloader, im_backbone):
     criterion = losses.Criterion(args)
 
-    # if args.model_name == "clip":
-    #     import smart_clip
-
-    #     model = smart_clip.Smarter_VL_CLIP(
-    #         args, VL_backbone=im_backbone
-    #     )  # for baseline
-    # else:
     model = deep_vlm_reasoners.Puzzle_Net(args, im_backbone=im_backbone)
 
     print(
-        f"\n Number trainable params before explicit freezing of image backb {sum(p.numel() for p in model.parameters() if p.requires_grad)}"
+        f"\n Number trainable params: {sum(p.numel() for p in model.parameters() if p.requires_grad)}"
     )
-
-    # # Make sure im backbone is frozen
-    # for name, param in model.named_parameters():
-    #     if (
-    #         name.startswith("dinov2")
-    #         or name.startswith("siglip")
-    #         or name.startswith("fused")
-    #     ):
-    #         param.requires_grad = False
-
-    # print(
-    #     f"\n Number trainable params after explicit freezing of image backb  {sum(p.numel() for p in model.parameters() if p.requires_grad)}"
-    # )
 
     device = torch.device("cuda")
     model.to(device)
     # print("\n Model architecture: \n", model)
 
     log_model(experiment, model, model_name="Puzzle_Net")
-
-    # parameters = model.parameters()
 
     def normalize(err, pids):
         """this function divides the error by the gt number of classes for each puzzle."""
@@ -160,7 +140,6 @@ def train(args, dataloader, im_backbone):
         val_tot_loss = 0.0
         cnt = 0
         err_mean = 0
-        opt_mean = 0
         puzzle_acc = {}
         with torch.no_grad():
             for i, (im, q, _, a, av, pids) in enumerate(val_loader):
@@ -180,7 +159,6 @@ def train(args, dataloader, im_backbone):
                 upids = torch.unique(pids)
                 acc = 0
                 error = 0
-                # opts_acc = 0
                 for t in upids:
                     idx = pids == t
                     tt = t.item()
@@ -189,9 +167,6 @@ def train(args, dataloader, im_backbone):
                         pred_max = get_result(out[int(tt)])
                         pacc = (pred_max == av[idx, 0]).sum()
                         perror = normalize(np.abs(pred_max - av[idx, 0]), pids).sum()
-                        # oacc = utils.get_option_sel_acc(
-                        #     pred_max, op_a[idx], a[idx], av[idx], t
-                        # ).sum()
                     else:
                         pred_ans = []
                         pacc = 1
@@ -201,22 +176,16 @@ def train(args, dataloader, im_backbone):
                             pacc = pacc * (pred_max == av[idx][:, k])
                         pacc = pacc.sum()
                         perror = 0
-                        # oacc = utils.get_option_sel_acc(
-                        #     np.column_stack(pred_ans), op_a[idx], a[idx], av[idx], t
-                        # ).sum()
 
                     if str(tt) in puzzle_acc.keys():
                         puzzle_acc[str(tt)][0] += pacc
-                        # puzzle_acc[str(tt)][1] += oacc
                         puzzle_acc[str(tt)][2] += idx.sum()
                     else:
                         puzzle_acc[str(tt)] = [pacc, 0, idx.sum()]
-                    # we use the ansewr value here.
-                    # opts_acc += oacc
+
                     acc += pacc
                     error += perror
 
-                # opt_mean += opts_acc
                 acc_mean += acc
                 err_mean += error
                 cnt += len(av)
@@ -224,7 +193,6 @@ def train(args, dataloader, im_backbone):
         return (
             acc_mean / float(cnt),
             err_mean / float(cnt),
-            # opt_mean / float(cnt),
             puzzle_acc,
             val_tot_loss / len(val_loader),
         )
@@ -487,7 +455,6 @@ if __name__ == "__main__":
     )
 
     args.preprocess = preprocess
-    # print("preprocess now is **********************************", preprocess)
 
     train_loader = get_data_loader(
         args,

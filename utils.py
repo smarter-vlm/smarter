@@ -456,6 +456,3 @@ def backup_code_and_start_logger(args, log_path, seed):
     log_file = os.path.join(log_path, "%d.log" % (seed))
     sys.stdout = Logger(log_file)
     print("logging results to %s" % (log_file))
-
-
-#
