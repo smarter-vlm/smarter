@@ -323,7 +323,7 @@ class Puzzle_Net(nn.Module):
         im_repr = self.encode_image(im.float(), puzzle_ids).float()
 
         if self.args.qf_layer:
-            print(self.qf)
+            # print(self.qf)
             qf_out = self.qf(im_repr, q_repr)
             qv_repr = self.qv_fusion(self.c([im_repr, q_repr.mean(1), qf_out]))
         else:
