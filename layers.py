@@ -5,6 +5,7 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 
+from main_reasoner import args
 
 class CLayer(nn.Module):
     def __init__(self, dim):
@@ -23,7 +24,7 @@ class QFLayer(nn.Module):
         self.crossattention = QFAttentionMH(
             num_attention_heads=num_heads,
             hidden_size=768,
-            encoder_hidden_size=128,
+            encoder_hidden_size=args.repr_size,
             max_position_embeddings=110,
             is_cross_attention=True,
         )
@@ -188,7 +189,7 @@ class PuzzleMLPDecoder(nn.Module):
 
         x = self.ln2(x)
         x = F.gelu(x)
-        
+
         x = self.drop(x)
         x = self.ln3(self.layer_norm(x+hidden_repr))
         return x
