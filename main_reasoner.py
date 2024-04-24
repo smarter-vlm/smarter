@@ -224,12 +224,7 @@ def train(args, dataloader, im_backbone):
             weight_decay=args.wd,
         )
     else:
-        optimizer = torch.optim.Adam(
-            model.parameters(),
-            lr=args.lr,
-            betas=(0.9, 0.99)
-        )
-
+        optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, betas=(0.9, 0.99))
 
     train_loader = dataloader["train"]
     val_loader = dataloader["valid"]
@@ -281,7 +276,6 @@ def train(args, dataloader, im_backbone):
                 experiment.log_metrics(
                     {k: v[0] for k, v in class_avg_perf.items()}, epoch=epoch
                 )
-           
 
             if acc >= best_acc:
                 best_epoch = epoch
@@ -419,6 +413,7 @@ if __name__ == "__main__":
         help="add a q-former inspired layer to get a composite vision-language representation",
     )
 
+    # Ref for baseline choices https://github.com/D-Roberts/SMART/tree/main (code forked from original paper's repo)
     parser.add_argument(
         "--run_baseline",
         action="store_true",

@@ -14,7 +14,14 @@ from PIL import Image
 
 
 import text_encoder as gv
-from layers import QFLayer, CLayer, QV_Fusion, PuzzleMLPDecoder, get_activation_fn, get_activation_layer
+from layers import (
+    QFLayer,
+    CLayer,
+    QV_Fusion,
+    PuzzleMLPDecoder,
+    get_activation_fn,
+    get_activation_layer,
+)
 
 
 class Puzzle_Net(nn.Module):
@@ -82,8 +89,7 @@ class Puzzle_Net(nn.Module):
             self.siglip_dim = 768
             self.q_MLP = nn.Sequential(
                 nn.Linear(self.siglip_dim, self.h_sz),
-                get_activation_layer(args.run_baseline
-                                     ),
+                get_activation_layer(args.run_baseline),
                 nn.Linear(self.h_sz, self.out_dim),
             )
         else:
@@ -165,8 +171,7 @@ class Puzzle_Net(nn.Module):
         if args.use_single_image_head:
             self.im_encoder = nn.Sequential(
                 nn.Linear(self.im_repr_size, self.out_dim),
-                get_activation_layer(args.run_baseline
-                                     ),
+                get_activation_layer(args.run_baseline),
                 nn.Linear(self.out_dim, self.out_dim),
             )
         else:
@@ -176,8 +181,7 @@ class Puzzle_Net(nn.Module):
                 im_encoder.append(
                     nn.Sequential(
                         nn.Linear(self.im_repr_size, self.out_dim),
-                        get_activation_layer(args.run_baseline
-                                     ),
+                        get_activation_layer(args.run_baseline),
                         nn.Linear(self.out_dim, self.out_dim),
                     )
                 )
@@ -200,17 +204,24 @@ class Puzzle_Net(nn.Module):
                     ans_decoder.append(dec)
                 else:
                     ans_decoder.append(
-                    nn.Sequential(
-                        nn.Linear(self.out_dim, self.out_dim),
-                        nn.ReLU(),
-                        nn.Linear(self.out_dim, self.out_dim),
-                        nn.ReLU(),
-                        nn.Linear(self.out_dim, num_classes),
+                        nn.Sequential(
+                            nn.Linear(self.out_dim, self.out_dim),
+                            nn.ReLU(),
+                            nn.Linear(self.out_dim, self.out_dim),
+                            nn.ReLU(),
+                            nn.Linear(self.out_dim, num_classes),
+                        )
                     )
-                )
             else:
                 if args.run_baseline:
-                    ans_decoder.append(nn.LSTM(int(self.out_dim), int(num_classes), num_layers=1, batch_first=True))
+                    ans_decoder.append(
+                        nn.LSTM(
+                            int(self.out_dim),
+                            int(num_classes),
+                            num_layers=1,
+                            batch_first=True,
+                        )
+                    )
 
                 else:
                     ans_decoder.append(
@@ -220,7 +231,7 @@ class Puzzle_Net(nn.Module):
                             num_layers=1,
                             batch_first=True,
                         )
-                )
+                    )
         self.ans_decoder = nn.ModuleList(ans_decoder)
 
     def decode_image(self, im_list):
@@ -264,8 +275,9 @@ class Puzzle_Net(nn.Module):
                 idx = pids == int(self.puzzle_ids[t])
                 idx = idx.to(self.device)
                 if idx.sum() > 0:
-                    y[idx] = get_activation_fn(self.args.run_baseline
-                                     )(self.im_encoder[int(self.puzzle_ids[t])](x[idx]))
+                    y[idx] = get_activation_fn(self.args.run_baseline)(
+                        self.im_encoder[int(self.puzzle_ids[t])](x[idx])
+                    )
 
         return y
 
@@ -291,8 +303,7 @@ class Puzzle_Net(nn.Module):
                 q_repr = gv.word_embed(tt)
                 q_enc[ii, : min(gv.max_qlen, len(q_repr)), :] = q_repr
             x, (h, _) = self.q_lstm(q_enc.float())
-            x = get_activation_fn(self.args.run_baseline
-                                     )(self.q_MLP(x.mean(1)))
+            x = get_activation_fn(self.args.run_baseline)(self.q_MLP(x.mean(1)))
 
         elif self.word_embed in ["siglip"]:
 
@@ -307,8 +318,7 @@ class Puzzle_Net(nn.Module):
             else:
                 # as siglip encodes the sequence
                 x = gv.word_embed(text)
-                x = get_activation_fn(self.args.run_baseline
-                                     )(self.q_MLP(x))
+                x = get_activation_fn(self.args.run_baseline)(self.q_MLP(x))
 
         return q_enc.float() if self.args.qf_layer else x
 
@@ -357,7 +367,6 @@ class Puzzle_Net(nn.Module):
             qv_feat = self.qv_fusion(torch.cat([im_repr, q_repr], dim=1))
             qvo_feat = self.decode_individual_puzzles(qv_feat, puzzle_ids)
             return qvo_feat
-
 
 
 def load_pretrained_models(args, model_name, model=None):
