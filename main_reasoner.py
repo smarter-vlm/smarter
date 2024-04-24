@@ -121,7 +121,9 @@ def train(args, dataloader, im_backbone):
             loss = criterion(out, av, pids)
             loss.backward()
 
-            torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
+            if not args.run_baseline:
+                torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
+
 
             optimizer.step()
             if not args.run_baseline:
@@ -233,7 +235,8 @@ def train(args, dataloader, im_backbone):
     num_steps = args.num_epochs * len(train_loader)
 
     num_warmup_steps = 10
-    scheduler = get_cosine_schedule_with_warmup(optimizer, num_warmup_steps, num_steps)
+    if not args.run_baseline:
+        scheduler = get_cosine_schedule_with_warmup(optimizer, num_warmup_steps, num_steps)
 
     # training loop
     best_model = None
@@ -298,18 +301,11 @@ def train(args, dataloader, im_backbone):
                     epoch,
                     loss,
                     acc * 100,
-                    # oacc * 100,
                     err,
                     best_acc * 100,
                     best_epoch,
                 )
             )
-
-        # acc, err, puz_acc, val_tot_loss = val_loop(test_loader, model)
-        # print(
-        #     "puzzles %s: eval on test loader at end of ep: s_acc/var = %f/%f (%d)"
-        #     % (args.puzzles, acc * 100, err, best_epoch)
-        # )
 
     test_loop(test_loader, best_model)
 
