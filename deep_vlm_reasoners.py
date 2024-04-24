@@ -113,8 +113,8 @@ class Puzzle_Net(nn.Module):
         )
 
         if args.qf_layer:
-            self.qv_fusion = QV_Fusion(1664, self.out_dim)
-            self.c = CLayer(dim=1664)
+            self.qv_fusion = QV_Fusion(1536, self.out_dim) #1664
+            self.c = CLayer(dim=1536) #1664
 
         else:
             if not args.run_baseline:
