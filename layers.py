@@ -5,7 +5,6 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 
-from main_reasoner import args
 
 class CLayer(nn.Module):
     def __init__(self, dim):
@@ -17,14 +16,14 @@ class CLayer(nn.Module):
 
 
 class QFLayer(nn.Module):
-    def __init__(self, num_heads):
+    def __init__(self, num_heads, repr_size):
         super().__init__()
         self.intermediate = QFIntermediate()
         self.mha = QFAttentionMH(num_attention_heads=num_heads)
         self.crossattention = QFAttentionMH(
             num_attention_heads=num_heads,
             hidden_size=768,
-            encoder_hidden_size=args.repr_size,
+            encoder_hidden_size=repr_size,
             max_position_embeddings=110,
             is_cross_attention=True,
         )

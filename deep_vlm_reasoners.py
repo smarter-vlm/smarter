@@ -129,7 +129,7 @@ class Puzzle_Net(nn.Module):
                 )
 
         if args.qf_layer:
-            self.qf = QFLayer(num_heads=args.num_heads)
+            self.qf = QFLayer(num_heads=args.num_heads, repr_size=self.args.repr_size)
 
         self.create_puzzle_tail(args)
 
