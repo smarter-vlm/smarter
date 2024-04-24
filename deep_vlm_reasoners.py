@@ -113,8 +113,9 @@ class Puzzle_Net(nn.Module):
         )
 
         if args.qf_layer:
-            self.qv_fusion = QV_Fusion(1792, self.out_dim) #1664
-            self.c = CLayer(dim=1792) #1664
+            composite_dim = 2 * 768 + self.args.repr_size
+            self.qv_fusion = QV_Fusion(composite_dim, self.out_dim)
+            self.c = CLayer(dim=composite_dim)
 
         else:
             if not args.run_baseline:
@@ -357,7 +358,7 @@ class Puzzle_Net(nn.Module):
         if not self.args.run_baseline:
             if self.args.qf_layer:
                 qf_out = self.qf(im_repr, q_repr)
-                print(f"shape vision: {im_repr.size()}, text{q_repr.mean(1).size()} and qf {qf_out.size()}")
+                # print(f"shape vision: {im_repr.size()}, text{q_repr.mean(1).size()} and qf {qf_out.size()}")
 
                 qv_repr = self.qv_fusion(self.c([im_repr, q_repr.mean(1), qf_out]))
             else:
