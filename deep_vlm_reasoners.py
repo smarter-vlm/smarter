@@ -113,8 +113,8 @@ class Puzzle_Net(nn.Module):
         )
 
         if args.qf_layer:
-            self.qv_fusion = QV_Fusion(896, self.out_dim) #1664
-            self.c = CLayer(dim=896) #1664
+            self.qv_fusion = QV_Fusion(1664, self.out_dim) #1664
+            self.c = CLayer(dim=1664) #1664
 
         else:
             if not args.run_baseline:
@@ -357,8 +357,7 @@ class Puzzle_Net(nn.Module):
         if not self.args.run_baseline:
             if self.args.qf_layer:
                 qf_out = self.qf(im_repr, q_repr)
-                # qv_repr = self.qv_fusion(self.c([im_repr, q_repr.mean(1), qf_out]))
-                qv_repr = self.qv_fusion(self.c([im_repr, qf_out]))
+                qv_repr = self.qv_fusion(self.c([im_repr, q_repr.mean(1), qf_out]))
             else:
                 qv_repr = self.qv_fusion(self.c([im_repr, q_repr]))
 
