@@ -124,8 +124,8 @@ def train(args, dataloader, im_backbone):
                 torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
 
             optimizer.step()
-            # if not args.run_baseline:
-            #     scheduler.step()
+            if not args.run_baseline:
+                scheduler.step()
 
             optimizer.zero_grad()
 
@@ -233,7 +233,7 @@ def train(args, dataloader, im_backbone):
 
     num_steps = args.num_epochs * len(train_loader)
 
-    num_warmup_steps = 10
+    num_warmup_steps = 2
     if not args.run_baseline:
         scheduler = get_cosine_schedule_with_warmup(
             optimizer, num_warmup_steps, num_steps
