@@ -16,16 +16,17 @@ class CLayer(nn.Module):
 
 
 class QFLayer(nn.Module):
-    def __init__(self, num_heads, repr_size):
+    def __init__(self, num_heads, repr_size, pdrop):
         super().__init__()
         self.intermediate = QFIntermediate()
-        self.mha = QFAttentionMH(num_attention_heads=num_heads)
+        self.mha = QFAttentionMH(num_attention_heads=num_heads, pdrop=pdrop)
         self.crossattention = QFAttentionMH(
             num_attention_heads=num_heads,
             hidden_size=768,
             encoder_hidden_size=repr_size,
             max_position_embeddings=110,
             is_cross_attention=True,
+            pdrop=pdrop
         )
 
     def forward(self, im_repr, q_repr):
@@ -43,12 +44,12 @@ class QFLayer(nn.Module):
 
 
 class QFIntermediate(nn.Module):
-    def __init__(self):
+    def __init__(self, pdrop):
         super().__init__()
         self.dense = nn.Linear(768, 256)
         self.intermediate_act_fn = nn.GELU()
         self.layer_norm = nn.LayerNorm(768, eps=1e-6)
-        self.dropout = nn.Dropout(0.2)
+        self.dropout = nn.Dropout(pdrop)
         self.dense_final = nn.Linear(256, 768)
 
     def forward(self, hidden_states: torch.Tensor) -> torch.Tensor:
@@ -70,6 +71,7 @@ class QFAttentionMH(nn.Module):
         encoder_hidden_size=768,
         max_position_embeddings=110,
         is_cross_attention=False,
+        pdrop=0.2
     ):
         super().__init__()
         self.num_attention_heads = num_attention_heads
@@ -89,7 +91,7 @@ class QFAttentionMH(nn.Module):
             self.key = nn.Linear(hidden_size, self.all_head_size)
             self.value = nn.Linear(hidden_size, self.all_head_size)
 
-        self.dropout = nn.Dropout(0.2)
+        self.dropout = nn.Dropout(pdrop)
         self.distance_embedding = nn.Embedding(
             2 * max_position_embeddings - 1, self.attention_head_size
         )
@@ -167,19 +169,19 @@ class QV_Fusion(nn.Module):
     def forward(self, x):
         x = self.ln1(x)
         x = F.gelu(x)
-        x = self.ln2(x)
-        x = F.gelu(x)
-        x = self.layer_norm(x)
-        return x
+        x1 = self.ln2(x)
+        x1 = F.gelu(x)
+        x2 = self.layer_norm(x+x1)
+        return x2
 
 
 class PuzzleMLPDecoder(nn.Module):
-    def __init__(self, out_dim, num_classes):
+    def __init__(self, out_dim, num_classes, pdrop):
         super().__init__()
         self.ln1 = nn.Linear(out_dim, out_dim)
         self.ln2 = nn.Linear(out_dim, out_dim)
         self.ln3 = nn.Linear(out_dim, num_classes)
-        self.drop = nn.Dropout(0.2)
+        self.drop = nn.Dropout(pdrop)
         self.layer_norm = nn.LayerNorm(out_dim, eps=1e-6)
 
     def forward(self, hidden_repr):

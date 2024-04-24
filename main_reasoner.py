@@ -422,6 +422,12 @@ if __name__ == "__main__":
         default=2,
         help="number attention heads in QFlayer self and cross attention?",
     )
+    parser.add_argument(
+        "--pdrop",
+        type=float,
+        default=0.2,
+        help="number attention heads in QFlayer self and cross attention?",
+    )
 
     parser.add_argument("--log_freq", type=int, default=1, help="log frequency?")
     parser.add_argument("--test", action="store_true", help="evaluate a model?")
