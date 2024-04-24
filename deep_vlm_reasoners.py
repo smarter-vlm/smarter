@@ -344,14 +344,20 @@ class Puzzle_Net(nn.Module):
         q_repr = self.encode_text(q)
         im_repr = self.encode_image(im.float(), puzzle_ids).float()
 
-        if self.args.qf_layer:
-            qf_out = self.qf(im_repr, q_repr)
-            qv_repr = self.qv_fusion(self.c([im_repr, q_repr.mean(1), qf_out]))
-        else:
-            qv_repr = self.qv_fusion(self.c([im_repr, q_repr]))
+        if not self.args.run_baseline:
+            if self.args.qf_layer:
+                qf_out = self.qf(im_repr, q_repr)
+                qv_repr = self.qv_fusion(self.c([im_repr, q_repr.mean(1), qf_out]))
+            else:
+                qv_repr = self.qv_fusion(self.c([im_repr, q_repr]))
 
-        qvo_repr = self.decode_individual_puzzles(qv_repr, puzzle_ids)
-        return qvo_repr
+            qvo_repr = self.decode_individual_puzzles(qv_repr, puzzle_ids)
+            return qvo_repr
+        else:
+            qv_feat = self.qv_fusion(torch.cat([im_repr, q_repr], dim=1))
+            qvo_feat = self.decode_individual_puzzles(qv_feat, puzzle_ids)
+            return qvo_feat
+
 
 
 def load_pretrained_models(args, model_name, model=None):
