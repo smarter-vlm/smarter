@@ -190,14 +190,14 @@ class PuzzleMLPDecoder(nn.Module):
 
 
 def get_activation_layer(is_baseline):
-    if is_baseline:
+    if not is_baseline:
         return nn.ReLU()
     else:
         return nn.GELU()
 
 
 def get_activation_fn(is_baseline):
-    if is_baseline:
+    if not is_baseline:
         return F.relu
     else:
         return F.gelu
