@@ -179,13 +179,16 @@ class PuzzleMLPDecoder(nn.Module):
         self.ln1 = nn.Linear(out_dim, out_dim)
         self.ln2 = nn.Linear(out_dim, out_dim)
         self.ln3 = nn.Linear(out_dim, num_classes)
+        self.drop = nn.Dropout(0.2)
+        self.layer_norm = nn.LayerNorm(out_dim, eps=1e-6)
 
     def forward(self, hidden_repr):
         x = self.ln1(hidden_repr)
         x = F.gelu(x)
         x = self.ln2(x)
         x = F.gelu(x)
-        x = self.ln3(x)
+        x = self.drop(x)
+        x = self.ln3(self.layer_norm(x+hidden_repr))
         return x
 
 
