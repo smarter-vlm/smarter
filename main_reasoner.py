@@ -2,7 +2,6 @@ import os
 from pathlib import Path
 
 import comet_ml
-import pytorch_lightning as pl
 
 import numpy as np
 from comet_ml import Experiment
@@ -125,8 +124,9 @@ def train(args, dataloader, im_backbone):
                 torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
 
             optimizer.step()
-            if not args.run_baseline:
-                scheduler.step()
+            # if not args.run_baseline:
+            #     scheduler.step()
+
             optimizer.zero_grad()
 
             tot_loss += loss.item()
@@ -268,7 +268,6 @@ def train(args, dataloader, im_backbone):
                 {
                     "val_acc": acc,
                     "val_var": err,
-                    # "val_oacc": oacc,
                     "val_epoch_loss": val_tot_loss,
                 },
                 epoch=epoch,
