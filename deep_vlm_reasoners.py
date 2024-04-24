@@ -14,7 +14,7 @@ from PIL import Image
 
 
 import text_encoder as gv
-from layers import QFLayer, CLayer, QV_Fusion, PuzzleMLPDecoder
+from layers import QFLayer, CLayer, QV_Fusion, PuzzleMLPDecoder, get_activation_fn, get_activation_layer
 
 
 class Puzzle_Net(nn.Module):
@@ -86,6 +86,7 @@ class Puzzle_Net(nn.Module):
                 nn.Linear(self.h_sz, self.out_dim),
             )
         else:
+            # bert and mbert
             word_dim = gv.word_dim
             self.q_emb = nn.Identity()
             self.q_lstm = nn.GRU(
@@ -94,7 +95,7 @@ class Puzzle_Net(nn.Module):
                 num_layers=1,
                 batch_first=True,
                 bidirectional=True,
-                bias=False,
+                bias=args.run_baseline,
             )
             self.q_MLP = nn.Linear(self.h_sz * 2, self.out_dim)
 
@@ -182,16 +183,31 @@ class Puzzle_Net(nn.Module):
         for pid in puzzles:
             num_classes = gv.NUM_CLASSES_PER_PUZZLE[str(pid)]
             if int(pid) not in gv.SEQ_PUZZLES:
-                dec = PuzzleMLPDecoder(self.out_dim, num_classes)
-                ans_decoder.append(dec)
-            else:
-                ans_decoder.append(
-                    nn.GRU(
-                        int(self.out_dim),
-                        int(num_classes),
-                        num_layers=1,
-                        batch_first=True,
+                if not args.run_baseline:
+                    dec = PuzzleMLPDecoder(self.out_dim, num_classes)
+                    ans_decoder.append(dec)
+                else:
+                    ans_decoder.append(
+                    nn.Sequential(
+                        nn.Linear(self.out_dim, self.out_dim),
+                        nn.ReLU(),
+                        nn.Linear(self.out_dim, self.out_dim),
+                        nn.ReLU(),
+                        nn.Linear(self.out_dim, num_classes),
                     )
+                )
+            else:
+                if args.run_baseline:
+                    ans_decoder.append(nn.LSTM(self.out_dim, num_classes, num_layers=1, batch_first=True))
+
+                else:
+                    ans_decoder.append(
+                        nn.GRU(
+                            int(self.out_dim),
+                            int(num_classes),
+                            num_layers=1,
+                            batch_first=True,
+                        )
                 )
         self.ans_decoder = nn.ModuleList(ans_decoder)
 

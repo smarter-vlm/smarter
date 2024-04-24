@@ -124,7 +124,8 @@ def train(args, dataloader, im_backbone):
             torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
 
             optimizer.step()
-            scheduler.step()
+            if not args.run_baseline:
+                scheduler.step()
             optimizer.zero_grad()
 
             tot_loss += loss.item()
@@ -226,6 +227,7 @@ def train(args, dataloader, im_backbone):
         optimizer = torch.optim.Adam(
             model.parameters(),
             lr=args.lr,
+            betas=(0.9, 0.99)
         )
 
 
@@ -242,7 +244,7 @@ def train(args, dataloader, im_backbone):
     best_model = None
     best_acc = 0
     no_improvement = 0
-    num_thresh_epochs = 2
+    num_thresh_epochs = 3
 
     # stop training if there is no improvement after this.
     print("starting training...")
@@ -279,10 +281,7 @@ def train(args, dataloader, im_backbone):
                 experiment.log_metrics(
                     {k: v[0] for k, v in class_avg_perf.items()}, epoch=epoch
                 )
-            # with experiment.context_manager("val_oacc"):
-            #     experiment.log_metrics(
-            #         {k: v[1] for k, v in class_avg_perf.items()}, epoch=epoch
-            #     )
+           
 
             if acc >= best_acc:
                 best_epoch = epoch
