@@ -169,11 +169,10 @@ class QV_Fusion(nn.Module):
     def forward(self, x):
         x = self.ln1(x)
         x = F.gelu(x)
-        x1 = self.ln2(x)
-        # extra residual
-        x1 = F.gelu(x1)
-        x2 = self.layer_norm(x+x1)
-        return x2
+        x = self.ln2(x)
+        x = F.gelu(x)
+        x = self.layer_norm(x)
+        return x
 
 
 class PuzzleMLPDecoder(nn.Module):
