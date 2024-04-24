@@ -170,7 +170,8 @@ class QV_Fusion(nn.Module):
         x = self.ln1(x)
         x = F.gelu(x)
         x1 = self.ln2(x)
-        x1 = F.gelu(x)
+        # extra residual
+        x1 = F.gelu(x1)
         x2 = self.layer_norm(x+x1)
         return x2
 
