@@ -29,7 +29,6 @@ import losses
 import deep_vlm_reasoners
 import utils
 
-from torch.optim import AdamW
 from transformers.optimization import get_cosine_schedule_with_warmup
 
 AVAIL_GPUS = min(1, torch.cuda.device_count())
@@ -214,13 +213,21 @@ def train(args, dataloader, im_backbone):
         test_loop(dataloader["test"], model)
         return
 
-    optimizer = torch.optim.AdamW(
-        model.parameters(),
-        lr=args.lr,
-        betas=(0.9, 0.98),
-        eps=1e-8,
-        weight_decay=args.wd,
-    )
+    if args.run_baseline:
+
+        optimizer = torch.optim.AdamW(
+            model.parameters(),
+            lr=args.lr,
+            betas=(0.9, 0.98),
+            eps=1e-8,
+            weight_decay=args.wd,
+        )
+    else:
+        optimizer = torch.optim.Adam(
+            model.parameters(),
+            lr=args.lr,
+        )
+
 
     train_loader = dataloader["train"]
     val_loader = dataloader["valid"]
@@ -411,6 +418,12 @@ if __name__ == "__main__":
         "--qf_layer",
         action="store_true",
         help="add a q-former inspired layer to get a composite vision-language representation",
+    )
+
+    parser.add_argument(
+        "--run_baseline",
+        action="store_true",
+        help="The best performing baseline from the original SMART CVPR article. Select bert and resnet50 for backbones with this.",
     )
 
     parser.add_argument(
