@@ -29,7 +29,6 @@ import losses
 import deep_vlm_reasoners
 import utils
 
-from torch.optim import AdamW
 from transformers.optimization import get_cosine_schedule_with_warmup
 
 AVAIL_GPUS = min(1, torch.cuda.device_count())
@@ -125,7 +124,8 @@ def train(args, dataloader, im_backbone):
             torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
 
             optimizer.step()
-            scheduler.step()
+            if not args.run_baseline:
+                scheduler.step()
             optimizer.zero_grad()
 
             tot_loss += loss.item()
@@ -214,13 +214,17 @@ def train(args, dataloader, im_backbone):
         test_loop(dataloader["test"], model)
         return
 
-    optimizer = torch.optim.AdamW(
-        model.parameters(),
-        lr=args.lr,
-        betas=(0.9, 0.98),
-        eps=1e-8,
-        weight_decay=args.wd,
-    )
+    if args.run_baseline:
+
+        optimizer = torch.optim.AdamW(
+            model.parameters(),
+            lr=args.lr,
+            betas=(0.9, 0.98),
+            eps=1e-8,
+            weight_decay=args.wd,
+        )
+    else:
+        optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, betas=(0.9, 0.99))
 
     train_loader = dataloader["train"]
     val_loader = dataloader["valid"]
@@ -235,7 +239,7 @@ def train(args, dataloader, im_backbone):
     best_model = None
     best_acc = 0
     no_improvement = 0
-    num_thresh_epochs = 2
+    num_thresh_epochs = 3
 
     # stop training if there is no improvement after this.
     print("starting training...")
@@ -272,10 +276,6 @@ def train(args, dataloader, im_backbone):
                 experiment.log_metrics(
                     {k: v[0] for k, v in class_avg_perf.items()}, epoch=epoch
                 )
-            # with experiment.context_manager("val_oacc"):
-            #     experiment.log_metrics(
-            #         {k: v[1] for k, v in class_avg_perf.items()}, epoch=epoch
-            #     )
 
             if acc >= best_acc:
                 best_epoch = epoch
@@ -411,6 +411,13 @@ if __name__ == "__main__":
         "--qf_layer",
         action="store_true",
         help="add a q-former inspired layer to get a composite vision-language representation",
+    )
+
+    # Ref for baseline choices https://github.com/D-Roberts/SMART/tree/main (code forked from original paper's repo)
+    parser.add_argument(
+        "--run_baseline",
+        action="store_true",
+        help="The best performing baseline from the original SMART CVPR article. Select bert and resnet50 for backbones with this.",
     )
 
     parser.add_argument(
