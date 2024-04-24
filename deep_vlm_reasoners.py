@@ -198,7 +198,7 @@ class Puzzle_Net(nn.Module):
                 )
             else:
                 if args.run_baseline:
-                    ans_decoder.append(nn.LSTM(self.out_dim, num_classes, num_layers=1, batch_first=True))
+                    ans_decoder.append(nn.LSTM(int(self.out_dim), int(num_classes), num_layers=1, batch_first=True))
 
                 else:
                     ans_decoder.append(
