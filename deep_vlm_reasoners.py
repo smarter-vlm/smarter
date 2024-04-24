@@ -264,7 +264,7 @@ class Puzzle_Net(nn.Module):
                 idx = pids == int(self.puzzle_ids[t])
                 idx = idx.to(self.device)
                 if idx.sum() > 0:
-                    y[idx] = get_activation_fn(args.run_baseline
+                    y[idx] = get_activation_fn(self.args.run_baseline
                                      )(self.im_encoder[int(self.puzzle_ids[t])](x[idx]))
 
         return y
