@@ -187,7 +187,7 @@ class PuzzleMLPDecoder(nn.Module):
         x = F.gelu(x)
         x = self.ln2(x)
 
-        # x = F.gelu(x)
+        x = F.gelu(x)
         x = self.drop(x)
         x = self.ln3(self.layer_norm(x+hidden_repr))
         return x
