@@ -225,7 +225,7 @@ class Puzzle_Net(nn.Module):
 
                 else:
                     ans_decoder.append(
-                        nn.GRU(
+                        nn.LSTM(
                             int(self.out_dim),
                             int(num_classes),
                             num_layers=1,
