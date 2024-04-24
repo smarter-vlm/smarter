@@ -124,7 +124,6 @@ def train(args, dataloader, im_backbone):
             if not args.run_baseline:
                 torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
 
-
             optimizer.step()
             if not args.run_baseline:
                 scheduler.step()
@@ -216,7 +215,7 @@ def train(args, dataloader, im_backbone):
         test_loop(dataloader["test"], model)
         return
 
-    if args.run_baseline:
+    if not args.run_baseline:
 
         optimizer = torch.optim.AdamW(
             model.parameters(),
@@ -236,7 +235,9 @@ def train(args, dataloader, im_backbone):
 
     num_warmup_steps = 10
     if not args.run_baseline:
-        scheduler = get_cosine_schedule_with_warmup(optimizer, num_warmup_steps, num_steps)
+        scheduler = get_cosine_schedule_with_warmup(
+            optimizer, num_warmup_steps, num_steps
+        )
 
     # training loop
     best_model = None
