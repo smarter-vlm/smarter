@@ -82,7 +82,8 @@ class Puzzle_Net(nn.Module):
             self.siglip_dim = 768
             self.q_MLP = nn.Sequential(
                 nn.Linear(self.siglip_dim, self.h_sz),
-                nn.GELU(),
+                get_activation_layer(args.run_baseline
+                                     ),
                 nn.Linear(self.h_sz, self.out_dim),
             )
         else:
@@ -102,7 +103,7 @@ class Puzzle_Net(nn.Module):
         self.o_encoder = nn.Sequential(
             nn.Embedding(len(self.vocab), self.out_dim, max_norm=1),
             nn.Linear(self.out_dim, self.out_dim),
-            nn.GELU(),
+            get_activation_layer(args.run_baseline),
         )
 
         if args.qf_layer:
@@ -110,8 +111,17 @@ class Puzzle_Net(nn.Module):
             self.c = CLayer(dim=1664)
 
         else:
-            self.qv_fusion = QV_Fusion(2 * self.out_dim, self.out_dim)
-            self.c = CLayer(dim=2 * self.out_dim)
+            if not args.run_baseline:
+                self.qv_fusion = QV_Fusion(2 * self.out_dim, self.out_dim)
+                self.c = CLayer(dim=2 * self.out_dim)
+            else:
+                self.qv_fusion = nn.Sequential(
+                    nn.Linear(self.out_dim * 2, self.out_dim),
+                    nn.ReLU(),
+                    nn.Linear(self.out_dim, self.out_dim),
+                    nn.ReLU(),
+                )
+
         if args.qf_layer:
             self.qf = QFLayer(num_heads=args.num_heads)
 
@@ -155,7 +165,8 @@ class Puzzle_Net(nn.Module):
         if args.use_single_image_head:
             self.im_encoder = nn.Sequential(
                 nn.Linear(self.im_repr_size, self.out_dim),
-                nn.GELU(),
+                get_activation_layer(args.run_baseline
+                                     ),
                 nn.Linear(self.out_dim, self.out_dim),
             )
         else:
@@ -165,7 +176,8 @@ class Puzzle_Net(nn.Module):
                 im_encoder.append(
                     nn.Sequential(
                         nn.Linear(self.im_repr_size, self.out_dim),
-                        nn.GELU(),
+                        get_activation_layer(args.run_baseline
+                                     ),
                         nn.Linear(self.out_dim, self.out_dim),
                     )
                 )
@@ -252,7 +264,8 @@ class Puzzle_Net(nn.Module):
                 idx = pids == int(self.puzzle_ids[t])
                 idx = idx.to(self.device)
                 if idx.sum() > 0:
-                    y[idx] = F.gelu(self.im_encoder[int(self.puzzle_ids[t])](x[idx]))
+                    y[idx] = get_activation_fn(args.run_baseline
+                                     )(self.im_encoder[int(self.puzzle_ids[t])](x[idx]))
 
         return y
 
@@ -278,7 +291,8 @@ class Puzzle_Net(nn.Module):
                 q_repr = gv.word_embed(tt)
                 q_enc[ii, : min(gv.max_qlen, len(q_repr)), :] = q_repr
             x, (h, _) = self.q_lstm(q_enc.float())
-            x = F.gelu(self.q_MLP(x.mean(1)))
+            x = get_activation_fn(self.args.run_baseline
+                                     )(self.q_MLP(x.mean(1)))
 
         elif self.word_embed in ["siglip"]:
 
@@ -293,7 +307,8 @@ class Puzzle_Net(nn.Module):
             else:
                 # as siglip encodes the sequence
                 x = gv.word_embed(text)
-                x = F.gelu(self.q_MLP(x))
+                x = get_activation_fn(self.args.run_baseline
+                                     )(self.q_MLP(x))
 
         return q_enc.float() if self.args.qf_layer else x
 
