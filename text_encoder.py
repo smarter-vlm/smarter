@@ -35,14 +35,14 @@ class mBERT:
             device
         )
         print(
-            f"\n Number trainable params before explicit freezing of text backb  {sum(p.numel() for p in self.model.parameters() if p.requires_grad)}"
+            f"\n Number text backbone params before explicit freezing {sum(p.numel() for p in self.model.parameters() if p.requires_grad)}"
         )
         for param in self.model.parameters():
 
             param.requires_grad = False
 
         print(
-            f"\n Number trainable params after explicit freezing of text backb  {sum(p.numel() for p in self.model.parameters() if p.requires_grad)}"
+            f"\n Number text backbone params after explicit freezing   {sum(p.numel() for p in self.model.parameters() if p.requires_grad)}"
         )
 
         self.tokenizer = BertTokenizer.from_pretrained("bert-base-multilingual-cased")
