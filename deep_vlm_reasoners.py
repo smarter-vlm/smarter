@@ -131,7 +131,7 @@ class Puzzle_Net(nn.Module):
 
         if args.qf_layer:
             composite_dim = 2 * 768 + self.args.repr_size
-            self.qv_fusion = QV_Fusion(composite_dim, self.out_dim, self.arg)
+            self.qv_fusion = QV_Fusion(composite_dim, self.out_dim, self.args)
             self.c = CLayer(dim=composite_dim, args=self.args)
 
         else:
