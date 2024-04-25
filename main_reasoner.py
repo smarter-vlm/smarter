@@ -46,7 +46,8 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 print(f"Available GPUs {AVAIL_GPUS} and current device {device}")
 
 
-# For direct baselines runs: https://github.com/D-Roberts/SMART
+# For direct baselines runs as in the original paper: https://github.com/D-Roberts/SMART
+# which is a fork with minimal changes from original repo (merl)
 
 
 def reset_state(args):
@@ -221,8 +222,8 @@ def train(args, dataloader, im_backbone):
         optimizer = torch.optim.AdamW(
             model.parameters(),
             lr=args.lr,
-            betas=(0.9, 0.98),
-            eps=1e-8,
+            betas=(0.9, args.beta2),
+            eps=args.eps,
             weight_decay=args.wd,
         )
     else:
@@ -460,13 +461,13 @@ if __name__ == "__main__":
         help="layernorm eps?",
     )
     parser.add_argument(
-        "--adamw_eps",
+        "--eps",
         type=float,
         default=1e-9,
         help="eps val for AdamW?",
     )
     parser.add_argument(
-        "--adamw_beta2",
+        "--beta2",
         type=float,
         default=0.99,
         help="beta2 val for AdamW?",

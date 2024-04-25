@@ -114,12 +114,12 @@ class Puzzle_Net(nn.Module):
 
         if args.qf_layer:
             composite_dim = 2 * 768 + self.args.repr_size
-            self.qv_fusion = QV_Fusion(composite_dim, self.out_dim)
-            self.c = CLayer(dim=composite_dim)
+            self.qv_fusion = QV_Fusion(composite_dim, self.out_dim, self.arg)
+            self.c = CLayer(dim=composite_dim, args=self.args)
 
         else:
             if not args.run_baseline:
-                self.qv_fusion = QV_Fusion(2 * self.out_dim, self.out_dim)
+                self.qv_fusion = QV_Fusion(2 * self.out_dim, self.out_dim, self.args)
                 self.c = CLayer(dim=2 * self.out_dim)
             else:
                 self.qv_fusion = nn.Sequential(
@@ -133,7 +133,7 @@ class Puzzle_Net(nn.Module):
             self.qf = QFLayer(
                 num_heads=args.num_heads,
                 repr_size=self.args.repr_size,
-                pdrop=self.args.pdrop,
+                args=self.args,
             )
 
         self.create_puzzle_tail(args)

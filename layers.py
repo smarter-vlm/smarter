@@ -9,7 +9,7 @@ import torch.nn.functional as F
 class CLayer(nn.Module):
     def __init__(self, dim, args):
         super().__init__()
-        self.ln = nn.LayerNorm(dim, eps=args.ln_norm)
+        self.ln = nn.LayerNorm(dim, eps=args.ln_eps)
 
     def forward(self, inputs):
         return self.ln(torch.cat(inputs, dim=1))
@@ -48,7 +48,7 @@ class QFIntermediate(nn.Module):
         super().__init__()
         self.dense = nn.Linear(768, 256)
         self.intermediate_act_fn = nn.GELU()
-        self.layer_norm = nn.LayerNorm(768, eps=args.ln_norm)
+        self.layer_norm = nn.LayerNorm(768, eps=args.ln_eps)
         self.dropout = nn.Dropout(args.pdrop)
         self.dense_final = nn.Linear(256, 768)
 
@@ -164,7 +164,7 @@ class QV_Fusion(nn.Module):
         super().__init__()
         self.ln1 = nn.Linear(in_dim, out_dim)
         self.ln2 = nn.Linear(out_dim, out_dim)
-        self.layer_norm = nn.LayerNorm(out_dim, eps=args.ln_norm)
+        self.layer_norm = nn.LayerNorm(out_dim, eps=args.ln_eps)
 
     def forward(self, x):
         x = self.ln1(x)
@@ -182,7 +182,7 @@ class PuzzleMLPDecoder(nn.Module):
         self.ln2 = nn.Linear(out_dim, out_dim)
         self.ln3 = nn.Linear(out_dim, num_classes)
         self.drop = nn.Dropout(args.pdrop)
-        self.layer_norm = nn.LayerNorm(out_dim, eps=args.ln_norm)
+        self.layer_norm = nn.LayerNorm(out_dim, eps=args.ln_eps)
 
     def forward(self, hidden_repr):
         x = self.ln1(hidden_repr)
