@@ -1,21 +1,3 @@
-"""
-Copyright Denisa Roberts 2024
-
-# References
-# https://github.com/merlresearch/SMART
-# CVPR SMART article https://arxiv.org/pdf/2212.09993.pdf
-
-# adsformers https://ui.adsabs.harvard.edu/abs/2023arXiv230201255A/abstract
-# eficient vit image representations https://www.researchgate.net/profile/Denisa-Roberts/publication/370980888_Efficient_Large-Scale_Vision_Representation_Learning/links/64ecf9d99b1e56033da9d827/Efficient-Large-Scale-Vision-Representation-Learning.pdf
-
-# prismatic vlm https://arxiv.org/pdf/2402.07865.pdf
-# qformer https://arxiv.org/pdf/2301.12597
-# mbert https://link.springer.com/chapter/10.1007/978-3-030-72240-1_36
-
-# siglip https://huggingface.co/google/siglip-so400m-patch14-384
-# dinov2 https://huggingface.co/facebook/dinov2-base
-"""
-
 import os
 import warnings
 
@@ -131,13 +113,12 @@ class Puzzle_Net(nn.Module):
         )
 
         if args.qf_layer:
-            composite_dim = 2 * 768 + self.args.repr_size
-            self.qv_fusion = QV_Fusion(composite_dim, self.out_dim, self.args)
-            self.c = CLayer(dim=composite_dim, args=self.args)
+            self.qv_fusion = QV_Fusion(1664, self.out_dim)
+            self.c = CLayer(dim=1664)
 
         else:
             if not args.run_baseline:
-                self.qv_fusion = QV_Fusion(2 * self.out_dim, self.out_dim, self.args)
+                self.qv_fusion = QV_Fusion(2 * self.out_dim, self.out_dim)
                 self.c = CLayer(dim=2 * self.out_dim)
             else:
                 self.qv_fusion = nn.Sequential(
@@ -148,11 +129,7 @@ class Puzzle_Net(nn.Module):
                 )
 
         if args.qf_layer:
-            self.qf = QFLayer(
-                num_heads=args.num_heads,
-                repr_size=self.args.repr_size,
-                args=self.args,
-            )
+            self.qf = QFLayer(num_heads=args.num_heads)
 
         self.create_puzzle_tail(args)
 
@@ -223,9 +200,7 @@ class Puzzle_Net(nn.Module):
             num_classes = gv.NUM_CLASSES_PER_PUZZLE[str(pid)]
             if int(pid) not in gv.SEQ_PUZZLES:
                 if not args.run_baseline:
-                    dec = PuzzleMLPDecoder(
-                        self.out_dim, num_classes, args=self.args
-                    )
+                    dec = PuzzleMLPDecoder(self.out_dim, num_classes)
                     ans_decoder.append(dec)
                 else:
                     ans_decoder.append(
@@ -382,8 +357,6 @@ class Puzzle_Net(nn.Module):
         if not self.args.run_baseline:
             if self.args.qf_layer:
                 qf_out = self.qf(im_repr, q_repr)
-                # print(f"shape vision: {im_repr.size()}, text{q_repr.mean(1).size()} and qf {qf_out.size()}")
-
                 qv_repr = self.qv_fusion(self.c([im_repr, q_repr.mean(1), qf_out]))
             else:
                 qv_repr = self.qv_fusion(self.c([im_repr, q_repr]))
