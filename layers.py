@@ -1,10 +1,5 @@
 # New code. Copyright Denisa Roberts
 
-import math
-import torch
-from torch import nn
-import torch.nn.functional as F
-
 # References
 
 # adsformers https://ui.adsabs.harvard.edu/abs/2023arXiv230201255A/abstract
@@ -12,6 +7,12 @@ import torch.nn.functional as F
 # prismatic vlm https://arxiv.org/pdf/2402.07865.pdf
 # qformer https://arxiv.org/pdf/2301.12597
 # mbert https://link.springer.com/chapter/10.1007/978-3-030-72240-1_36
+
+
+import math
+import torch
+from torch import nn
+import torch.nn.functional as F
 
 
 class CLayer(nn.Module):
