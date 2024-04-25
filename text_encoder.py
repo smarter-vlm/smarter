@@ -1,3 +1,19 @@
+"""
+# References
+# https://github.com/merlresearch/SMART
+# CVPR SMART article https://arxiv.org/pdf/2212.09993.pdf
+
+# adsformers https://ui.adsabs.harvard.edu/abs/2023arXiv230201255A/abstract
+# efficient image representations https://www.researchgate.net/profile/Denisa-Roberts/publication/370980888_Efficient_Large-Scale_Vision_Representation_Learning/links/64ecf9d99b1e56033da9d827/Efficient-Large-Scale-Vision-Representation-Learning.pdf
+
+# prismatic vlm https://arxiv.org/pdf/2402.07865.pdf
+# qformer https://arxiv.org/pdf/2301.12597
+# mbert https://link.springer.com/chapter/10.1007/978-3-030-72240-1_36
+
+# siglip https://huggingface.co/google/siglip-so400m-patch14-384
+# dinov2 https://huggingface.co/facebook/dinov2-base
+"""
+
 import os
 import pdb
 
@@ -19,14 +35,14 @@ class mBERT:
             device
         )
         print(
-            f"\n Number trainable params before explicit freezing of text backb  {sum(p.numel() for p in self.model.parameters() if p.requires_grad)}"
+            f"\n Number text backbone params before explicit freezing {sum(p.numel() for p in self.model.parameters() if p.requires_grad)}"
         )
         for param in self.model.parameters():
 
             param.requires_grad = False
 
         print(
-            f"\n Number trainable params after explicit freezing of text backb  {sum(p.numel() for p in self.model.parameters() if p.requires_grad)}"
+            f"\n Number text backbone params after explicit freezing   {sum(p.numel() for p in self.model.parameters() if p.requires_grad)}"
         )
 
         self.tokenizer = BertTokenizer.from_pretrained("bert-base-multilingual-cased")

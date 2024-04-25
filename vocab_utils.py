@@ -1,3 +1,5 @@
+# From https://github.com/merlresearch/SMART
+
 import nltk
 
 try:
