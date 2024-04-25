@@ -1,3 +1,5 @@
+# Edited from https://github.com/merlresearch/SMART
+
 import os
 import warnings
 

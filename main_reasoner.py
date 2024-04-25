@@ -1,4 +1,3 @@
-
 '''
 # References
 # https://github.com/merlresearch/SMART
@@ -11,8 +10,10 @@
 # qformer https://arxiv.org/pdf/2301.12597
 # mbert https://link.springer.com/chapter/10.1007/978-3-030-72240-1_36
 
-
+# siglip https://huggingface.co/google/siglip-so400m-patch14-384
+# dinov2 https://huggingface.co/facebook/dinov2-base
 '''
+
 
 import os
 from pathlib import Path
