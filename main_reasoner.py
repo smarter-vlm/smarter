@@ -253,8 +253,8 @@ def train(args, dataloader, im_backbone):
 
     num_steps = args.num_epochs * len(train_loader)
 
-    num_warmup_steps = int(args.warmup * num_steps)
-    
+    num_warmup_steps = args.warmup * num_steps
+
     if not args.run_baseline:
         scheduler = get_cosine_schedule_with_warmup(
             optimizer, num_warmup_steps, num_steps
