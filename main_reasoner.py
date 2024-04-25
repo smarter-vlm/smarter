@@ -15,6 +15,7 @@ Copyright Denisa Roberts 2024
 # siglip https://huggingface.co/google/siglip-so400m-patch14-384
 # dinov2 https://huggingface.co/facebook/dinov2-base
 """
+
 import os
 from pathlib import Path
 
@@ -250,7 +251,8 @@ def train(args, dataloader, im_backbone):
 
     num_steps = args.num_epochs * len(train_loader)
 
-    num_warmup_steps = 10
+    num_warmup_steps = 10  # TODO DR: no hardcoding
+
     if not args.run_baseline:
         scheduler = get_cosine_schedule_with_warmup(
             optimizer, num_warmup_steps, num_steps
@@ -453,8 +455,21 @@ if __name__ == "__main__":
     parser.add_argument(
         "--wd",
         type=float,
-        default=0.0,
+        default=0.2,
         help="weight decay for AdamW?",
+    )
+
+    parser.add_argument(
+        "--pdrop",
+        type=float,
+        default=0.2,
+        help="dropout prob?",
+    )
+    parser.add_argument(
+        "--ln_eps",
+        type=float,
+        default=1e-6,
+        help="layernorm eps?",
     )
 
     args = parser.parse_args()
