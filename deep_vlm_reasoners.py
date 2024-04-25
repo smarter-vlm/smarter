@@ -130,7 +130,11 @@ class Puzzle_Net(nn.Module):
                 )
 
         if args.qf_layer:
-            self.qf = QFLayer(num_heads=args.num_heads, repr_size=self.args.repr_size, pdrop=self.args.pdrop)
+            self.qf = QFLayer(
+                num_heads=args.num_heads,
+                repr_size=self.args.repr_size,
+                pdrop=self.args.pdrop,
+            )
 
         self.create_puzzle_tail(args)
 
@@ -201,7 +205,9 @@ class Puzzle_Net(nn.Module):
             num_classes = gv.NUM_CLASSES_PER_PUZZLE[str(pid)]
             if int(pid) not in gv.SEQ_PUZZLES:
                 if not args.run_baseline:
-                    dec = PuzzleMLPDecoder(self.out_dim, num_classes, pdrop=self.args.pdrop)
+                    dec = PuzzleMLPDecoder(
+                        self.out_dim, num_classes, pdrop=self.args.pdrop
+                    )
                     ans_decoder.append(dec)
                 else:
                     ans_decoder.append(

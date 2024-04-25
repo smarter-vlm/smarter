@@ -1,7 +1,6 @@
 import os
 from pathlib import Path
 
-import comet_ml
 
 import numpy as np
 from comet_ml import Experiment
@@ -30,20 +29,22 @@ import utils
 
 from transformers.optimization import get_cosine_schedule_with_warmup
 
-AVAIL_GPUS = min(1, torch.cuda.device_count())
-device = "cuda" if torch.cuda.is_available() else "cpu"
-
-print(f"Available GPUs {AVAIL_GPUS} and current device {device}")
 
 API_KEY = Path(".comet_token").read_text().strip()
 workspace = Path(".comet_workspace").read_text().strip()
 
 experiment = Experiment(
     api_key=API_KEY,
-    project_name="vlm-reasoners",
+    project_name="multimodalai", #vlm-reasoners for dev
     workspace=workspace,
     auto_metric_logging=True,  # default
 )
+
+AVAIL_GPUS = min(1, torch.cuda.device_count())
+device = "cuda" if torch.cuda.is_available() else "cpu"
+
+print(f"Available GPUs {AVAIL_GPUS} and current device {device}")
+
 
 # For direct baselines runs: https://github.com/D-Roberts/SMART
 
@@ -233,7 +234,8 @@ def train(args, dataloader, im_backbone):
 
     num_steps = args.num_epochs * len(train_loader)
 
-    num_warmup_steps = 2
+    num_warmup_steps = args.warmup * num_steps
+
     if not args.run_baseline:
         scheduler = get_cosine_schedule_with_warmup(
             optimizer, num_warmup_steps, num_steps
@@ -444,6 +446,32 @@ if __name__ == "__main__":
         default=0.0,
         help="weight decay for AdamW?",
     )
+
+    parser.add_argument(
+        "--warmup",
+        type=float,
+        default=0.0,
+        help="warmup ratio for scheduler?",
+    )
+    parser.add_argument(
+        "--ln_eps",
+        type=float,
+        default=1e-6,
+        help="layernorm eps?",
+    )
+    parser.add_argument(
+        "--adamw_eps",
+        type=float,
+        default=1e-9,
+        help="eps val for AdamW?",
+    )
+    parser.add_argument(
+        "--adamw_beta2",
+        type=float,
+        default=0.99,
+        help="beta2 val for AdamW?",
+    )
+
 
     args = parser.parse_args()
 
