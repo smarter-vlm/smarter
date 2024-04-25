@@ -224,7 +224,7 @@ class Puzzle_Net(nn.Module):
             if int(pid) not in gv.SEQ_PUZZLES:
                 if not args.run_baseline:
                     dec = PuzzleMLPDecoder(
-                        self.out_dim, num_classes, pdrop=self.args
+                        self.out_dim, num_classes, args=self.args
                     )
                     ans_decoder.append(dec)
                 else:
