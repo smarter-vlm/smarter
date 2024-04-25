@@ -1,10 +1,12 @@
-'''
+"""
+Copyright Denisa Roberts 2024
+
 # References
 # https://github.com/merlresearch/SMART
 # CVPR SMART article https://arxiv.org/pdf/2212.09993.pdf
 
 # adsformers https://ui.adsabs.harvard.edu/abs/2023arXiv230201255A/abstract
-# efficient image representations https://www.researchgate.net/profile/Denisa-Roberts/publication/370980888_Efficient_Large-Scale_Vision_Representation_Learning/links/64ecf9d99b1e56033da9d827/Efficient-Large-Scale-Vision-Representation-Learning.pdf
+# eficient vit image representations https://www.researchgate.net/profile/Denisa-Roberts/publication/370980888_Efficient_Large-Scale_Vision_Representation_Learning/links/64ecf9d99b1e56033da9d827/Efficient-Large-Scale-Vision-Representation-Learning.pdf
 
 # prismatic vlm https://arxiv.org/pdf/2402.07865.pdf
 # qformer https://arxiv.org/pdf/2301.12597
@@ -12,8 +14,7 @@
 
 # siglip https://huggingface.co/google/siglip-so400m-patch14-384
 # dinov2 https://huggingface.co/facebook/dinov2-base
-'''
-
+"""
 
 import os
 from pathlib import Path
@@ -52,7 +53,7 @@ workspace = Path(".comet_workspace").read_text().strip()
 
 experiment = Experiment(
     api_key=API_KEY,
-    project_name="multimodalai", #vlm-reasoners for dev
+    project_name="multimodalai",  # vlm-reasoners for dev
     workspace=workspace,
     auto_metric_logging=True,  # default
 )
@@ -489,7 +490,6 @@ if __name__ == "__main__":
         default=0.98,
         help="beta2 val for AdamW?",
     )
-
 
     args = parser.parse_args()
 

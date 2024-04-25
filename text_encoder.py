@@ -1,5 +1,4 @@
-
-'''
+"""
 # References
 # https://github.com/merlresearch/SMART
 # CVPR SMART article https://arxiv.org/pdf/2212.09993.pdf
@@ -13,7 +12,8 @@
 
 # siglip https://huggingface.co/google/siglip-so400m-patch14-384
 # dinov2 https://huggingface.co/facebook/dinov2-base
-'''
+"""
+
 import os
 import pdb
 
