@@ -1,5 +1,3 @@
-# edited from https://github.com/merlresearch/SMART
-
 import torch.nn as nn
 
 import text_encoder as gv

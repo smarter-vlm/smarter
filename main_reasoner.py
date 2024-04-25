@@ -1,24 +1,8 @@
-"""
-Copyright Denisa Roberts 2024
-
-# References
-# https://github.com/merlresearch/SMART
-# CVPR SMART article https://arxiv.org/pdf/2212.09993.pdf
-
-# adsformers https://ui.adsabs.harvard.edu/abs/2023arXiv230201255A/abstract
-# eficient vit image representations https://www.researchgate.net/profile/Denisa-Roberts/publication/370980888_Efficient_Large-Scale_Vision_Representation_Learning/links/64ecf9d99b1e56033da9d827/Efficient-Large-Scale-Vision-Representation-Learning.pdf
-
-# prismatic vlm https://arxiv.org/pdf/2402.07865.pdf
-# qformer https://arxiv.org/pdf/2301.12597
-# mbert https://link.springer.com/chapter/10.1007/978-3-030-72240-1_36
-
-# siglip https://huggingface.co/google/siglip-so400m-patch14-384
-# dinov2 https://huggingface.co/facebook/dinov2-base
-"""
-
 import os
 from pathlib import Path
 
+import comet_ml
+import pytorch_lightning as pl
 
 import numpy as np
 from comet_ml import Experiment
@@ -47,25 +31,22 @@ import utils
 
 from transformers.optimization import get_cosine_schedule_with_warmup
 
+AVAIL_GPUS = min(1, torch.cuda.device_count())
+device = "cuda" if torch.cuda.is_available() else "cpu"
+
+print(f"Available GPUs {AVAIL_GPUS} and current device {device}")
 
 API_KEY = Path(".comet_token").read_text().strip()
 workspace = Path(".comet_workspace").read_text().strip()
 
 experiment = Experiment(
     api_key=API_KEY,
-    project_name="multimodalai",  # vlm-reasoners for dev
+    project_name="vlm-reasoners",
     workspace=workspace,
     auto_metric_logging=True,  # default
 )
 
-AVAIL_GPUS = min(1, torch.cuda.device_count())
-device = "cuda" if torch.cuda.is_available() else "cpu"
-
-print(f"Available GPUs {AVAIL_GPUS} and current device {device}")
-
-
-# For direct baselines runs as in the original paper: https://github.com/D-Roberts/SMART
-# which is a fork with minimal changes from original repo (merl)
+# For direct baselines runs: https://github.com/D-Roberts/SMART
 
 
 def reset_state(args):
@@ -146,7 +127,6 @@ def train(args, dataloader, im_backbone):
             optimizer.step()
             if not args.run_baseline:
                 scheduler.step()
-
             optimizer.zero_grad()
 
             tot_loss += loss.item()
@@ -240,8 +220,8 @@ def train(args, dataloader, im_backbone):
         optimizer = torch.optim.AdamW(
             model.parameters(),
             lr=args.lr,
-            betas=(0.9, args.beta2),
-            eps=args.eps,
+            betas=(0.9, 0.98),
+            eps=1e-8,
             weight_decay=args.wd,
         )
     else:
@@ -253,8 +233,7 @@ def train(args, dataloader, im_backbone):
 
     num_steps = args.num_epochs * len(train_loader)
 
-    num_warmup_steps = args.warmup * num_steps
-
+    num_warmup_steps = 10
     if not args.run_baseline:
         scheduler = get_cosine_schedule_with_warmup(
             optimizer, num_warmup_steps, num_steps
@@ -289,6 +268,7 @@ def train(args, dataloader, im_backbone):
                 {
                     "val_acc": acc,
                     "val_var": err,
+                    # "val_oacc": oacc,
                     "val_epoch_loss": val_tot_loss,
                 },
                 epoch=epoch,
@@ -427,7 +407,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--qf_layer",
         action="store_true",
-        help="add an adsformers and q-former inspired layer to get a composite vision-language representation",
+        help="add a q-former inspired layer to get a composite vision-language representation",
     )
 
     # Ref for baseline choices https://github.com/D-Roberts/SMART/tree/main (code forked from original paper's repo)
@@ -443,12 +423,6 @@ if __name__ == "__main__":
         default=2,
         help="number attention heads in QFlayer self and cross attention?",
     )
-    parser.add_argument(
-        "--pdrop",
-        type=float,
-        default=0.2,
-        help="number attention heads in QFlayer self and cross attention?",
-    )
 
     parser.add_argument("--log_freq", type=int, default=1, help="log frequency?")
     parser.add_argument("--test", action="store_true", help="evaluate a model?")
@@ -462,33 +436,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "--wd",
         type=float,
-        default=0.2,
+        default=0.0,
         help="weight decay for AdamW?",
-    )
-
-    parser.add_argument(
-        "--warmup",
-        type=float,
-        default=0.01,
-        help="warmup ratio for scheduler?",
-    )
-    parser.add_argument(
-        "--ln_eps",
-        type=float,
-        default=1e-6,
-        help="layernorm eps?",
-    )
-    parser.add_argument(
-        "--eps",
-        type=float,
-        default=1e-8,
-        help="eps val for AdamW?",
-    )
-    parser.add_argument(
-        "--beta2",
-        type=float,
-        default=0.98,
-        help="beta2 val for AdamW?",
     )
 
     args = parser.parse_args()
