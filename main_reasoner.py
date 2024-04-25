@@ -238,8 +238,8 @@ def train(args, dataloader, im_backbone):
         optimizer = torch.optim.AdamW(
             model.parameters(),
             lr=args.lr,
-            betas=(0.9, 0.98),
-            eps=1e-8,
+            betas=(0.9, args.beta2),
+            eps=args.eps,
             weight_decay=args.wd,
         )
     else:
@@ -470,6 +470,19 @@ if __name__ == "__main__":
         type=float,
         default=1e-6,
         help="layernorm eps?",
+    )
+    parser.add_argument(
+        "--eps",
+        type=float,
+        default=1e-8,
+        help="adamw eps?",
+    )
+
+    parser.add_argument(
+        "--beta2",
+        type=float,
+        default=0.98,
+        help="adamw beta2?",
     )
 
     args = parser.parse_args()
