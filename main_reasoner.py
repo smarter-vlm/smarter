@@ -409,7 +409,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--qf_layer",
         action="store_true",
-        help="add a q-former inspired layer to get a composite vision-language representation",
+        help="add an adsformers and q-former inspired layer to get a composite vision-language representation",
     )
 
     # Ref for baseline choices https://github.com/D-Roberts/SMART/tree/main (code forked from original paper's repo)
@@ -444,14 +444,14 @@ if __name__ == "__main__":
     parser.add_argument(
         "--wd",
         type=float,
-        default=0.0,
+        default=0.2,
         help="weight decay for AdamW?",
     )
 
     parser.add_argument(
         "--warmup",
         type=float,
-        default=0.0,
+        default=0.01,
         help="warmup ratio for scheduler?",
     )
     parser.add_argument(
@@ -463,13 +463,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "--eps",
         type=float,
-        default=1e-9,
+        default=1e-8,
         help="eps val for AdamW?",
     )
     parser.add_argument(
         "--beta2",
         type=float,
-        default=0.99,
+        default=0.98,
         help="beta2 val for AdamW?",
     )
 

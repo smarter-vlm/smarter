@@ -5,6 +5,10 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 
+# References
+# adsformers https://ui.adsabs.harvard.edu/abs/2023arXiv230201255A/abstract
+# prismatic vlm https://arxiv.org/pdf/2402.07865.pdf
+# qformer https://arxiv.org/pdf/2301.12597
 
 class CLayer(nn.Module):
     def __init__(self, dim, args):
