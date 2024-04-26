@@ -1,3 +1,21 @@
+"""
+Copyright Denisa Roberts 2024
+
+# References
+# https://github.com/merlresearch/SMART
+# CVPR SMART article https://arxiv.org/pdf/2212.09993.pdf
+
+# adsformers https://ui.adsabs.harvard.edu/abs/2023arXiv230201255A/abstract
+# eficient vit image representations https://www.researchgate.net/profile/Denisa-Roberts/publication/370980888_Efficient_Large-Scale_Vision_Representation_Learning/links/64ecf9d99b1e56033da9d827/Efficient-Large-Scale-Vision-Representation-Learning.pdf
+
+# prismatic vlm https://arxiv.org/pdf/2402.07865.pdf
+# qformer https://arxiv.org/pdf/2301.12597
+# mbert https://link.springer.com/chapter/10.1007/978-3-030-72240-1_36
+
+# siglip https://huggingface.co/google/siglip-so400m-patch14-384
+# dinov2 https://huggingface.co/facebook/dinov2-base
+"""
+
 import os
 from pathlib import Path
 
@@ -41,7 +59,7 @@ workspace = Path(".comet_workspace").read_text().strip()
 
 experiment = Experiment(
     api_key=API_KEY,
-    project_name="vlm-reasoners",
+    project_name="multimodalai",
     workspace=workspace,
     auto_metric_logging=True,  # default
 )
@@ -220,8 +238,8 @@ def train(args, dataloader, im_backbone):
         optimizer = torch.optim.AdamW(
             model.parameters(),
             lr=args.lr,
-            betas=(0.9, 0.98),
-            eps=1e-8,
+            betas=(0.9, args.beta2),
+            eps=args.eps,
             weight_decay=args.wd,
         )
     else:
@@ -233,7 +251,8 @@ def train(args, dataloader, im_backbone):
 
     num_steps = args.num_epochs * len(train_loader)
 
-    num_warmup_steps = 10
+    num_warmup_steps = 10  # TODO DR: no hardcoding
+
     if not args.run_baseline:
         scheduler = get_cosine_schedule_with_warmup(
             optimizer, num_warmup_steps, num_steps
@@ -436,8 +455,40 @@ if __name__ == "__main__":
     parser.add_argument(
         "--wd",
         type=float,
-        default=0.0,
+        default=0.2,
         help="weight decay for AdamW?",
+    )
+
+    parser.add_argument(
+        "--pdrop",
+        type=float,
+        default=0.2,
+        help="dropout prob?",
+    )
+    parser.add_argument(
+        "--ln_eps",
+        type=float,
+        default=1e-6,
+        help="layernorm eps?",
+    )
+    parser.add_argument(
+        "--eps",
+        type=float,
+        default=1e-8,
+        help="adamw eps?",
+    )
+
+    parser.add_argument(
+        "--beta2",
+        type=float,
+        default=0.98,
+        help="adamw beta2?",
+    )
+    parser.add_argument(
+        "--h_sz",
+        type=int,
+        default=256,
+        help="hidden size in qf intermediate and gru?",
     )
 
     args = parser.parse_args()

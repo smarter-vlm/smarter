@@ -1,3 +1,21 @@
+"""
+Copyright Denisa Roberts 2024
+
+# References
+# https://github.com/merlresearch/SMART
+# CVPR SMART article https://arxiv.org/pdf/2212.09993.pdf
+
+# adsformers https://ui.adsabs.harvard.edu/abs/2023arXiv230201255A/abstract
+# eficient vit image representations https://www.researchgate.net/profile/Denisa-Roberts/publication/370980888_Efficient_Large-Scale_Vision_Representation_Learning/links/64ecf9d99b1e56033da9d827/Efficient-Large-Scale-Vision-Representation-Learning.pdf
+
+# prismatic vlm https://arxiv.org/pdf/2402.07865.pdf
+# qformer https://arxiv.org/pdf/2301.12597
+# mbert https://link.springer.com/chapter/10.1007/978-3-030-72240-1_36
+
+# siglip https://huggingface.co/google/siglip-so400m-patch14-384
+# dinov2 https://huggingface.co/facebook/dinov2-base
+"""
+
 import os
 import warnings
 
@@ -36,7 +54,7 @@ class Puzzle_Net(nn.Module):
 
         self.num_opts = 5
         self.out_dim = args.repr_size
-        self.h_sz = 256
+        self.h_sz = args.h_sz
         self.model_name = args.model_name
         self.use_single_image_head = args.use_single_image_head
         self.word_embed = args.word_embed
@@ -113,13 +131,18 @@ class Puzzle_Net(nn.Module):
         )
 
         if args.qf_layer:
-            self.qv_fusion = QV_Fusion(1664, self.out_dim)
-            self.c = CLayer(dim=1664)
+            composite_dim = 2 * 768 + self.args.repr_size
+            self.qv_fusion = QV_Fusion(
+                composite_dim, self.out_dim, args=self.args
+            )  # 1664
+            self.c = CLayer(dim=composite_dim, args=self.args)
 
         else:
             if not args.run_baseline:
-                self.qv_fusion = QV_Fusion(2 * self.out_dim, self.out_dim)
-                self.c = CLayer(dim=2 * self.out_dim)
+                self.qv_fusion = QV_Fusion(
+                    2 * self.out_dim, self.out_dim, args=self.args
+                )
+                self.c = CLayer(dim=2 * self.out_dim, args=self.args)
             else:
                 self.qv_fusion = nn.Sequential(
                     nn.Linear(self.out_dim * 2, self.out_dim),
@@ -129,7 +152,7 @@ class Puzzle_Net(nn.Module):
                 )
 
         if args.qf_layer:
-            self.qf = QFLayer(num_heads=args.num_heads)
+            self.qf = QFLayer(num_heads=args.num_heads, args=self.args)
 
         self.create_puzzle_tail(args)
 

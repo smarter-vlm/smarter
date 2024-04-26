@@ -1,4 +1,14 @@
-# New code. Copyright Denisa Roberts
+# New code. Copyright Denisa Roberts 2024
+
+# References
+
+# adsformers https://ui.adsabs.harvard.edu/abs/2023arXiv230201255A/abstract
+# eficient vit image representations https://www.researchgate.net/profile/Denisa-Roberts/publication/370980888_Efficient_Large-Scale_Vision_Representation_Learning/links/64ecf9d99b1e56033da9d827/Efficient-Large-Scale-Vision-Representation-Learning.pdf
+
+# prismatic vlm https://arxiv.org/pdf/2402.07865.pdf
+# qformer https://arxiv.org/pdf/2301.12597
+
+# mbert https://link.springer.com/chapter/10.1007/978-3-030-72240-1_36
 
 import math
 import torch
@@ -7,25 +17,26 @@ import torch.nn.functional as F
 
 
 class CLayer(nn.Module):
-    def __init__(self, dim):
+    def __init__(self, dim, args):
         super().__init__()
-        self.ln = nn.LayerNorm(dim, eps=1e-6)
+        self.ln = nn.LayerNorm(dim, eps=args.ln_eps)
 
     def forward(self, inputs):
         return self.ln(torch.cat(inputs, dim=1))
 
 
 class QFLayer(nn.Module):
-    def __init__(self, num_heads):
+    def __init__(self, num_heads, args):
         super().__init__()
-        self.intermediate = QFIntermediate()
-        self.mha = QFAttentionMH(num_attention_heads=num_heads)
+        self.intermediate = QFIntermediate(args)
+        self.mha = QFAttentionMH(num_attention_heads=num_heads, args=args)
         self.crossattention = QFAttentionMH(
             num_attention_heads=num_heads,
             hidden_size=768,
-            encoder_hidden_size=128,
-            max_position_embeddings=110,
+            encoder_hidden_size=args.repr_size,
+            max_position_embeddings=110,  # max question len
             is_cross_attention=True,
+            args=args,
         )
 
     def forward(self, im_repr, q_repr):
@@ -43,13 +54,13 @@ class QFLayer(nn.Module):
 
 
 class QFIntermediate(nn.Module):
-    def __init__(self):
+    def __init__(self, args):
         super().__init__()
-        self.dense = nn.Linear(768, 256)
+        self.dense = nn.Linear(768, args.h_sz)
         self.intermediate_act_fn = nn.GELU()
-        self.layer_norm = nn.LayerNorm(768, eps=1e-6)
-        self.dropout = nn.Dropout(0.2)
-        self.dense_final = nn.Linear(256, 768)
+        self.layer_norm = nn.LayerNorm(768, eps=args.ln_eps)
+        self.dropout = nn.Dropout(args.pdrop)
+        self.dense_final = nn.Linear(args.h_sz, 768)
 
     def forward(self, hidden_states: torch.Tensor) -> torch.Tensor:
         x = self.dense(hidden_states)
@@ -66,10 +77,11 @@ class QFAttentionMH(nn.Module):
     def __init__(
         self,
         num_attention_heads,
-        hidden_size=768,  # TODO [DR] :this needs to match what gets out of siglip unless I want to project it down first
+        hidden_size=768,  # siglip repr dim
         encoder_hidden_size=768,
-        max_position_embeddings=110,
+        max_position_embeddings=110,  # max q len
         is_cross_attention=False,
+        args=None,
     ):
         super().__init__()
         self.num_attention_heads = num_attention_heads
@@ -89,7 +101,7 @@ class QFAttentionMH(nn.Module):
             self.key = nn.Linear(hidden_size, self.all_head_size)
             self.value = nn.Linear(hidden_size, self.all_head_size)
 
-        self.dropout = nn.Dropout(0.2)
+        self.dropout = nn.Dropout(args.pdrop)
         self.distance_embedding = nn.Embedding(
             2 * max_position_embeddings - 1, self.attention_head_size
         )
@@ -158,11 +170,11 @@ class QFAttentionMH(nn.Module):
 
 
 class QV_Fusion(nn.Module):
-    def __init__(self, in_dim, out_dim):
+    def __init__(self, in_dim, out_dim, args):
         super().__init__()
         self.ln1 = nn.Linear(in_dim, out_dim)
         self.ln2 = nn.Linear(out_dim, out_dim)
-        self.layer_norm = nn.LayerNorm(out_dim, eps=1e-6)
+        self.layer_norm = nn.LayerNorm(out_dim, eps=args.ln_eps)
 
     def forward(self, x):
         x = self.ln1(x)
