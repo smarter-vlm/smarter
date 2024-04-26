@@ -17,6 +17,7 @@ import torch.nn.functional as F
 
 import text_encoder as gv
 
+
 class CLayer(nn.Module):
     def __init__(self, dim, args):
         super().__init__()
@@ -35,7 +36,7 @@ class QFLayer(nn.Module):
             num_attention_heads=num_heads,
             hidden_size=768,
             encoder_hidden_size=args.repr_size,
-            max_position_embeddings=gv.max_qlen, #110
+            max_position_embeddings=gv.max_qlen,  # 110
             is_cross_attention=True,
             args=args,
         )
@@ -80,7 +81,7 @@ class QFAttentionMH(nn.Module):
         num_attention_heads,
         hidden_size=768,  # siglip repr dim
         encoder_hidden_size=768,
-        max_position_embeddings=gv.max_qlen, #110
+        max_position_embeddings=gv.max_qlen,  # 110
         is_cross_attention=False,
         args=None,
     ):
