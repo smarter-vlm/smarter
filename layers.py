@@ -15,6 +15,7 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 
+import text_encoder as gv
 
 class CLayer(nn.Module):
     def __init__(self, dim, args):
@@ -34,7 +35,7 @@ class QFLayer(nn.Module):
             num_attention_heads=num_heads,
             hidden_size=768,
             encoder_hidden_size=args.repr_size,
-            max_position_embeddings=110,
+            max_position_embeddings=gv.max_qlen, #110
             is_cross_attention=True,
             args=args,
         )
@@ -77,9 +78,9 @@ class QFAttentionMH(nn.Module):
     def __init__(
         self,
         num_attention_heads,
-        hidden_size=768,  # TODO [DR] :this needs to match what gets out of siglip unless I want to project it down first
+        hidden_size=768,  # siglip repr dim
         encoder_hidden_size=768,
-        max_position_embeddings=110,
+        max_position_embeddings=gv.max_qlen, #110
         is_cross_attention=False,
         args=None,
     ):
