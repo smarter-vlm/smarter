@@ -33,7 +33,7 @@ class QFLayer(nn.Module):
         self.crossattention = QFAttentionMH(
             num_attention_heads=num_heads,
             hidden_size=768,
-            encoder_hidden_size=128,
+            encoder_hidden_size=args.repr_size,
             max_position_embeddings=110,
             is_cross_attention=True,
             args=args,
