@@ -54,7 +54,7 @@ class Puzzle_Net(nn.Module):
 
         self.num_opts = 5
         self.out_dim = args.repr_size
-        self.h_sz = 256
+        self.h_sz = args.h_sz
         self.model_name = args.model_name
         self.use_single_image_head = args.use_single_image_head
         self.word_embed = args.word_embed

@@ -484,6 +484,12 @@ if __name__ == "__main__":
         default=0.98,
         help="adamw beta2?",
     )
+    parser.add_argument(
+        "--h_sz",
+        type=int,
+        default=256,
+        help="hidden size in qf intermediate and gru?",
+    )
 
     args = parser.parse_args()
 
