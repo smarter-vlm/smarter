@@ -1,4 +1,4 @@
- This is the step-by-step code I am working with to architect and train the vlm reasoners step by step for the final project DL 7643. PRs and Comet runs for all changes.
+ This is the step-by-step code for my path to architect and train the vlm reasoners for the final project DL 7643. PRs and Comet runs for all changes.
 
 Experiment tracked in CometML
 
@@ -12,5 +12,11 @@ conda create --name smarter python=3.10
 conda activate smarter
 pip install -r requirements.txt
 
-python main_reasoner.py --model_name fused_dinov2_siglip --log --word_embed siglip --save_root /home/hice1/droberts308/scratch/final_runs --data_root /home/hice1/droberts308/scratch/smart/SMART101-release-v1/SMART101-Data/ --lr 0.0003 --wd 0.2 --batch_size 128 --num_heads 2 --repr_size 128 --qf_layer --eps 1e-8 --beta2 0.98 --pdrop 0.2 --ln_eps 1e-6 --h_sz 256 --seed 0 --num_workers 16 
+python main_reasoner.py --model_name fused_dinov2_siglip --log --word_embed siglip --save_root /home/hice1/droberts308/scratch/final_runs --data_root <SMART101_data_path> --lr 0.0003 --wd 0.2 --batch_size 128 --num_heads 2 --repr_size 128 --qf_layer --eps 1e-8 --beta2 0.98 --pdrop 0.2 --ln_eps 1e-6 --h_sz 256 --seed 0 --num_workers 16 
 ```
+
+To be able to create your own CometML plots, you must place your Comet API Key in the modules/denisa_vlm_reasoners/.comet_token file and your Comet account user in  modules/denisa_vlm_reasoners/.comet_workspace.
+
+To download the SMART101 dataset, please execute the get_SMART_data.sh script in the repository folder "scripts".
+
+

@@ -54,8 +54,8 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 
 print(f"Available GPUs {AVAIL_GPUS} and current device {device}")
 
-API_KEY = Path(".comet_token").read_text().strip()
-workspace = Path(".comet_workspace").read_text().strip()
+API_KEY = Path("modules/denisa_vlm_reasoners/.comet_token").read_text().strip()
+workspace = Path("modules/denisa_vlm_reasoners/.comet_workspace").read_text().strip()
 
 experiment = Experiment(
     api_key=API_KEY,
@@ -64,7 +64,7 @@ experiment = Experiment(
     auto_metric_logging=True,  # default
 )
 
-# For direct baselines runs: https://github.com/D-Roberts/SMART
+# For training direct baselines from SMART CVPR'23 article: https://github.com/D-Roberts/SMART
 
 
 def reset_state(args):
