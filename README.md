@@ -1,4 +1,4 @@
- [On Vision-Language Reasoners Technical Report](https://drive.google.com/file/d/1cyJM1csY-CME_lVycioj0GDX4CtFsTgY/view?usp=sharing)
+ [On Vision-Language Reasoners](https://drive.google.com/file/d/1cyJM1csY-CME_lVycioj0GDX4CtFsTgY/view?usp=sharing)
 
 
 To run training and eval (need at least 40GB mem):
