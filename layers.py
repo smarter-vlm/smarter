@@ -1,4 +1,4 @@
-# New code. Copyright Denisa Roberts 2024
+# Copyright Denisa Roberts 2024
 
 # References
 
