@@ -1,6 +1,4 @@
 """
-Copyright Denisa Roberts 2024
-
 # References
 # https://github.com/merlresearch/SMART
 # CVPR SMART article https://arxiv.org/pdf/2212.09993.pdf

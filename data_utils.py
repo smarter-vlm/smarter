@@ -46,7 +46,7 @@ class SMART_Data(Dataset):
             "dinov2",
             "siglip",
             "fused_dinov2_siglip",
-        ]:  # this will do feature extractin later.
+        ]:  # this will do feature extracting later.
             self.transform = Compose(
                 [
                     Resize(224),

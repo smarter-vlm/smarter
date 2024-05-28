@@ -1,7 +1,4 @@
- [On Vision-Language Reasoners](https://drive.google.com/file/d/1cyJM1csY-CME_lVycioj0GDX4CtFsTgY/view?usp=sharing)
-
-
-To run training and eval (need at least 40GB mem):
+To run training and eval (need at least 40GB mem, 166 cores, and preferrably a V100 GPU):
 
 ```
 conda create --name smarter python=3.10
@@ -17,8 +14,8 @@ Experiments tracked in CometML
 https://www.comet.com/droberts308/multimodalai/view/new/panels
 https://www.comet.com/droberts308/vlm-reasoners/view/C6sw7GhOEifcK1S0eJL5i4rgx/panels
 
-To be able to create your own CometML plots, you must place your Comet API Key in the modules/denisa_vlm_reasoners/.comet_token file and your Comet account user in  modules/denisa_vlm_reasoners/.comet_workspace.
+To be able to create other CometML plots, a Comet API Key must be created and placed in the <root_dir>/.comet_token file and a Comet account username must be written to  <root_dir>/.comet_workspace.
 
-To download the SMART101 dataset (from [merl](https://github.com/merlresearch/SMART)), please execute the get_SMART_data.sh script in the repository folder "scripts". 
+To download the SMART101 dataset (from [merl](https://github.com/merlresearch/SMART)), please execute the get_SMART_data.sh script in the repository. 
 
 

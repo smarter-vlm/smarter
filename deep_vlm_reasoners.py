@@ -1,5 +1,4 @@
 """
-Copyright Denisa Roberts 2024
 
 # References
 # https://github.com/merlresearch/SMART
