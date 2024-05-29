@@ -363,7 +363,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--data_root",
         type=str,
-        default="",
+        default="data/smart-data/SMART101-release-v1/SMART101-Data",
         help="location of the csv files, and location of the images, relative location is provided in the csv file.",
     )
     parser.add_argument(
