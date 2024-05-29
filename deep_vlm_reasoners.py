@@ -2,7 +2,6 @@
 
 # References
 # https://github.com/merlresearch/SMART
-# CVPR SMART article https://arxiv.org/pdf/2212.09993.pdf
 
 # adsformers https://ui.adsabs.harvard.edu/abs/2023arXiv230201255A/abstract
 # eficient vit image representations https://www.researchgate.net/profile/Denisa-Roberts/publication/370980888_Efficient_Large-Scale_Vision_Representation_Learning/links/64ecf9d99b1e56033da9d827/Efficient-Large-Scale-Vision-Representation-Learning.pdf
