@@ -46,7 +46,7 @@ python main_reasoner.py \
 --data_tot 128 \
 --train_diff easy \
 --num_epochs 2 \
---puzzles 16,58
+--puzzles 58
 
 rm -rf small-data
 rm -rf small-runs
