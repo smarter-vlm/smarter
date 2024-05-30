@@ -16,8 +16,6 @@
 import os
 from pathlib import Path
 
-import comet_ml
-import pytorch_lightning as pl
 
 import numpy as np
 from comet_ml import Experiment
@@ -51,12 +49,12 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 
 print(f"Available GPUs {AVAIL_GPUS} and current device {device}")
 
-API_KEY = Path(".comet_token").read_text().strip()
+API_KEY = Path(".comet_api").read_text().strip()
 workspace = Path(".comet_workspace").read_text().strip()
 
 experiment = Experiment(
     api_key=API_KEY,
-    project_name="multimodalai",
+    project_name="smarter",
     workspace=workspace,
     auto_metric_logging=True,  # default
 )

@@ -149,7 +149,5 @@ smart_data/
 
 # secrets
 .hf_token
-.comet_token
-.comet_workspace
 *.pem
 *.png
