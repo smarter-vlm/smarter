@@ -1,9 +1,4 @@
 
-## SMART101 Data
-To be able to run a small experiment without the need to download the full dataset, two puzzles are committed to the repo. See the Small Runs section of the README to see how to run a toy train and eval experiment tracked in CometML.
-
-To download the full SMART101 dataset (from [merl](https://github.com/merlresearch/SMART)), please execute the get_SMART_data.sh script in the repository. Depending on the internet connection, it can take 1-5hrs to download.
- 
 ## Code and requirements
 
 ```bash
@@ -13,6 +8,13 @@ conda create --name smarter python=3.10
 conda activate smarter
 pip install -r requirements.txt
 ```
+
+## SMART101 Data
+To be able to run a small experiment without the need to download the full dataset, two puzzles are committed to the repo. See the Small Runs section of the README to see how to run a toy train and eval experiment tracked in CometML.
+
+To download the full SMART101 dataset (from [merl](https://github.com/merlresearch/SMART)), please execute the get_SMART_data.sh script in the repository. Depending on the internet connection, it can take 1-5hrs to download.
+ 
+
 
 ## Small Runs
 To run training and eval of smaller models on a subset of the dataset which is committed to this repo for initial insights into the deep learning training of vision-language reasoners, from the repo root (need an arch x86_64):
