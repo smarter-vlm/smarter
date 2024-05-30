@@ -1,4 +1,6 @@
+
 To run training and eval, from the repo root (need at least 40GB mem, 16 cores on arch x86_64, and preferably a V100 GPU):
+
 
 ```bash
 git clone https://github.com/D-Roberts/smarter.git
