@@ -12,7 +12,7 @@ pip install -r requirements.txt
 ## SMART101 Data
 To be able to run a small experiment without the need to download the full dataset, two puzzles are committed to the repo. See the Small Runs section of the README to see how to run a toy train and eval experiment tracked in CometML.
 
-To download the full SMART101 dataset (from [merl](https://github.com/merlresearch/SMART)), please execute the get_SMART_data.sh script in the repository. Depending on the internet connection, it can take 1-5hrs to download.
+To download the full SMART101 dataset (from [merl](https://github.com/merlresearch/SMART)), please execute the `get_SMART_data.sh` script in the repository. Depending on the internet connection, it can take 1-5hrs to download.
  
 
 
@@ -53,7 +53,7 @@ rm -rf small-runs
 
 The dataset is sampled from two puzzles, 16,58, illustrated in the article, one from the math skill with multiple choice answer and one from the path skill with sequence answer.
 
-Args are described in main_reasoner.py.
+Args are described in *main_reasoner.py*.
 
 ## Machine learning experiment tracking with CometML
 
