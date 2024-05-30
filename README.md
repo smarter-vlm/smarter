@@ -9,6 +9,8 @@ conda activate smarter
 pip install -r requirements.txt
 ```
 
+To install conda if necessary, can do [miniconda](https://docs.anaconda.com/free/miniconda/).
+
 ## SMART101 Data
 To be able to run a small experiment without the need to download the full dataset, two puzzles are committed to the repo. See the Small Runs section of the README to see how to run a toy train and eval experiment tracked in CometML.
 
