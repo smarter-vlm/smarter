@@ -53,7 +53,7 @@ rm -rf small-runs
 ```
 
 
-The dataset is sampled from two puzzles, 16,58, illustrated in the article, one from the math skill with multiple choice answer and one from the path skill with sequence answer.
+The small dataset has one puzzle, 58, illustrated in the article, from the math skill with multiple choice answer. Note that the skill-based accuracies will not be calculated since at least 3 puzzles are necessary.
 
 Args are described in *main_reasoner.py*.
 
