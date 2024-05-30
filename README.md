@@ -1,9 +1,4 @@
 
-## SMART101 Data
-To be able to run a small experiment without the need to download the full dataset, two puzzles are committed to the repo. See the Small Runs section of the README to see how to run a toy train and eval experiment tracked in CometML.
-
-To download the full SMART101 dataset (from [merl](https://github.com/merlresearch/SMART)), please execute the get_SMART_data.sh script in the repository. Depending on the internet connection, it can take 1-5hrs to download.
- 
 ## Code and requirements
 
 ```bash
@@ -13,6 +8,15 @@ conda create --name smarter python=3.10
 conda activate smarter
 pip install -r requirements.txt
 ```
+
+To install conda if necessary, can do [miniconda](https://docs.anaconda.com/free/miniconda/).
+
+## SMART101 Data
+To be able to run a small experiment without the need to download the full dataset, two puzzles are committed to the repo. See the Small Runs section of the README to see how to run a toy train and eval experiment tracked in CometML.
+
+To download the full SMART101 dataset (from [merl](https://github.com/merlresearch/SMART)), please execute the `get_SMART_data.sh` script in the repository. Depending on the internet connection, it can take 1-5hrs to download.
+ 
+
 
 ## Small Runs
 To run training and eval of smaller models on a subset of the dataset which is committed to this repo for initial insights into the deep learning training of vision-language reasoners, from the repo root (need an arch x86_64):
@@ -42,7 +46,7 @@ python main_reasoner.py \
 --data_tot 128 \
 --train_diff easy \
 --num_epochs 2 \
---puzzles 16,58
+--puzzles 58
 
 rm -rf small-data
 rm -rf small-runs
@@ -51,7 +55,7 @@ rm -rf small-runs
 
 The dataset is sampled from two puzzles, 16,58, illustrated in the article, one from the math skill with multiple choice answer and one from the path skill with sequence answer.
 
-Args are described in main_reasoner.py.
+Args are described in *main_reasoner.py*.
 
 ## Machine learning experiment tracking with CometML
 
