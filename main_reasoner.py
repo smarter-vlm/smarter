@@ -16,11 +16,11 @@
 import os
 from pathlib import Path
 
+import comet_ml
+API_KEY = Path(".comet_api").read_text().strip()
+comet_ml.init(api_key=API_KEY)
 
 import numpy as np
-from comet_ml import Experiment
-from comet_ml.integration.pytorch import log_model
-
 import torch
 
 os.environ["TOKENIZERS_PARALLELISM"] = "1"
@@ -44,15 +44,6 @@ import utils
 
 from transformers.optimization import get_cosine_schedule_with_warmup
 
-API_KEY = Path(".comet_api").read_text().strip()
-workspace = Path(".comet_workspace").read_text().strip()
-
-exp = Experiment(
-    api_key=API_KEY,
-    project_name="smarter",
-    workspace=workspace,
-    auto_metric_logging=True,  # default
-)
 
 AVAIL_GPUS = min(1, torch.cuda.device_count())
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -86,8 +77,6 @@ def train(args, dataloader, im_backbone):
 
     model.to(device)
     # print("\n Model architecture: \n", model)
-
-    log_model(exp, model, model_name="Puzzle_Net")
 
     def normalize(err, pids):
         """this function divides the error by the gt number of classes for each puzzle."""
@@ -345,6 +334,13 @@ def get_data_loader(
 
 if __name__ == "__main__":
 
+    workspace = Path(".comet_workspace").read_text().strip()
+    exp = comet_ml.Experiment(
+        api_key=API_KEY,
+        project_name="smarter",
+        workspace=workspace,
+        auto_metric_logging=True,  # default
+    )
     parser = argparse.ArgumentParser(description="SMART puzzles")
     parser.add_argument(
         "--puzzles",
@@ -552,3 +548,4 @@ if __name__ == "__main__":
     print("num_puzzles=%d" % (len(args.puzzle_ids)))
 
     train(args, dataloader, im_backbone)
+    exp.end()
