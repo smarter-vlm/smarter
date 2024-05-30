@@ -1,6 +1,8 @@
-To run training and eval, from the repo root (need at least 40GB mem, 16 cores on arch x86_64, and preferrably a V100 GPU):
+To run training and eval, from the repo root (need at least 40GB mem, 16 cores on arch x86_64, and a GPU for triton dependency)
 
-```
+```bash
+git clone https://github.com/D-Roberts/smarter.git
+cd smarter
 conda create --name smarter python=3.10
 conda activate smarter
 pip install -r requirements.txt
