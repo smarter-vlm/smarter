@@ -44,20 +44,20 @@ import utils
 
 from transformers.optimization import get_cosine_schedule_with_warmup
 
-AVAIL_GPUS = min(1, torch.cuda.device_count())
-device = "cuda" if torch.cuda.is_available() else "cpu"
-
-print(f"Available GPUs {AVAIL_GPUS} and current device {device}")
-
 API_KEY = Path(".comet_api").read_text().strip()
 workspace = Path(".comet_workspace").read_text().strip()
 
-experiment = Experiment(
+exp = Experiment(
     api_key=API_KEY,
     project_name="smarter",
     workspace=workspace,
     auto_metric_logging=True,  # default
 )
+
+AVAIL_GPUS = min(1, torch.cuda.device_count())
+device = "cuda" if torch.cuda.is_available() else "cpu"
+
+print(f"Available GPUs {AVAIL_GPUS} and current device {device}")
 
 # For training direct baselines from SMART CVPR'23 article: https://github.com/D-Roberts/SMART
 
@@ -87,7 +87,7 @@ def train(args, dataloader, im_backbone):
     model.to(device)
     # print("\n Model architecture: \n", model)
 
-    log_model(experiment, model, model_name="Puzzle_Net")
+    log_model(exp, model, model_name="Puzzle_Net")
 
     def normalize(err, pids):
         """this function divides the error by the gt number of classes for each puzzle."""
@@ -144,7 +144,7 @@ def train(args, dataloader, im_backbone):
 
             tot_loss += loss.item()
 
-            experiment.log_metrics({"train_batch_loss": loss.item()}, step=i)
+            exp.log_metrics({"train_batch_loss": loss.item()}, step=i)
 
         tot_loss /= float(i)
         return tot_loss
@@ -168,7 +168,7 @@ def train(args, dataloader, im_backbone):
                 val_loss = criterion(out, av, pids)
                 val_tot_loss += val_loss.item()
 
-                experiment.log_metrics({"val_batch_loss": val_loss.item()}, step=i)
+                exp.log_metrics({"val_batch_loss": val_loss.item()}, step=i)
 
                 av = av.cpu()
                 upids = torch.unique(pids)
@@ -263,22 +263,20 @@ def train(args, dataloader, im_backbone):
     print("starting training...")
     for epoch in range(args.num_epochs):
         tt = time.time()
-        model.train()
 
         # jsut in case
         optimizer.zero_grad()
 
         loss = train_loop(epoch, train_loader, optimizer)
 
-        experiment.log_metrics({"epoch_train_loss": loss}, epoch=epoch)
+        exp.log_metrics({"epoch_train_loss": loss}, epoch=epoch)
 
         tt = time.time() - tt
 
         if epoch >= 0:  # always eval
-            model.eval()
 
             acc, err, puz_acc, val_tot_loss = val_loop(val_loader, model)
-            experiment.log_metrics(
+            exp.log_metrics(
                 {
                     "val_acc": acc,
                     "val_var": err,
@@ -290,8 +288,8 @@ def train(args, dataloader, im_backbone):
 
             class_avg_perf = utils.print_puzz_acc(args, puz_acc, log=args.log)
 
-            with experiment.context_manager("val_acc"):
-                experiment.log_metrics(
+            with exp.context_manager("val_acc"):
+                exp.log_metrics(
                     {k: v[0] for k, v in class_avg_perf.items()}, epoch=epoch
                 )
 
