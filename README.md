@@ -12,7 +12,7 @@ pip install -r requirements.txt
 To install conda if necessary, can do [miniconda](https://docs.anaconda.com/free/miniconda/).
 
 ## SMART101 Data
-To be able to run a small experiment without the need to download the full dataset, two puzzles are committed to the repo. See the Small Runs section of the README to see how to run a toy train and eval experiment tracked in CometML.
+To be able to run a small experiment without the need to download the full dataset, a math puzzle is committed to the repo. See the Small Runs section of the README to see how to run a toy train and eval experiment tracked in CometML.
 
 To download the full SMART101 dataset (from [merl](https://github.com/merlresearch/SMART)), please execute the `get_SMART_data.sh` script in the repository. Depending on the internet connection, it can take 1-5hrs to download.
  
