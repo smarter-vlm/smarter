@@ -146,7 +146,9 @@ dmypy.json
 cache/
 data/
 smart-data/
-dataset/
+small-data/
+small-runs/
+final-runs/
 
 # secrets
 .hf_token
