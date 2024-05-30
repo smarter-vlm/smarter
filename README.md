@@ -1,4 +1,4 @@
-To run training and eval, from the repo root (need at least 40GB mem, 16 cores on arch x86_64, and preferrably a V100 GPU):
+To run training and eval, from the repo root (need at least 40GB mem, 16 cores on arch x86_64, and preferrably at least a V100 GPU):
 
 ```
 conda create --name smarter python=3.10
