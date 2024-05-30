@@ -145,9 +145,9 @@ dmypy.json
 # Caches and Datasets
 cache/
 data/
-smart_data/
+smart-data/
+dataset/
 
 # secrets
 .hf_token
 *.pem
-*.png
