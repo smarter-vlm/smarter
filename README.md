@@ -11,15 +11,11 @@ pip install -r requirements.txt
 
 To install conda if necessary, can do [miniconda](https://docs.anaconda.com/free/miniconda/).
 
-## SMART101 Data
-To be able to run a small experiment without the need to download the full dataset, a math puzzle is committed to the repo. See the Small Runs section of the README to see how to run a toy train and eval experiment tracked in CometML.
-
-To download the full SMART101 dataset (from [merl](https://github.com/merlresearch/SMART)), please execute the `get_SMART_data.sh` script in the repository. Depending on the internet connection, it can take 1-5hrs to download.
- 
-
 
 ## Small Runs
-To run training and eval of smaller models on a subset of the dataset which is committed to this repo for initial insights into the deep learning training of vision-language reasoners, from the repo root (need an arch x86_64):
+To be able to run a small experiment without the need to download the full dataset, a math puzzle is committed to the repo. See the *SMART101 Data* section of the README to see how to download the full dataset to run full final models train and eval.
+
+To run training and eval of smaller models on the small subset of the dataset which is committed to this repo for initial insights into the deep learning training of vision-language reasoners, from the repo root:
 
 ```bash
 unzip small-data.zip
@@ -61,11 +57,14 @@ Args are described in *main_reasoner.py*.
 
 Experiments are tracked in CometML. A public account is made available for trying out the code, and experiment panels (loss and accuracy curves) can be seen here [https://www.comet.com/ai-daor/smarter/view/new/panels](https://www.comet.com/ai-daor/smarter/view/new/panels).
 
-To be able to create personal experiments, a Comet API Key must be created and placed in the smarter/.comet_token file and a Comet account username must be written to smarter/.comet_workspace, replacing the public one (from [CometML](https://www.comet.com)).
+To be able to create personal experiments, a Comet API Key must be created and placed in the smarter/.comet_token file and a Comet account username must be written to smarter/.comet_workspace (from your [CometML](https://www.comet.com) account), replacing the public one.
 
+## SMART101 Data
+To download the full SMART101 dataset (from [merl](https://github.com/merlresearch/SMART)), please execute the `get_SMART_data.sh` script in the repository. Depending on the internet connection, it can take 1-5hrs to download.
+ 
 
 ## Final Models
-To run training and eval of final models, from the repo root (need at least 40GB mem, 16 cores on arch x86_64, and a V100 GPU (or A100 or H100)):
+To run training and eval of final models, from the repo root (need at least 40GB mem, at least 16 cores, and a V100 GPU (or A100 or H100)):
 
 
 ```bash
@@ -94,6 +93,6 @@ python main_reasoner.py \
 --puzzles all
 ```
 
-
+Tested on Ubuntu20.04 LTS, Mac (x86_64 and M1) CPU-only, V100, A100, H100.
 
 
