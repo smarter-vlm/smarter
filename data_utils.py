@@ -137,7 +137,6 @@ class SMART_TrainData(SMART_Data):
         self.word_embed = args.word_embed
         self.qa_info = []
         train_pids = None
-
         puzzle_ids = args.puzzle_ids
         for puzzle_id in puzzle_ids:
             puzzle_root = puzzle_id + "/" + gv.puzzle_diff_str[self.diff] + "/"
@@ -164,9 +163,11 @@ class SMART_TrainData(SMART_Data):
     def __getitem__(self, idx):
         info = self.qa_info[idx]
         pid = info["puzzle_id"]
+        #gv_pds = getattr(gv, 'puzzle_diff_str', {'easy': ''})
+        #puzzle_root = pid + "/" + gv_pds.get(self.diff, '') + "/"
         puzzle_root = pid + "/" + gv.puzzle_diff_str[self.diff] + "/"
         im = self.apply_transform(
-            gv.osp(self.data_root, puzzle_root, "img", info["image"])
+            os.path.join(self.data_root, puzzle_root, "img", info["image"])
         )
         qa = self.quest_encode(info["Question"])
         opts = 0
