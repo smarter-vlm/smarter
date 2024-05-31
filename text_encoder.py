@@ -26,6 +26,20 @@ import utils
 from main_reasoner import device
 
 
+MAX_DECODE_STEPS = 10  # number of steps to decode the LSTM.
+SEQ_PUZZLES = [16, 18, 35, 39, 63, 100]
+
+# TODO: make these all upper case chars to indicate module constants
+puzzle_diff = {"easy": ""}  # {'easy': 'e', 'medium': 'm', 'hard': 'h'}
+puzzle_diff_str = {"easy": ""}
+signs = np.array(["+", "-", "x", "/"])  # puzzle 58
+
+# TODO: this is C level base python module so here it will be more portable
+# across envs to do `import os` at the top of modules where this is needed
+# and then to call `os.path.join( ... )` inside each module
+osp = os.path.join
+
+
 class mBERT:
     # https://huggingface.co/docs/transformers/model_doc/bert
     def __init__(self):
@@ -142,20 +156,20 @@ def globals_init(args):
     global PS_VAL_IDX, PS_TEST_IDX
 
     # device = "cuda"
-    puzzle_diff = {"easy": ""}  # {'easy': 'e', 'medium': 'm', 'hard': 'h'}
-    puzzle_diff_str = {"easy": ""}
-    osp = os.path.join
+    # puzzle_diff = {"easy": ""}  # {'easy': 'e', 'medium': 'm', 'hard': 'h'}
+    # puzzle_diff_str = {"easy": ""}
+    # osp = os.path.join
     rand = lambda: np.random.rand() > 0.5
     MAX_VAL = 0
-    MAX_DECODE_STEPS = 10  # number of steps to decode the LSTM.
+    # MAX_DECODE_STEPS = 10  # number of steps to decode the LSTM.
     num_puzzles = 101
     max_qlen = 110
     seed = 10
     icon_dataset_path = "./dataset/icon-classes.txt"
     icon_class_ids = utils.get_icon_dataset_classes(icon_dataset_path)
-    signs = np.array(["+", "-", "x", "/"])  # puzzle 58
+    # signs = np.array(["+", "-", "x", "/"])  # puzzle 58
     NUM_CLASSES_PER_PUZZLE = {}
-    SEQ_PUZZLES = [16, 18, 35, 39, 63, 100]
+    # SEQ_PUZZLES = [16, 18, 35, 39, 63, 100]
     SMART_DATASET_INFO_FILE = "./dataset/SMART_info_v2.csv"
     num_actual_puzz = 102
     puzzles_not_included = set([])
