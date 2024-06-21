@@ -337,7 +337,7 @@ if __name__ == "__main__":
     workspace = Path(".comet_workspace").read_text().strip()
     exp = comet_ml.Experiment(
         api_key=API_KEY,
-        project_name="smarter",
+        project_name="multimodalai",
         workspace=workspace,
         auto_metric_logging=True,  # default
     )
