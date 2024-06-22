@@ -130,7 +130,7 @@ class Puzzle_Net(nn.Module):
 
         if args.qf_layer:
             # composite_dim = 2 * 768 + self.args.repr_size
-            composite_dim = 768 + 768
+            composite_dim = 768
             self.qv_fusion = QV_Fusion(
                 composite_dim, self.out_dim, args=self.args
             )  # 1664
@@ -380,7 +380,7 @@ class Puzzle_Net(nn.Module):
             if self.args.qf_layer:
                 qf_out = self.qf(im_repr, q_repr)
                 # qv_repr = self.qv_fusion(self.c([im_repr, q_repr.mean(1), qf_out]))
-                qv_repr = self.qv_fusion(self.c([q_repr.mean(1), qf_out]))
+                qv_repr = self.qv_fusion(self.c([qf_out]))
 
             else:
                 qv_repr = self.qv_fusion(self.c([im_repr, q_repr]))
