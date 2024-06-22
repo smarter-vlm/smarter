@@ -61,7 +61,7 @@ class QFIntermediate(nn.Module):
         self.intermediate_act_fn = nn.GELU()
         self.layer_norm = nn.LayerNorm(768, eps=args.ln_eps)
 
-        self.dropout = nn.Dropout(0.0)
+        self.dropout = nn.Dropout(0.1)
         self.dense_final = nn.Linear(args.h_sz, 768)
         # self.dense_final = nn.Linear(768, 768)
 
@@ -106,7 +106,7 @@ class QFAttentionMH(nn.Module):
             self.key = nn.Linear(hidden_size, self.all_head_size)
             self.value = nn.Linear(hidden_size, self.all_head_size)
 
-        self.dropout = nn.Dropout(0.0)
+        self.dropout = nn.Dropout(0.1)
         self.distance_embedding = nn.Embedding(
             2 * max_position_embeddings - 1, self.attention_head_size
         )
