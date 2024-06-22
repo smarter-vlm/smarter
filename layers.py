@@ -56,13 +56,16 @@ class QFLayer(nn.Module):
 class QFIntermediate(nn.Module):
     def __init__(self, args):
         super().__init__()
-        # self.dense = nn.Linear(768, args.h_sz)
-        self.dense = nn.Linear(768, 768)
-        self.intermediate_act_fn = nn.GELU()
+        self.dense = nn.Linear(768, args.h_sz)
+        # self.dense = nn.Linear(768, 768)
+
+        # self.intermediate_act_fn = nn.GELU()
+        self.intermediate_act_fn = nn.SiLU()
+
         self.layer_norm = nn.LayerNorm(768, eps=args.ln_eps)
         self.dropout = nn.Dropout(args.pdrop)
-        # self.dense_final = nn.Linear(args.h_sz, 768)
-        self.dense_final = nn.Linear(768, 768)
+        self.dense_final = nn.Linear(args.h_sz, 768)
+        # self.dense_final = nn.Linear(768, 768)
 
 
     def forward(self, hidden_states: torch.Tensor) -> torch.Tensor:
@@ -70,7 +73,7 @@ class QFIntermediate(nn.Module):
         x = self.intermediate_act_fn(x)
 
         x = self.dense_final(x)
-        print(self.dense)
+        # print(self.dense)
         x = self.dropout(x)
         x = self.layer_norm(hidden_states + x)
         return x
