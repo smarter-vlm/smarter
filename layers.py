@@ -58,7 +58,9 @@ class QFIntermediate(nn.Module):
         super().__init__()
         # self.dense = nn.Linear(768, args.h_sz)
         self.dense = nn.Linear(768, 768)
-        self.intermediate_act_fn = nn.GELU()
+        # self.intermediate_act_fn = nn.GELU()
+        self.intermediate_act_fn = nn.ReLU()
+
         self.layer_norm = nn.LayerNorm(768, eps=args.ln_eps)
         self.dropout = nn.Dropout(args.pdrop)
         # self.dense_final = nn.Linear(args.h_sz, 768)
