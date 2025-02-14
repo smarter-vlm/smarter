@@ -1,11 +1,21 @@
 
 ## Code and requirements
 
+Using Conda:
+
 ```bash
 git clone https://github.com/D-Roberts/smarter.git
 cd smarter
 conda create --name smarter python=3.10
 conda activate smarter
+pip install -r requirements.txt
+```
+
+Using `venv`
+
+```bash
+python3 -m venv smarter-env
+source ./smarter-env/bin/activate
 pip install -r requirements.txt
 ```
 
@@ -61,7 +71,7 @@ To be able to create personal experiments, a Comet API Key must be created and p
 
 ## SMART101 Data
 To download the full SMART101 dataset (from [merl](https://github.com/merlresearch/SMART)), please execute the `get_SMART_data.sh` script in the repository. Depending on the internet connection, it can take 1-5hrs to download.
- 
+
 
 ## Final Models
 To run training and eval of final models, from the repo root (need at least 40GB mem, at least 16 cores, and a V100 GPU (or A100 or H100)):

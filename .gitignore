@@ -153,3 +153,6 @@ final-runs/
 # secrets
 .hf_token
 *.pem
+
+# for venv
+smarter-env*
