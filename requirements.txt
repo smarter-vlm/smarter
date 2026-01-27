@@ -12,7 +12,7 @@ cycler==0.12.1
 dulwich==0.21.7
 everett==3.1.0
 filelock==3.13.4
-fonttools==4.51.0
+fonttools==4.60.2
 frozenlist==1.4.1
 fsspec==2024.3.1
 ftfy==6.2.0
