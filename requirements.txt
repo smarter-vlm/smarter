@@ -35,7 +35,7 @@ nltk==3.9.4
 numpy==1.26.4
 packaging==24.0
 pandas==2.2.2
-pillow==12.2.0
+pillow==12.3.0
 protobuf>=5.29.5
 psutil==5.9.8
 Pygments==2.20.0
